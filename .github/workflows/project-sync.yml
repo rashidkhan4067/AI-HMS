@@ -1,0 +1,18 @@
+name: Project Management Sync
+
+on:
+  issues:
+    types: [opened, labeled, unlabeled, closed, reopened]
+
+jobs:
+  # This is a placeholder job showing how we would sync GitHub issues 
+  # with a project board automatically. Native GitHub Projects (v2) 
+  # handle a lot of this internally now, but this is useful for legacy boards
+  # or custom integrations.
+  sync-to-board:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Log Issue Status
+        run: |
+          echo "Issue #${{ github.event.issue.number }} state changed to ${{ github.event.issue.state }}"
+          echo "We can use API scripts here to automatically update our product-backlog.md if desired!"

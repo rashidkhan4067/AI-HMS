@@ -1,0 +1,13 @@
+# Add 'documentation' label to any changes within the 'docs' folder
+documentation:
+  - changed-files:
+    - any-glob-to-any-file: docs/**
+
+# We will expand these as the project grows
+frontend:
+  - changed-files:
+    - any-glob-to-any-file: frontend/**
+
+backend:
+  - changed-files:
+    - any-glob-to-any-file: backend/**
