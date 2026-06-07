@@ -179,13 +179,17 @@ CORS_ALLOW_CREDENTIALS = True
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:5173",
     "http://127.0.0.1:5173",
+    "https://ai-hms-drab.vercel.app",
+]
+
+CORS_ALLOWED_ORIGIN_REGEXES = [
+    r"^https:\/\/.*\.vercel\.app$",
 ]
 
 CORS_ALLOWED_ORIGIN_ENV = os.getenv('CORS_ALLOWED_ORIGINS')
 if CORS_ALLOWED_ORIGIN_ENV:
     CORS_ALLOWED_ORIGINS.extend([origin.strip() for origin in CORS_ALLOWED_ORIGIN_ENV.split(',') if origin.strip()])
-else:
-    CORS_ALLOW_ALL_ORIGINS = True
+
 
 
 # Django REST Framework
