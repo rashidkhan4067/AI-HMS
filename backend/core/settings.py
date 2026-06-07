@@ -108,8 +108,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
-    # Fallback to local SQLite if DATABASE_URL is missing during build phase
-    DATABASE_URL = 'sqlite:///' + str(BASE_DIR / 'db.sqlite3')
+    # Fallback to Neon PostgreSQL database to ensure production works if env variable is missing on Railway
+    DATABASE_URL = 'postgresql://neondb_owner:npg_lENO0LxYm3uq@ep-twilight-bird-apieaomn.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require'
 
 DATABASES = {
     'default': dj_database_url.config(
