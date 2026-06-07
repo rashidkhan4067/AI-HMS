@@ -1,4 +1,4 @@
-import { Routes, Route, useLocation } from 'react-router-dom';
+import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { DashboardLayout } from '../shared/components/layout/DashboardLayout';
 import { AuthRoutes, ProtectedAuthRoutes } from '../features/auth/routes';
@@ -56,6 +56,9 @@ export const AppRoutes = () => {
 
     return (
         <Routes>
+            {/* Root Route — Redirect to Login */}
+            <Route path="/" element={<Navigate to="/login" replace />} />
+
             {/* Public Routes */}
             {AuthRoutes}
             <Route path="/privacy" element={<PrivacyPage />} />
