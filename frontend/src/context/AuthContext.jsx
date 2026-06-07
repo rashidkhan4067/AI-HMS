@@ -105,11 +105,14 @@ export const AuthProvider = ({ children }) => {
     // On App mount, attempt silent refresh instantly
     useEffect(() => {
         const initializeAuth = async () => {
+            console.log("AuthContext: initializeAuth started...");
             try {
                 await refreshAccessToken();
+                console.log("AuthContext: refreshAccessToken succeeded");
             } catch (err) {
-                console.log("No active secure session detected on mount.");
+                console.log("AuthContext: refreshAccessToken failed/no active secure session detected on mount.", err);
             } finally {
+                console.log("AuthContext: setting isLoading to false");
                 setIsLoading(false);
             }
         };

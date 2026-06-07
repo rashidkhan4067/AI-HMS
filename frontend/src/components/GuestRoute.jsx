@@ -4,8 +4,11 @@ import { useAuth } from '../features/auth/hooks/useAuth';
 export const GuestRoute = () => {
     const { isAuthenticated, isLoading, user } = useAuth();
 
+    console.log("GuestRoute: rendering...", { isLoading, isAuthenticated, user });
+
     if (isLoading) {
         // Render a blank themed page to prevent any login page blink/flash on mount
+        console.log("GuestRoute: still loading, rendering null");
         return null;
     }
 
