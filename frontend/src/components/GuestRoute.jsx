@@ -1,19 +1,20 @@
-import { Navigate, Outlet } from 'react-router-dom';
+import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
 
-export const GuestRoute = () => {
+export const GuestRoute = ({ children }) => {
     const { isAuthenticated, isLoading, user } = useAuth();
 
     console.log("GuestRoute: rendering...", { isLoading, isAuthenticated, user });
 
     if (isLoading) {
-        // Render a blank themed page to prevent any login page blink/flash on mount
         console.log("GuestRoute: still loading, rendering null");
+        // Render a blank themed page to prevent any login page blink/flash on mount
         return null;
     }
 
     if (isAuthenticated) {
         if (user?.must_complete_profile) {
+            console.log("GuestRoute: redirecting to complete-profile");
             return <Navigate to="/auth/complete-profile" replace />;
         }
 
@@ -32,8 +33,11 @@ export const GuestRoute = () => {
             }
         };
 
-        return <Navigate to={getDefaultDashboardPath(user?.role)} replace />;
+        const destPath = getDefaultDashboardPath(user?.role);
+        console.log("GuestRoute: authenticated, redirecting to", destPath);
+        return <Navigate to={destPath} replace />;
     }
 
-    return <Outlet />;
+    console.log("GuestRoute: unauthenticated, rendering page");
+    return children;
 };

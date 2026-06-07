@@ -14,16 +14,14 @@ import { GuestRoute } from '../../../components/GuestRoute';
  * Encapsulates all identity and profile routing.
  */
 export const AuthRoutes = [
-    <Route key="guest-routes" element={<GuestRoute />}>
-        <Route key="login" path="/login" element={<LoginPage />} />
-        <Route key="auth-login" path="/auth/login" element={<LoginPage />} />
-        <Route key="register" path="/register" element={<RegisterPage />} />
-        <Route key="auth-register" path="/auth/register" element={<RegisterPage />} />
-        <Route key="forgot-password" path="/forgot-password" element={<ForgotPasswordPage />} />
-        <Route key="verify-otp" path="/verify-otp" element={<VerifyOtpPage />} />
-        <Route key="reset-password" path="/reset-password" element={<ResetPasswordPage />} />
-        <Route key="locked" path="/locked" element={<LockedPage />} />
-    </Route>,
+    <Route key="login" path="/login" element={<GuestRoute><LoginPage /></GuestRoute>} />,
+    <Route key="auth-login" path="/auth/login" element={<GuestRoute><LoginPage /></GuestRoute>} />,
+    <Route key="register" path="/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />,
+    <Route key="auth-register" path="/auth/register" element={<GuestRoute><RegisterPage /></GuestRoute>} />,
+    <Route key="forgot-password" path="/forgot-password" element={<GuestRoute><ForgotPasswordPage /></GuestRoute>} />,
+    <Route key="verify-otp" path="/verify-otp" element={<GuestRoute><VerifyOtpPage /></GuestRoute>} />,
+    <Route key="reset-password" path="/reset-password" element={<GuestRoute><ResetPasswordPage /></GuestRoute>} />,
+    <Route key="locked" path="/locked" element={<GuestRoute><LockedPage /></GuestRoute>} />,
     // Complete profile — accessible to authenticated Google SSO users who need to finish setup
     <Route key="complete-profile" path="/auth/complete-profile" element={<CompleteProfilePage />} />,
 ];
@@ -31,4 +29,3 @@ export const AuthRoutes = [
 export const ProtectedAuthRoutes = [
     <Route key="profile" path="/profile" element={<ProfilePage />} />
 ];
-

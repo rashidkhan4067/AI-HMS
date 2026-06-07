@@ -1,7 +1,20 @@
 import axios from 'axios';
 
-const envBaseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL || 'http://localhost:8000/api';
+const getBaseURL = () => {
+    const envBaseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+    if (envBaseURL) return envBaseURL;
+
+    // Automatically detect Vercel production hosting and point to production Railway backend
+    if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname === 'ai-hms-drab.vercel.app')) {
+        return 'https://ai-hms-production.up.railway.app/api';
+    }
+
+    return 'http://localhost:8000/api';
+};
+
+const envBaseURL = getBaseURL();
 const baseURL = envBaseURL.endsWith('/') ? envBaseURL : `${envBaseURL}/`;
+
 
 export const api = axios.create({
     baseURL,
