@@ -125,6 +125,7 @@ body {
 }
 .animate-spin {
   animation: spin 1s linear infinite;
+  display: inline-block;
 }
 
 /* ── Glassmorphic card utility for showcase illustrations ── */
