@@ -1,5 +1,6 @@
 import { Navigate } from 'react-router-dom';
 import { useAuth } from '../features/auth/hooks/useAuth';
+import { GlobalLoader } from '../shared/components/ui';
 
 export const GuestRoute = ({ children }) => {
     const { isAuthenticated, isLoading, user } = useAuth();
@@ -7,9 +8,8 @@ export const GuestRoute = ({ children }) => {
     console.log("GuestRoute: rendering...", { isLoading, isAuthenticated, user });
 
     if (isLoading) {
-        console.log("GuestRoute: still loading, rendering null");
-        // Render a blank themed page to prevent any login page blink/flash on mount
-        return null;
+        console.log("GuestRoute: still loading, rendering GlobalLoader");
+        return <GlobalLoader message="Verifying session..." />;
     }
 
     if (isAuthenticated) {
