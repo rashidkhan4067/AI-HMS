@@ -15,7 +15,7 @@
 > **So that** I can securely access the clinic portal to book appointments and view my records.
 
 #### Acceptance Criteria
-- **AC-1.1:** Given a registration form, when I supply a unique email, a first and last name, a valid password, and attempt to sign up, the system creates the account and sets the role to `PATIENT`.
+- **AC-1.1:** Given a registration form, when I supply a unique email, a full name, a valid password, and attempt to sign up, the system creates the account and sets the role to `PATIENT`.
 - **AC-1.2:** Given the registration form, when I attempt to register with a role other than `PATIENT` (such as `DOCTOR` or `ADMIN`), the registration is rejected with an explicit error message.
 - **AC-1.3:** Given a registration attempt, when I supply an email that is already registered, the system returns a validation error indicating the email is taken.
 

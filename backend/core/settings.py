@@ -28,8 +28,8 @@ load_dotenv(BASE_DIR / '.env')
 # SECURITY WARNING: keep the secret key used in production secret!
 SECRET_KEY = os.getenv('SECRET_KEY')
 if not SECRET_KEY:
-    from django.core.exceptions import ImproperlyConfigured
-    raise ImproperlyConfigured("The SECRET_KEY environment variable is required.")
+    # Fallback dummy key for build time/local development
+    SECRET_KEY = 'django-insecure-dummy-key-for-build-and-testing-al-shifaa'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
@@ -108,8 +108,8 @@ WSGI_APPLICATION = 'core.wsgi.application'
 
 DATABASE_URL = os.getenv('DATABASE_URL')
 if not DATABASE_URL:
-    from django.core.exceptions import ImproperlyConfigured
-    raise ImproperlyConfigured("The DATABASE_URL environment variable is required.")
+    # Fallback to local SQLite if DATABASE_URL is missing during build phase
+    DATABASE_URL = 'sqlite:///' + str(BASE_DIR / 'db.sqlite3')
 
 DATABASES = {
     'default': dj_database_url.config(

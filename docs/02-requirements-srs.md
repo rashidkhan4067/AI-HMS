@@ -10,7 +10,7 @@
 ## 1. Introduction
 
 ### 1.1 Purpose
-This document specifies the software requirements for the Authentication and Authorization module of the AI Hospital Management System (AI-HMS). This module acts as the core gateway for system security, ensuring that clinical, administrative, and patient resources are protected and restricted according to role-based privileges.
+This document specifies the software requirements for the Authentication and Authorization module of the Al Shifaa HMS. This module acts as the core gateway for system security, ensuring that clinical, administrative, and patient resources are protected and restricted according to role-based privileges.
 
 ### 1.2 Scope
 The scope of this document is limited to the Milestone 1 release, which covers custom user model schema validation, JWT-based stateless sessions, automated client-side token renewal, custom API route permission checking, password update workflows, and security remediation policies.
@@ -24,7 +24,7 @@ The scope of this document is limited to the Milestone 1 release, which covers c
 - **FR-REG-2 (Input Validation):** The registration service must validate:
   - Unique, non-empty email addresses (case-insensitive normalized to lowercase).
   - Passwords meeting complexity standards (minimum 8 characters).
-  - First name and last name fields (non-empty, alphanumeric, maximum 150 characters).
+  - Full name field (non-empty, alphanumeric, maximum 150 characters).
 - **FR-REG-3 (Password Hashing):** Passwords must be hashed using Django's default secure cryptographic algorithm (PBKDF2 with SHA-256 / bcrypt) before database storage. Plaintext passwords must never be stored, logged, or sent in API responses.
 
 ### 2.2 User Authentication & JWT Operations (FR-AUTH)

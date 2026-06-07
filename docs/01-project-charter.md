@@ -1,4 +1,4 @@
-# Project Charter: AI-HMS (AI-Powered Hospital Management System)
+# Project Charter: Al Shifaa HMS (AI-Powered Hospital Management System)
 
 ---
 **Metadata**
@@ -11,7 +11,7 @@
 ## 1. Project Vision & Purpose
 
 ### 1.1 Executive Summary
-The AI-Powered Hospital Management System (AI-HMS) is an enterprise-grade, full-stack medical software solution designed to centralize, secure, and optimize clinic and hospital operations. By integrating modern software architecture patterns with secure Role-Based Access Control (RBAC) and Artificial Intelligence capabilities, AI-HMS streamlines the operational workflow for administrators, clinicians, operational staff, and patients.
+The Al Shifaa HMS (AI-Powered Hospital Management System) is an enterprise-grade, full-stack medical software solution designed to centralize, secure, and optimize clinic and hospital operations. By integrating modern software architecture patterns with secure Role-Based Access Control (RBAC) and Artificial Intelligence capabilities, Al Shifaa HMS streamlines the operational workflow for administrators, clinicians, operational staff, and patients.
 
 ### 1.2 Core Problem Statement
 Healthcare facilities often suffer from fragmented software environments, data silos, and administrative bottlenecking:
@@ -47,7 +47,7 @@ To construct a modern, scalable, secure, and compliant SPA-API platform that act
 
 ```mermaid
 gantt
-    title AI-HMS Implementation Roadmap
+    title Al Shifaa HMS Implementation Roadmap
     dateFormat  YYYY-MM-DD
     section Phase 1
     Planning & Baseline Design      :done, 2026-06-01, 2026-06-05

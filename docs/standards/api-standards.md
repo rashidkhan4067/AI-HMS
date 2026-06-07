@@ -78,5 +78,5 @@ To simplify client integration, all API errors must return a predictable envelop
     }
     ```
 - **Sorting:** Endpoint sorting must be handled via a single uniform `ordering` query parameter:
-  - Ascending: `?ordering=last_name`
+  - Ascending: `?ordering=full_name`
   - Descending: `?ordering=-date_joined`
