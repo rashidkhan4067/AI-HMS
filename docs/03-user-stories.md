@@ -1,13 +1,75 @@
-# User Stories
+# User Stories: Authentication & Access Control (Milestone 1)
 
-*Note: User stories are documented iteratively per milestone. Currently reflecting Milestone 1 (Authentication).*
+---
+**Metadata**
+- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Target Audience:** Product Managers, Frontend Engineers, QA Engineers
+- **Status:** APPROVED
+---
 
-## 1. Authentication & Access Control
+## 1. User Stories & Acceptance Criteria
 
-* **As a developer,** I want to initialize the React and Django projects so that development can begin.
-* **As a user,** I want to register a new account so that I can access the system.
-* **As a user,** I want to securely log in with an email and password using JWT so my data is protected.
-* **As the system,** I want to restrict route access based on the user's role (Admin/Doctor/Patient/Receptionist) so that data remains secure.
-* **As an Administrator,** I want to create and manage user accounts so that I can control access to the system.
+### 1.1 US-1: Public Patient Account Onboarding
+> **As a new patient**  
+> **I want to** register an account using my email, password, and name  
+> **So that** I can securely access the clinic portal to book appointments and view my records.
 
-*(Additional user stories for Doctors, Patients, and Receptionists will be added in future milestones).*
+#### Acceptance Criteria
+- **AC-1.1:** Given a registration form, when I supply a unique email, a first and last name, a valid password, and attempt to sign up, the system creates the account and sets the role to `PATIENT`.
+- **AC-1.2:** Given the registration form, when I attempt to register with a role other than `PATIENT` (such as `DOCTOR` or `ADMIN`), the registration is rejected with an explicit error message.
+- **AC-1.3:** Given a registration attempt, when I supply an email that is already registered, the system returns a validation error indicating the email is taken.
+
+---
+
+### 1.2 US-2: Secure Identity Authentication
+> **As a registered user**  
+> **I want to** authenticate using my email and password credentials  
+> **So that** I can obtain access and refresh tokens to communicate securely with protected endpoints.
+
+#### Acceptance Criteria
+- **AC-2.1:** Given valid login credentials, when I submit my details, the system returns a `200 OK` code containing valid JWT access and refresh tokens along with my role and email.
+- **AC-2.2:** Given invalid login credentials, when I submit my details, the system returns a `401 Unauthorized` code with a generic validation error message.
+
+---
+
+### 1.3 US-3: Automated Session Renewal
+> **As a signed-in portal user**  
+> **I want** my React application to refresh my expired access token automatically in the background using my refresh token  
+> **So that** I can experience uninterrupted workflows without having to log in again every 15 minutes.
+
+#### Acceptance Criteria
+- **AC-3.1:** Given an expired access token, when I execute an API request (such as fetching my profile), the frontend Axios client intercepts the `401` error, requests a new access token, updates the header, and executes the original request successfully without user intervention.
+- **AC-3.2:** Given an invalid or expired refresh token, when the Axios client attempts to fetch a new access token, the request fails, the tokens are cleared from storage, and I am redirected to `/login`.
+
+---
+
+### 1.3 US-4: Secure Session Terminate (Logout)
+> **As an authenticated user**  
+> **I want to** sign out of my current session  
+> **So that** my active refresh tokens are invalidated on the server and my local credentials are deleted.
+
+#### Acceptance Criteria
+- **AC-4.1:** Given a signed-in state, when I click "Logout", the frontend issues a `POST` request to the logout API with my refresh token, blacklisting it on the server database.
+- **AC-4.2:** Given a logged-out request, when I check my local storage, all access and refresh tokens are deleted, and I am redirected back to the login page.
+
+---
+
+### 1.5 US-5: User Route Protection & Role Checks (RBAC)
+> **As the clinic platform manager**  
+> **I want** the client routing and backend APIs to check the user's role before exposing pages or database records  
+> **So that** patients cannot access clinical operations and staff cannot access admin settings.
+
+#### Acceptance Criteria
+- **AC-5.1:** Given a route requiring an `ADMIN` role, when a user with a `PATIENT` role attempts to access the route, they are automatically redirected to a dedicated `/forbidden` access denied page.
+- **AC-5.2:** Given a backend clinical endpoint, when a user with a `PATIENT` role attempts to request data, the Django backend checks the token role and returns a `403 Forbidden` response.
+
+---
+
+### 1.6 US-6: Credential Modification & Confirmation
+> **As a logged-in user**  
+> **I want to** update my current password  
+> **So that** I can maintain my account security.
+
+#### Acceptance Criteria
+- **AC-6.1:** Given a password change request, when I provide my old password, my new password, and my confirm password correctly, the system updates my credentials.
+- **AC-6.2:** Given a password change request, when the confirm new password does not match the new password, the system rejects the request with a validation warning.

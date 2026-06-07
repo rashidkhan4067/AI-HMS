@@ -1,14 +1,23 @@
-import React, { useEffect, useState } from 'react';
-import { Box, Card, CardContent, Typography, Alert, CircularProgress, TextField, Button } from '@mui/material';
-import { useAuth } from '../hooks/useAuth';
-import { authApi } from '../services/authApi';
+import { useState } from 'react';
+import { TextField, Box } from '@mui/material';
+import { FormCard, LoadingButton } from '../../../shared/components/ui';
 
-export const ProfileForm = ({ initialData, onSave, isLoading, error }) => {
+export const ProfileForm = ({ initialData, onSave, isLoading, error, success }) => {
     const [formData, setFormData] = useState({
-        first_name: initialData?.first_name || '',
-        last_name: initialData?.last_name || '',
-        email: initialData?.email || ''
+        full_name: initialData?.full_name || '',
+        email:      initialData?.email      || '',
     });
+
+    const [prevInitialData, setPrevInitialData] = useState(initialData);
+
+    // Sync form when parent loads fresh profile data without using useEffect
+    if (initialData !== prevInitialData) {
+        setFormData({
+            full_name: initialData?.full_name || '',
+            email:      initialData?.email      || '',
+        });
+        setPrevInitialData(initialData);
+    }
 
     const handleChange = (e) => setFormData({ ...formData, [e.target.name]: e.target.value });
 
@@ -18,29 +27,38 @@ export const ProfileForm = ({ initialData, onSave, isLoading, error }) => {
     };
 
     return (
-        <Card>
-            <CardContent>
-                <Typography variant="h6" gutterBottom>Personal Information</Typography>
-                {error && <Alert severity="error" sx={{ mb: 2 }}>{error}</Alert>}
-                
-                <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <TextField 
-                        label="First Name" name="first_name" 
-                        value={formData.first_name} onChange={handleChange} 
-                    />
-                    <TextField 
-                        label="Last Name" name="last_name" 
-                        value={formData.last_name} onChange={handleChange} 
-                    />
-                    <TextField 
-                        label="Email (Read Only)" name="email" type="email" 
-                        value={formData.email} disabled 
-                    />
-                    <Button type="submit" variant="contained" disabled={isLoading} sx={{ alignSelf: 'flex-start' }}>
-                        {isLoading ? <CircularProgress size={24} /> : 'Save Changes'}
-                    </Button>
-                </Box>
-            </CardContent>
-        </Card>
+        <FormCard title="Personal Information" error={error} success={success}>
+            <Box component="form" onSubmit={handleSubmit} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                <TextField
+                    label="Full Name"
+                    name="full_name"
+                    placeholder="e.g. John Smith"
+                    value={formData.full_name}
+                    onChange={handleChange}
+                    required
+                    fullWidth
+                    variant="outlined"
+                />
+
+                <TextField
+                    label="Email Address"
+                    name="email"
+                    type="email"
+                    placeholder="e.g. john.smith@hospital.com"
+                    value={formData.email}
+                    disabled
+                    fullWidth
+                    variant="outlined"
+                />
+
+                <LoadingButton
+                    isLoading={isLoading}
+                    label="Save Changes"
+                    fullWidth={false}
+                    size="large"
+                    sx={{ alignSelf: 'flex-start', mt: 1 }}
+                />
+            </Box>
+        </FormCard>
     );
 };

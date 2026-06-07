@@ -25,9 +25,7 @@ jobs:
         if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
     - name: Run Tests
       run: |
-        # Replace with your test command once Django is set up
-        # python manage.py test
-        echo "Backend tests would run here"
+        python manage.py test
 
   frontend-test:
     runs-on: ubuntu-latest
@@ -44,9 +42,8 @@ jobs:
     - name: Install dependencies
       run: |
         if [ -f package.json ]; then npm install; fi
-    - name: Run Linter and Tests
+    - name: Run Linter and Build
       run: |
-        # Replace with your linting and testing commands once React is set up
-        # npm run lint
-        # npm run test
-        echo "Frontend tests would run here"
+        npm run lint
+        npm run build
+

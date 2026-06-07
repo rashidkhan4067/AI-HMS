@@ -220,5 +220,7 @@ __marimo__/
 .env
 backend/.env
 frontend/.env
+.env.local
+frontend/.env.local
 venv/
 __pycache__/

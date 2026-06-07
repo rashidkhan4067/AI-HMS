@@ -1,25 +1,27 @@
-import React, { useState } from 'react';
-import { Outlet, useNavigate } from 'react-router-dom';
+import { useState } from 'react';
+import { Outlet, useNavigate, useLocation } from 'react-router-dom';
 import { 
     AppBar, Box, CssBaseline, Drawer, IconButton, List, ListItem, 
     ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, Divider 
 } from '@mui/material';
 import MenuIcon from '@mui/icons-material/Menu';
-import DashboardIcon from '@mui/icons-material/Dashboard';
-import PersonIcon from '@mui/icons-material/Person';
 import LogoutIcon from '@mui/icons-material/Logout';
 import LocalHospitalIcon from '@mui/icons-material/LocalHospital';
+import LightModeIcon from '@mui/icons-material/LightMode';
+import DarkModeIcon from '@mui/icons-material/DarkMode';
+import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 
 const drawerWidth = 240;
 
 export const DashboardLayout = ({ navItems = [], onLogout }) => {
+    const { mode, toggleThemeMode } = useThemeMode();
     const [mobileOpen, setMobileOpen] = useState(false);
     const navigate = useNavigate();
+    const location = useLocation();
 
     const handleDrawerToggle = () => {
         setMobileOpen(!mobileOpen);
     };
-
 
     const drawer = (
         <div>
@@ -29,16 +31,38 @@ export const DashboardLayout = ({ navItems = [], onLogout }) => {
             </Toolbar>
             <Divider />
             <List>
-                {navItems.map((item) => (
-                    <ListItem key={item.text} disablePadding>
-                        <ListItemButton onClick={() => navigate(item.path)}>
-                            <ListItemIcon sx={{ color: 'primary.main' }}>
-                                {item.icon}
-                            </ListItemIcon>
-                            <ListItemText primary={item.text} />
-                        </ListItemButton>
-                    </ListItem>
-                ))}
+                {navItems.map((item) => {
+                    const isActive = location.pathname === item.path;
+                    return (
+                        <ListItem key={item.text} disablePadding>
+                            <ListItemButton 
+                                onClick={() => navigate(item.path)}
+                                selected={isActive}
+                                sx={{
+                                    '&.Mui-selected': {
+                                        bgcolor: 'primary.light',
+                                        color: 'primary.dark',
+                                        '&:hover': {
+                                            bgcolor: 'primary.light',
+                                        }
+                                    }
+                                }}
+                            >
+                                <ListItemIcon sx={{ color: isActive ? 'primary.dark' : 'primary.main' }}>
+                                    {item.icon}
+                                </ListItemIcon>
+                                <ListItemText 
+                                    primary={item.text} 
+                                    slotProps={{
+                                        primary: {
+                                            fontWeight: isActive ? 600 : 400
+                                        }
+                                    }}
+                                />
+                            </ListItemButton>
+                        </ListItem>
+                    );
+                })}
             </List>
             <Divider />
             <List>
@@ -80,6 +104,14 @@ export const DashboardLayout = ({ navItems = [], onLogout }) => {
                     <Typography variant="h6" noWrap component="div" fontWeight="500">
                         Hospital Portal
                     </Typography>
+                    <Box sx={{ flexGrow: 1 }} />
+                    <IconButton onClick={toggleThemeMode} color="inherit" sx={{ mr: 1 }}>
+                        {mode === 'dark' ? (
+                            <LightModeIcon sx={{ color: '#ffb400' }} />
+                        ) : (
+                            <DarkModeIcon sx={{ color: '#42474e' }} />
+                        )}
+                    </IconButton>
                 </Toolbar>
             </AppBar>
             
@@ -110,7 +142,9 @@ export const DashboardLayout = ({ navItems = [], onLogout }) => {
             
             <Box component="main" sx={{ flexGrow: 1, p: 3, width: { sm: `calc(100% - ${drawerWidth}px)` } }}>
                 <Toolbar />
-                <Outlet />
+                <Box sx={{ maxWidth: '1440px', margin: '0 auto', width: '100%' }}>
+                    <Outlet />
+                </Box>
             </Box>
         </Box>
     );

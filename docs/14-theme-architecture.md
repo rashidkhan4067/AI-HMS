@@ -1,64 +1,67 @@
-# Material Design 3 Theme Architecture
+# Material Design 3 Theme Architecture: Tokens & Custom Overrides
 
-**Project:** AI Hospital Management System (AI-HMS)  
-**Role:** Senior UI Architect  
-**Framework:** Material-UI (MUI v5)  
+---
+**Metadata**
+- **Document Version:** 1.1 (Milestone 1 Completed)
+- **Primary Framework:** Material-UI (MUI v9)
+- **Design Tokens:** Material Design 3 (M3)
+- **Status:** APPROVED
+---
+
+## 1. Visual Colors & Palette Tokens
+
+The UI color system complies with Material Design 3, optimized for clinic and hospital dashboard environments.
+
+```
+┌─────────────────────────────────────────────────────────────────────────┐
+│                           Color Palette Tokens                          │
+│                                                                         │
+│   Primary (Clinical Teal)       Secondary (Mint Green) Background       │
+│   ┌────────────────────────┐   ┌───────────────────┐  ┌─────────────┐   │
+│   │ Main: #006A6A          │   │ Main: #4DB6AC     │  │ Paper:      │   │
+│   │ Light: #E0F2F1         │   │ Light: #B2DFDB    │  │ #f3f4f9     │   │
+│   │ Dark: #004F4F          │   │ Dark: #004D40     │  │ Default:    │   │
+│   └────────────────────────┘   └───────────────────┘  │ #fdfcff     │   │
+│                                                       └─────────────┘   │
+└─────────────────────────────────────────────────────────────────────────┘
+```
 
 ---
 
-## 1. Complete Color Palette (M3 Healthcare SaaS)
-The color palette uses exact hex codes designed for high contrast and clinical precision.
+## 2. Typographic Scale Configuration (Outfit & DM Sans)
 
-*   **Primary (Healthcare Blue):**
-    *   `main`: `#005ac1`
-    *   `light`: `#d8e2ff` (Primary Container)
-    *   `dark`: `#00418c`
-*   **Secondary (Teal):**
-    *   `main`: `#006a60`
-    *   `light`: `#74f8e5` (Secondary Container)
-    *   `dark`: `#005048`
-*   **Error (Crimson Red):**
-    *   `main`: `#ba1a1a`
-    *   `light`: `#ffdad6`
-*   **Warning (Amber):**
-    *   `main`: `#ffb400`
-*   **Success (Green):**
-    *   `main`: `#146c2e`
-*   **Background (Surfaces):**
-    *   `default`: `#fdfcff` (Pure surface)
-    *   `paper`: `#f3f4f9` (Surface Container Lowest)
+The custom typography settings in [`typography.js`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/app/theme/typography.js) use the `Outfit` and `DM Sans` font families.
 
-## 2. Typography Scale
-Using the `Roboto` typeface, adhering strictly to M3 tracking and leading.
-
-*   `h1` (Display Large): `57px`, 400 weight, `-0.25px` letter spacing.
-*   `h2` (Headline Large): `32px`, 400 weight, `0px` letter spacing.
-*   `h3` (Title Large): `22px`, 500 weight, `0px` letter spacing.
-*   `body1` (Body Large): `16px`, 400 weight, `0.5px` letter spacing.
-*   `body2` (Body Medium): `14px`, 400 weight, `0.25px` letter spacing.
-*   `button` (Label Large): `14px`, 500 weight, `0.1px` letter spacing.
-
-## 3. Spacing System
-A strict `4px` baseline grid system. MUI will be configured with a spacing factor of `4`.
-Tokens: `theme.spacing(1)` = `4px`, `theme.spacing(2)` = `8px`, `theme.spacing(4)` = `16px`.
-
-## 4. Elevation System
-Shadows are minimized. Depth is communicated primarily through surface colors and borders.
-*   `elevation: 0` -> Flat, inline content.
-*   `elevation: 1` -> Cards, basic containers (`0px 1px 3px rgba(0,0,0,0.12)`).
-*   `elevation: 4` -> Floating Action Buttons, Dialogs.
-*   `elevation: 8` -> Navigation Drawers, Modals.
-
-## 5. Theme Architecture & Tokens
-The theme is isolated in `src/app/theme.js`. It utilizes **Design Tokens** (e.g., standardizing border-radius across all components via `theme.shape.borderRadius`).
-
-## 6. Component Styling Guidelines (M3 Overrides)
-MUI default components are overridden globally to achieve the M3 look without requiring inline styles.
-*   **Buttons:** Fully rounded (pill-shape) with `borderRadius: 20px`. Minimum height `40px`. No uppercase text transformation.
-*   **Cards:** Rounded corners (`16px`), zero elevation default (relies on surface color contrast), slight border.
-*   **Inputs (TextFields):** Outlined variant forced by default, `8px` border radius.
+```javascript
+export const typography = {
+    fontFamily: '"Outfit", "DM Sans", "Roboto", "Helvetica", "Arial", sans-serif',
+    h1: { fontSize: '57px', fontWeight: 400, letterSpacing: '-0.25px', lineHeight: 1.12 },
+    h2: { fontSize: '32px', fontWeight: 400, letterSpacing: '0px', lineHeight: 1.25 },
+    h3: { fontSize: '22px', fontWeight: 500, letterSpacing: '0px', lineHeight: 1.27 },
+    body1: { fontSize: '16px', fontWeight: 400, letterSpacing: '0.5px', lineHeight: 1.5 },
+    body2: { fontSize: '14px', fontWeight: 400, letterSpacing: '0.25px', lineHeight: 1.43 },
+    button: { fontSize: '14px', fontWeight: 500, letterSpacing: '0.1px', textTransform: 'none' },
+};
+```
 
 ---
 
-## 7. Production-Ready Code Example (`theme.js`)
-*(This configuration has been directly injected into `frontend/src/app/theme.js`)*
+## 3. Spacing & Shape Guidelines
+
+- **Base Factor Spacing:** The application implements an 8pt layout grid. In MUI configurations, `theme.spacing(1)` equals `8px`, and `theme.spacing(2)` equals `16px`.
+- **Shape Tokens:** Component container corners follow the M3 rounded standard:
+  - **Inputs / TextFields:** `8px` corner radius.
+  - **Cards / Form Panels:** `16px` corner radius.
+  - **Buttons / Actions:** `20px` corner radius (stadium pill shape).
+  - **Dialogs / Modals:** `24px` corner radius (applied for high elevation).
+
+---
+
+## 4. Component Styles (MUI Overrides)
+
+MUI components are customized globally in [`theme/index.js`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/app/theme/index.js) to enforce the visual styling without requiring inline CSS overrides:
+
+- **MuiButton:** Disables shadow elevations (`disableElevation: true`) to maintain the flat M3 look. Applies custom padding and fully rounded corners.
+- **MuiCard:** Removes default box shadows, applies a thin border (`1px solid rgba(0, 0, 0, 0.08)`), and sets the background to `palette.background.default` for crisp contrast against `palette.background.paper`.
+- **MuiTextField:** Defaults to `variant: 'outlined'` and spans 100% width (`fullWidth: true`).
+- **MuiDialog:** Elevates border-radius to `24px` with a default padding of `16px`.

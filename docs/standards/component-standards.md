@@ -1,47 +1,48 @@
-# Component Standards
+# React Component Development Standards
 
-## Purpose
-This document defines the frontend component architecture and reuse strategy for the AI Hospital Management System (AI-HMS). By following these standards, we ensure a scalable, predictable, and highly maintainable React codebase.
+---
+**Metadata**
+- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Framework Target:** React 19 / JSX
+- **Status:** APPROVED
+---
 
-## Design Principles
-* **Reusable:** Components should be designed to be used in multiple contexts where appropriate.
-* **Maintainable:** Code should be easy to read, update, and debug.
-* **Testable:** Components should be isolated and easy to unit test.
-* **Single Responsibility:** A component should do one thing. If it does too much, break it down into smaller sub-components.
+## 1. Component Classifications
 
-## Component Categories
+To ensure codebase scale and separate design concerns, components are classified into three distinct tiers:
 
-### 1. UI Components
-Reusable, generic visual elements that are completely agnostic of business logic.
-* **Examples:** `Button`, `Input`, `Modal`, `Card`
-* **Location:** `frontend/src/shared/components/ui/`
+### 1.1 UI Primitives (Shared)
+- **Role:** Generic visual elements that are agnostic of business logic and domain context.
+- **Attributes:** Presentational only, fully stateless, controlled via props.
+- **Location:** [`src/shared/components/ui/`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/shared/components/ui/)
+- **Examples:** `BrandLogo.jsx`, `FormCard.jsx`, `LoadingButton.jsx`, `RoleChip.jsx`.
 
-### 2. Feature Components
-Components that are specific to a distinct business feature or domain.
-* **Examples:** `LoginForm`, `PatientTable`, `AppointmentCalendar`
-* **Location:** `frontend/src/features/<feature>/components/`
+### 1.2 Feature Modules (Isolated)
+- **Role:** Components bound to specific business features or domain logic.
+- **Attributes:** Compose UI primitives, consume custom hooks, manage local or global state.
+- **Location:** [`src/features/<feature_name>/components/`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/features/)
+- **Examples:** `LoginForm.jsx`, `RegisterForm.jsx`, `ChangePassword.jsx`.
 
-### 3. Layout Components
-Structural components used to wrap pages or major sections.
-* **Examples:** `DashboardLayout`, `AuthLayout`, `MainLayout`
-* **Location:** `frontend/src/shared/layouts/`
+### 1.3 Layout Scaffolding (Shared)
+- **Role:** Structural wrappers managing routing outlets and page boundaries.
+- **Location:** [`src/shared/components/layout/`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/shared/components/layout/)
+- **Examples:** `DashboardLayout.jsx`, `AuthLayout.jsx`.
 
-## Component Structure
-Each component should strictly adhere to the following structural rules:
-*   Contain presentation logic (how things look).
-*   Contain minimal business logic. Complex state or logic should be handled by custom hooks or state managers (e.g., Redux, Context).
-*   Accept reusable props to ensure maximum flexibility.
+---
 
-**Avoid:**
-*   **API calls directly inside UI components.** API logic belongs in services or custom hooks.
-*   **Large monolithic components.** Break down UI into smaller chunks.
+## 2. Component Design Requirements
 
-## Component Size Rule
-To maintain readability and reduce cognitive load, strictly monitor component size:
-*   **Preferred:** `50 - 200 lines`
-*   **Review if:** `300+ lines` (Consider if it can be broken down).
-*   **Refactor if:** `500+ lines` (Mandatory refactor into smaller child components).
+- **Separation of Concerns:** Component bodies must not contain raw API queries. Network interactions must be delegated to dedicated hook wrappers (e.g., `useAuth.js`) or API service providers.
+- **Deterministic Rendering:** Components should return predictable nodes based on incoming props.
+- **Prop Checking:** Props passed to shared components should be clearly structured and validated (using JavaScript destructuring defaults or TypeScript interfaces).
 
-## Reusability Rule
-If a component located within a `features/` directory is eventually required by a different module/feature, it must be promoted to the shared library:
-*   **Action:** Move to `frontend/src/shared/components/` to prevent duplication.
+---
+
+## 3. Metrics & Refactoring Rules
+
+To prevent code bloat and maintain readable modules:
+- **Line Count Rules:**
+  - **Preferred:** 50 to 200 lines.
+  - **Review Indicator:** $\ge$ 300 lines (Consider splitting presentational layout).
+  - **Refactor Mandatory:** $\ge$ 500 lines (Requires splitting into smaller child components).
+- **Promotion Rule:** If a feature-scoped component is required by a secondary feature, it must be promoted to the shared library ([`src/shared/components/ui/`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/shared/components/ui/)) and cleaned of domain-specific hooks.

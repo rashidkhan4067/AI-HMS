@@ -13,21 +13,42 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 from pathlib import Path
 import os
 import dj_database_url
+from dotenv import load_dotenv
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
+
+# Load environment variables
+load_dotenv(BASE_DIR / '.env')
 
 
 # Quick-start development settings - unsuitable for production
 # See https://docs.djangoproject.com/en/5.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = os.getenv('SECRET_KEY', 'django-insecure-^9bkb_lua7zgxk_h3e6v^$d&!@_-eb=rxg31^oxnl**wm!bkeu')
+SECRET_KEY = os.getenv('SECRET_KEY')
+if not SECRET_KEY:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("The SECRET_KEY environment variable is required.")
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = os.getenv('DEBUG', 'True') == 'True'
 
 ALLOWED_HOSTS = ['*'] # Allowed hosts set to * to allow Render and Vercel. In production, restrict to your specific domains.
+
+# ── Security Headers ──────────────────────────────────────────────────────────
+# These harden HTTP responses. Secure cookie flags only activate in production
+# (DEBUG=False) so local development over plain HTTP is not broken.
+
+SECURE_BROWSER_XSS_FILTER      = True
+SECURE_CONTENT_TYPE_NOSNIFF    = True
+X_FRAME_OPTIONS                 = 'DENY'
+
+# Secure cookies — only enforce over HTTPS (i.e. in production)
+SESSION_COOKIE_SECURE           = not DEBUG
+SESSION_COOKIE_HTTPONLY         = True
+SESSION_COOKIE_SAMESITE         = 'Strict'
+CSRF_COOKIE_SECURE              = not DEBUG
 
 
 # Application definition
@@ -43,6 +64,7 @@ INSTALLED_APPS = [
     # Third-party
     'rest_framework',
     'rest_framework_simplejwt',
+    'rest_framework_simplejwt.token_blacklist',
     'corsheaders',
 
     # Local apps
@@ -84,13 +106,25 @@ WSGI_APPLICATION = 'core.wsgi.application'
 # Database
 # https://docs.djangoproject.com/en/5.2/ref/settings/#databases
 
+DATABASE_URL = os.getenv('DATABASE_URL')
+if not DATABASE_URL:
+    from django.core.exceptions import ImproperlyConfigured
+    raise ImproperlyConfigured("The DATABASE_URL environment variable is required.")
+
 DATABASES = {
     'default': dj_database_url.config(
-        default=os.getenv('DATABASE_URL', 'postgresql://neondb_owner:npg_lENO0LxYm3uq@ep-twilight-bird-apieaomn.c-7.us-east-1.aws.neon.tech/neondb?sslmode=require'),
-        conn_max_age=600,
+        default=DATABASE_URL,
+        conn_max_age=0,          # 0 = new connection per request (required for Neon serverless)
         conn_health_checks=True,
     )
 }
+
+import sys
+if 'test' in sys.argv:
+    DATABASES['default'] = {
+        'ENGINE': 'django.db.backends.sqlite3',
+        'NAME': BASE_DIR / 'db.sqlite3',
+    }
 
 
 # Password validation
@@ -137,16 +171,36 @@ STATICFILES_STORAGE = 'whitenoise.storage.CompressedManifestStaticFilesStorage'
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
 
 # Custom User Model
-AUTH_USER_MODEL = 'accounts.CustomUser'
+AUTH_USER_MODEL = 'accounts.HMSUser'
+
 
 # CORS
-CORS_ALLOW_ALL_ORIGINS = True
+CORS_ALLOW_CREDENTIALS = True
+CORS_ALLOWED_ORIGINS = [
+    "http://localhost:5173",
+    "http://127.0.0.1:5173",
+]
+
+CORS_ALLOWED_ORIGIN_ENV = os.getenv('CORS_ALLOWED_ORIGINS')
+if CORS_ALLOWED_ORIGIN_ENV:
+    CORS_ALLOWED_ORIGINS.extend([origin.strip() for origin in CORS_ALLOWED_ORIGIN_ENV.split(',') if origin.strip()])
+else:
+    CORS_ALLOW_ALL_ORIGINS = True
+
 
 # Django REST Framework
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'DEFAULT_THROTTLE_CLASSES': [
+        'rest_framework.throttling.AnonRateThrottle',
+        'rest_framework.throttling.UserRateThrottle'
+    ],
+    'DEFAULT_THROTTLE_RATES': {
+        'anon': '100/min',
+        'user': '1000/day'
+    }
 }
 
 # SimpleJWT Settings
@@ -157,4 +211,53 @@ SIMPLE_JWT = {
     'ROTATE_REFRESH_TOKENS': True,
     'BLACKLIST_AFTER_ROTATION': True,
     'AUTH_HEADER_TYPES': ('Bearer',),
+}
+
+# Email Settings
+EMAIL_BACKEND = 'django.core.mail.backends.smtp.EmailBackend'
+EMAIL_HOST = os.getenv('EMAIL_HOST', 'smtp.gmail.com')
+EMAIL_PORT = int(os.getenv('EMAIL_PORT', 587))
+EMAIL_USE_TLS = os.getenv('EMAIL_USE_TLS', 'True') == 'True'
+EMAIL_HOST_USER = os.getenv('EMAIL_HOST_USER')
+EMAIL_HOST_PASSWORD = os.getenv('EMAIL_HOST_PASSWORD', '').replace(' ', '')  # Gmail app passwords: strip display spaces
+DEFAULT_FROM_EMAIL = os.getenv('DEFAULT_FROM_EMAIL', 'alshifaaclinic99@gmail.com')
+
+# Google OAuth Settings
+GOOGLE_CLIENT_ID = os.getenv('GOOGLE_CLIENT_ID')
+GOOGLE_CLIENT_SECRET = os.getenv('GOOGLE_CLIENT_SECRET')
+
+
+# ── Logging ───────────────────────────────────────────────────────────────────
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '[{asctime}] {levelname} {name}: {message}',
+            'style': '{',
+            'datefmt': '%Y-%m-%d %H:%M:%S',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console'],
+        'level': 'WARNING',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console'],
+            'level': 'INFO',
+            'propagate': False,
+        },
+        'accounts': {
+            'handlers': ['console'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
 }

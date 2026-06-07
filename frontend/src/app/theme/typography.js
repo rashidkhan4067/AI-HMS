@@ -3,7 +3,7 @@
  * Responsive font sizes and strict letter spacing rules.
  */
 export const typography = {
-    fontFamily: '"Roboto", "Inter", "Helvetica", "Arial", sans-serif',
+    fontFamily: '"Outfit", "Roboto", "Inter", "Helvetica", "Arial", sans-serif',
     h1: { 
         fontSize: '57px', 
         fontWeight: 400, 

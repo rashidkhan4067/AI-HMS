@@ -1,67 +1,60 @@
-# Frontend Architecture Methodology
+# Frontend Software Architecture Specification
 
-## Architecture Style
-The AI-HMS frontend strictly follows a **Feature-Based Architecture**. Instead of grouping files by their technical type (e.g., all components together, all hooks together), files are grouped by the business feature they belong to. This ensures high cohesion and makes the codebase highly scalable as new hospital modules are added.
+---
+**Metadata**
+- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Primary Framework:** React 19 / Vite 8
+- **Design Tokens:** Material Design 3 (M3)
+- **Status:** APPROVED
+---
 
-## Folder Structure
-At the root of the `src/` directory, the application is divided into core functional areas:
+## 1. Feature-Based Architecture (FBA)
 
-```
-src/
-├── app/          # Global application setup (store, router config, global styles)
-├── features/     # Feature-specific modules (Auth, Patients, Doctors)
-├── shared/       # Highly reusable UI components, layouts, and utilities
-└── assets/       # Static assets (images, fonts, global CSS)
-```
-
-## Feature Structure
-Each distinct business domain within `features/` encapsulates its own logic, UI, and services. A typical feature directory (e.g., `auth/`) looks like this:
+The frontend codebase uses a **Feature-Based Architecture (FBA)** pattern. Instead of grouping files by technical divisions (e.g., placing all hooks or controllers in single folders), files are encapsulated within isolated business domains (features). This creates high modular cohesion and reduces interface coupling.
 
 ```
-features/
-└── auth/
-    ├── pages/       # Route-level components (e.g., LoginPage.jsx)
-    ├── components/  # Feature-specific UI (e.g., LoginForm.jsx)
-    ├── hooks/       # Custom React hooks specific to the feature
-    ├── services/    # API calls and data fetching logic
-    └── routes/      # Sub-routing definitions for the feature
+frontend/src/
+├── app/                  # Application initialization (routing maps, theme config).
+├── features/             # Business domain modules (auth, patients, doctors).
+├── shared/               # Reusable primitives, common layouts, and HTTP clients.
+└── main.jsx              # Entry point loading App.jsx and Outfit CSS weights.
 ```
-*Future features will follow this exact pattern: `patients/`, `doctors/`, `appointments/`, etc.*
 
-## State Management
-*   **Local State:** Utilize `useState` and `useReducer` for state confined to a single component (e.g., form inputs, UI toggles).
-*   **Shared State:** Utilize the **Context API** for lightweight global state that doesn't change rapidly (e.g., user session, theme preference).
-*   **Future (If Needed):** **Redux Toolkit** will only be introduced if the state becomes highly complex, globally accessed, and rapidly changing (e.g., live clinical dashboards or complex multi-step wizards).
+---
 
-## API Layer
-**Crucial Rule:** Never call APIs directly from pages or UI components.
+## 2. Feature Folder Design
 
-*   **Delegation:** All external network requests must reside in the `services/` directory (e.g., `features/auth/services/authApi.js`).
-*   **Data Flow:** Components trigger custom hooks, which in turn call the API service.
+Each domain in the `features/` directory must organize its internal files using a strict structural map:
+- **`pages/`**: Route-level container views. Handles section composition only, keeping business checks decoupled.
+- **`components/`**: Feature-scoped visual elements (e.g., form panels, custom buttons).
+- **`hooks/`**: Custom React hooks encapsulating specific domain logic.
+- **`services/`**: API payload operations (HTTP mapping services).
+- **`routes/`**: Sub-routing definitions for the feature.
 
-**Example Flow:**
-`Page` ➔ `Hook` (e.g., `useLogin`) ➔ `Service` (e.g., `loginApi()`) ➔ `API`
+---
 
-## Routing Strategy
-Routing is handled centrally but strictly categorized by access level.
-*   **Public Routes:** Accessible to unauthenticated users (e.g., `/login`).
-*   **Protected Routes:** Requires a valid JWT (e.g., `/dashboard`, `/profile`).
-*   **Role-Based Routes:** Restricted to specific JWT claims:
-    *   `/admin`
-    *   `/doctor`
-    *   `/receptionist`
+## 3. Global & Local State Guidelines
 
-## UI Methodology
-*   **Design System:** Google Material Design 3 (M3).
-*   **Component Library:** Material UI (MUI v5).
-*   **Responsive Design:** Mobile-First approach. All layouts must gracefully scale from mobile devices up to ultra-wide desktop monitors.
-*   **Accessibility:** Strict adherence to WCAG principles (keyboard navigation, high contrast, ARIA labels).
+- **Local State (`useState` / `useReducer`):** Kept strictly local to individual components (e.g., input values, validation states, local modal indicators).
+- **Shared / Domain State (React Context):** Managed via light React Context Providers for global parameters (e.g., `AuthContext.jsx` for user roles and JWT profiles).
+- **State Flow Rule:** Components must never contain raw state mutation handlers calling external resources directly; they must consume hooks (`useAuth.js`) which hook into Context or service layers.
 
-## Future Scalability
-This architectural pattern is chosen specifically so the system can infinitely scale to support the entire AI-HMS roadmap without requiring a major structural rewrite. The architecture natively supports the isolated addition of:
-*   Patient Management
-*   Doctor Management
-*   Appointment Management
-*   Medical Records
-*   AI Assistant
-*   Reporting System
+---
+
+## 4. REST API Integration Protocol
+
+Direct HTTP requests (using Axios or fetch) are forbidden inside React components.
+- **Data Flow Pipeline:**
+  ```
+  Component (LoginForm) ➔ Hook (useAuth) ➔ API Client (authApi) ➔ Axios (axios.js)
+  ```
+- **Axios Instance Security:** All outgoing calls go through the shared `axios.js` client. It automatically injects Bearer JWT signatures and manages request queuing during automated token refreshes on HTTP 401 events.
+- **Environment URLs:** Endpoint targets are resolved from `import.meta.env.VITE_API_URL` with a local fallback to `http://localhost:8000/api/v1/`.
+
+---
+
+## 5. Protected Routing and RBAC Gates
+
+Route access is restricted on the client using the `ProtectedRoute` wrapper component:
+- **Session Check:** Verifies if a JWT is present and unexpired. If missing or invalid, it redirects the client to `/login`.
+- **Role Verification:** Decodes claims in the Access Token. If the user's role is not included in the route's `allowedRoles` list, the client is redirected to the `/forbidden` page.

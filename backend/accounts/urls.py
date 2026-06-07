@@ -1,11 +1,41 @@
 from django.urls import path
-from rest_framework_simplejwt.views import TokenRefreshView
-from .views import RegisterView, CustomTokenObtainPairView, UserProfileView, ChangePasswordView
+from .views import (
+    RegisterView,
+    CustomTokenObtainPairView,
+    UserProfileView,
+    ChangePasswordView,
+    ForgotPasswordView,
+    VerifyOtpView,
+    ResetPasswordView,
+    GoogleLoginView,
+    CustomTokenRefreshView,
+    CustomLogoutView,
+    CompleteProfileView,
+    DepartmentListView,
+    CheckEmailView,
+    ValidateInviteView,
+    ApplyDoctorView,
+    RegisterInvitedView,
+    RegisterPatientView,
+)
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
+    path('register-invited/', RegisterInvitedView.as_view(), name='register_invited'),
+    path('register-patient/', RegisterPatientView.as_view(), name='register_patient'),
     path('login/', CustomTokenObtainPairView.as_view(), name='login'),
-    path('refresh/', TokenRefreshView.as_view(), name='token_refresh'),
+    path('google/', GoogleLoginView.as_view(), name='google_login'),
+    path('refresh/', CustomTokenRefreshView.as_view(), name='token_refresh'),
+    path('token/refresh/', CustomTokenRefreshView.as_view(), name='token_refresh_custom'),
     path('me/', UserProfileView.as_view(), name='profile'),
     path('change-password/', ChangePasswordView.as_view(), name='change_password'),
+    path('logout/', CustomLogoutView.as_view(), name='logout'),
+    path('forgot-password/', ForgotPasswordView.as_view(), name='forgot_password'),
+    path('verify-otp/', VerifyOtpView.as_view(), name='verify_otp'),
+    path('reset-password/', ResetPasswordView.as_view(), name='reset_password'),
+    path('complete-profile/', CompleteProfileView.as_view(), name='complete_profile'),
+    path('departments/', DepartmentListView.as_view(), name='departments'),
+    path('check-email/', CheckEmailView.as_view(), name='check_email'),
+    path('validate-invite/', ValidateInviteView.as_view(), name='validate_invite'),
+    path('apply-doctor/', ApplyDoctorView.as_view(), name='apply_doctor'),
 ]

@@ -1,17 +1,21 @@
-import React from 'react';
 import { BrowserRouter } from 'react-router-dom';
-import { ThemeProvider, CssBaseline } from '@mui/material';
-import theme from './theme/index.js';
+import { CssBaseline } from '@mui/material';
+import { ThemeModeProvider } from './theme/ThemeModeContext';
 import { AppRoutes } from './routes';
+import { AuthProvider } from '../context/AuthContext';
+import { CookieConsent } from '../shared/components/ui/CookieConsent';
 
 function App() {
   return (
-    <ThemeProvider theme={theme}>
+    <ThemeModeProvider>
         <CssBaseline />
         <BrowserRouter>
-            <AppRoutes />
+            <AuthProvider>
+                <AppRoutes />
+                <CookieConsent />
+            </AuthProvider>
         </BrowserRouter>
-    </ThemeProvider>
+    </ThemeModeProvider>
   )
 }
 

@@ -1,63 +1,66 @@
-# Design System
+# Platform Design System: Design Tokens & Visual Specs
 
-## Purpose
-This document defines the overarching visual design language for the AI Hospital Management System (AI-HMS) to ensure a cohesive user experience across all modules.
+---
+**Metadata**
+- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Target Specification:** Material Design 3 (M3)
+- **Primary Typeface:** Outfit Font
+- **Status:** APPROVED
+---
 
-## Design Philosophy
-*   **Clean:** Minimal visual noise to reduce cognitive load.
-*   **Professional:** Instills trust and reliability.
-*   **Healthcare-focused:** High legibility, distinct status colors (e.g., critical vs normal).
-*   **Accessible:** Strictly adheres to WCAG 2.1 AA standards.
-*   **Material Design 3 (M3) Compliant:** Embraces dynamic shapes, elevation, and typography native to M3.
+## 1. Color System & Contrast Tokens
 
-## Design Framework
-**Google Material Design 3 (M3)** via MUI v5.
+The application employs Material Design 3 color palettes optimized for clinical utility. Colors are divided into primary actions, secondary markers, backgrounds, and warning/error status states.
 
-## Principles
-*   **Consistency:** Predictable interactions and visual patterns.
-*   **Accessibility:** Usable by everyone (keyboard navigation, high contrast).
-*   **Simplicity:** Do not over-engineer the UI.
-*   **Scalability:** The design must adapt natively as new complex clinical modules are added.
-*   **Responsive Design:** Mobile-first fluid adaptation.
+### 1.1 Color Palette Table
+- **Primary (Clinical Teal):** `#006A6A` (Main), `#E0F2F1` (Light - Container), `#004F4F` (Dark).
+- **Secondary (Mint Green):** `#4DB6AC` (Main), `#B2DFDB` (Light), `#004D40` (Dark).
+- **Success (Green):** `#146c2e` (Main).
+- **Warning (Amber):** `#ffb400` (Main).
+- **Error (Crimson):** `#ba1a1a` (Main), `#ffdad6` (Light).
+- **Background:** `#fdfcff` (Default - Pure surface), `#f3f4f9` (Paper - Surface Container).
 
-## Layout Grid
-The layout system leverages a responsive grid based on screen width:
-*   **Desktop:** 12-column grid
-*   **Tablet:** 8-column grid
-*   **Mobile:** 4-column grid
+---
 
-## Border Radius (Shapes)
-M3 relies heavily on distinct border radii to communicate hierarchy and interactivity.
-*   **Small:** `8px` (Inputs, Dropdowns, Chips)
-*   **Medium:** `12px` (Small layout containers, Alerts)
-*   **Large:** `16px` (Cards, Modals)
-*   **Cards (Standard):** `16px`
-*   **Dialogs / Modals:** `24px`
+## 2. Typographic Scales (Outfit)
 
-## Elevation (Shadows)
-Use elevation sparingly. Shadows should communicate depth and Z-axis hierarchy, not decoration.
-*   **Level 1:** Cards and contained content blocks.
-*   **Level 2:** Dropdown menus, tooltips, and floating action buttons.
-*   **Level 3:** Critical Dialogs, Modals, and persistent Nav Drawers.
-*   *Rule:* Avoid excessive or custom shadows; stick to the predefined M3 elevation tokens.
+Legibility is key in healthcare portals. We utilize the `Outfit` typeface with strict sizes and weights:
 
-## Spacing Scale
-Strict adherence to the 4px baseline grid. **Use only spacing values from this scale:**
-*   `4px`
-*   `8px`
-*   `12px`
-*   `16px`
-*   `24px`
-*   `32px`
-*   `48px`
-*   `64px`
+- **Display Large (Page Titles):** `32px` size, `400` weight, letter spacing `0px`.
+- **Title Large (Section/Card Headers):** `22px` size, `500` weight, letter spacing `0px`.
+- **Body Large (Inputs/Core text):** `16px` size, `400` weight, letter spacing `0.5px`.
+- **Body Medium (Small Labels/Helper Text):** `14px` size, `400` weight, letter spacing `0.25px`.
+- **Label Large (Button Text):** `14px` size, `500` weight, letter spacing `0.1px`, no uppercase transform.
 
-## Icon System
-**Material Symbols** (Rounded/Outlined variants via `@mui/icons-material`).
+---
 
-**Usage Areas:**
-*   **Navigation:** Nav Drawer items, Bottom Nav bars.
-*   **Actions:** Icon buttons (e.g., Edit, Delete, Visibility Toggle).
-*   **Status Indicators:** Success checks, Error warnings in clinical dashboards.
+## 3. Spacing Grid (8pt Baseline)
 
-*Rule:* **Avoid mixing icon libraries** (do not introduce FontAwesome or Feather icons). Stick entirely to Material Symbols for consistency.
+Layout paddings and margins must conform strictly to the 8pt spacing grid. Do not inject arbitrary spacing metrics.
+
+- **4px (`theme.spacing(0.5)`):** Micro elements spacing (icon to text spacing).
+- **8px (`theme.spacing(1)`):** Standard field-to-field spacing.
+- **16px (`theme.spacing(2)`):** Card interior paddings, margins.
+- **24px (`theme.spacing(3)`):** Standard page grid margin gaps.
+- **32px (`theme.spacing(4)`):** Core section margin separations.
+
+---
+
+## 4. Container Shapes (Border Radius)
+
+Curvatures communicate interactivity and follow M3 shape tokens:
+- **Small (`8px`):** Inputs, TextFields, search boxes.
+- **Medium (`12px`):** Small cards, alerts, message blocks.
+- **Large (`16px`):** Master cards, layouts.
+- **Pill (`20px`):** Buttons, action chips (stadium shape).
+- **Dialog (`24px`):** High elevation modals.
+
+---
+
+## 5. Depth System (Elevations)
+
+Shadow tokens are used to represent structural levels along the Z-axis:
+- **Level 0 (Flat):** Standard inline components, text inputs. Uses background contrast instead of shadows.
+- **Level 1 (Inline Cards):** Border-radius `16px`, thin outline (`1px solid rgba(0,0,0,0.08)`), shadow `none`.
+- **Level 2 (Popups/Dropdowns):** Shadow representation `0px 2px 6px rgba(0, 0, 0, 0.15)`.
+- **Level 3 (Modals/Dialogs):** Border-radius `24px`, shadow representation `0px 8px 24px rgba(0, 0, 0, 0.2)`.

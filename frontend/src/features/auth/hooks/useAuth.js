@@ -1,81 +1,137 @@
-import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { authApi } from '../services/authApi';
+import { useContext, useRef } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { AuthContext } from '../../../context/AuthContext';
+
+const MAX_ATTEMPTS  = 5;
+const WARN_AFTER    = 3;
+const LOCKOUT_MS    = 15 * 60 * 1000; // 15 minutes
 
 export const useAuth = () => {
-    const [isLoading, setIsLoading] = useState(false);
-    const [error, setError] = useState(null);
-    const [success, setSuccess] = useState(false);
-    const navigate = useNavigate();
+    const context    = useContext(AuthContext);
+    const navigate   = useNavigate();
+    const location   = useLocation();
+    const attemptsRef = useRef(
+        parseInt(sessionStorage.getItem('loginAttempts') || '0', 10)
+    );
+
+    if (!context) {
+        throw new Error('useAuth must be used within an AuthProvider');
+    }
+
+    const {
+        user,
+        isAuthenticated,
+        isLoading,
+        error,
+        success,
+        login: contextLogin,
+        loginWithGoogle: contextLoginWithGoogle,
+        register: contextRegister,
+        registerPatient: contextRegisterPatient,
+        logout: contextLogout,
+        getProfile,
+        updateProfile,
+        changePassword,
+        setError,
+    } = context;
+
+    /** Returns { attemptsLeft, isWarning, isLocked } */
+    const getLockStatus = () => {
+        const n = attemptsRef.current;
+        return {
+            attempts:     n,
+            attemptsLeft: Math.max(0, MAX_ATTEMPTS - n),
+            isWarning:    n >= WARN_AFTER && n < MAX_ATTEMPTS,
+            isLocked:     n >= MAX_ATTEMPTS,
+        };
+    };
 
     const login = async (email, password) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            const data = await authApi.login(email, password);
-            localStorage.setItem('access_token', data.access);
-            localStorage.setItem('refresh_token', data.refresh);
-            navigate('/dashboard');
-            return true;
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Invalid credentials or server error.');
+        // Check if already locked
+        const lockUntil = parseInt(sessionStorage.getItem('lockUntil') || '0', 10);
+        if (Date.now() < lockUntil) {
+            navigate('/locked', { state: { lockUntil } });
             return false;
-        } finally {
-            setIsLoading(false);
+        }
+
+        try {
+            await contextLogin(email, password);
+
+            // Successful login — clear attempt counter
+            attemptsRef.current = 0;
+            sessionStorage.removeItem('loginAttempts');
+            sessionStorage.removeItem('lockUntil');
+
+            return true;
+        } catch {
+            // Increment failure counter
+            attemptsRef.current += 1;
+            sessionStorage.setItem('loginAttempts', String(attemptsRef.current));
+
+            if (attemptsRef.current >= MAX_ATTEMPTS) {
+                const lockUntilTime = Date.now() + LOCKOUT_MS;
+                sessionStorage.setItem('lockUntil', String(lockUntilTime));
+                navigate('/locked', { state: { lockUntil: lockUntilTime } });
+            }
+
+            return false;
+        }
+    };
+
+    const loginWithGoogle = async (accessToken) => {
+        try {
+            await contextLoginWithGoogle(accessToken);
+
+            // Successful login — clear attempt counter
+            attemptsRef.current = 0;
+            sessionStorage.removeItem('loginAttempts');
+            sessionStorage.removeItem('lockUntil');
+
+            return true;
+        } catch {
+            return false;
         }
     };
 
     const register = async (userData) => {
-        setIsLoading(true);
-        setError(null);
-        setSuccess(false);
         try {
-            await authApi.register(userData);
-            setSuccess(true);
-            setTimeout(() => navigate('/login'), 2000);
+            await contextRegister(userData);
             return true;
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Registration failed. Please verify your inputs.');
+        } catch {
             return false;
-        } finally {
-            setIsLoading(false);
+        }
+    };
+
+    const registerPatient = async (patientData) => {
+        try {
+            await contextRegisterPatient(patientData);
+            return true;
+        } catch {
+            return false;
         }
     };
 
     const logout = () => {
-        localStorage.removeItem('access_token');
-        localStorage.removeItem('refresh_token');
+        contextLogout();
         navigate('/login');
     };
 
-    const updateProfile = async (profileData) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            await authApi.updateProfile(profileData);
-            return true;
-        } catch (err) {
-            setError(err.response?.data?.detail || 'Failed to update profile.');
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
+    return {
+        user,
+        isAuthenticated,
+        isLoading,
+        error,
+        success,
+        login,
+        loginWithGoogle,
+        register,
+        registerPatient,
+        logout,
+        getProfile,
+        updateProfile,
+        changePassword,
+        setError,
+        getLockStatus,
+        profile: user,
     };
-
-    const changePassword = async (passwordData) => {
-        setIsLoading(true);
-        setError(null);
-        try {
-            await authApi.changePassword(passwordData);
-            return true;
-        } catch (err) {
-            const errorMsg = err.response?.data?.old_password?.[0] || err.response?.data?.new_password?.[0] || 'Failed to change password.';
-            setError(errorMsg);
-            return false;
-        } finally {
-            setIsLoading(false);
-        }
-    };
-
-    return { login, register, logout, updateProfile, changePassword, isLoading, error, success, setError };
 };

@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Al Shifaa HMS — Password Reset OTP</title>
+</head>
+<body style="margin: 0; padding: 0; background-color: #F4F6F6; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; -webkit-font-smoothing: antialiased;">
+    <table border="0" cellpadding="0" cellspacing="0" width="100%" style="table-layout: fixed;">
+        <tr>
+            <td align="center" style="padding: 40px 0;">
+                <table border="0" cellpadding="0" cellspacing="0" width="600" style="background-color: #FFFFFF; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05); border: 1px solid #E5E7EB;">
+                    <!-- Header -->
+                    <tr>
+                        <td align="center" style="background: linear-gradient(135deg, #006A6A 0%, #004F4F 100%); padding: 32px 20px;">
+                            <h1 style="color: #FFFFFF; font-size: 24px; font-weight: 600; margin: 0; letter-spacing: 0.5px;">Al Shifaa Health Systems</h1>
+                            <p style="color: #E0F2F1; font-size: 14px; margin: 8px 0 0 0;">Clinical Redesign Portal</p>
+                        </td>
+                    </tr>
+                    <!-- Content -->
+                    <tr>
+                        <td style="padding: 40px 32px; color: #374151;">
+                            <h2 style="font-size: 20px; font-weight: 600; color: #111827; margin: 0 0 16px 0;">Password Reset Request</h2>
+                            <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+                                Hello,
+                            </p>
+                            <p style="font-size: 15px; line-height: 1.6; margin: 0 0 24px 0;">
+                                We received a request to reset the password for your Al Shifaa HMS account associated with <strong>{{ email }}</strong>. Use the 6-digit verification code below to complete the reset process:
+                            </p>
+                            <!-- OTP Display Box -->
+                            <table border="0" cellpadding="0" cellspacing="0" width="100%" style="margin: 32px 0;">
+                                <tr>
+                                    <td align="center">
+                                        <div style="background-color: #F0FDF4; border: 2px dashed #006A6A; border-radius: 12px; padding: 18px 40px; display: inline-block;">
+                                            <span style="font-family: 'Courier New', Courier, monospace; font-size: 32px; font-weight: bold; color: #006A6A; letter-spacing: 6px; line-height: 1;">{{ otp }}</span>
+                                        </div>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p style="font-size: 14px; line-height: 1.6; color: #6B7280; margin: 0 0 24px 0;">
+                                This security code is temporary and will expire in <strong>10 minutes</strong>. If you did not initiate this request, please disregard this message and verify your account security settings.
+                            </p>
+                            <hr style="border: 0; border-top: 1px solid #E5E7EB; margin: 32px 0;">
+                            <p style="font-size: 13px; line-height: 1.5; color: #9CA3AF; margin: 0;">
+                                Secure Account Alert: If you believe this is unauthorized activity, please contact support immediately at <a href="mailto:alshifaaclinic99@gmail.com" style="color: #006A6A; text-decoration: none; font-weight: 500;">alshifaaclinic99@gmail.com</a>.
+                            </p>
+                        </td>
+                    </tr>
+                    <!-- Footer -->
+                    <tr>
+                        <td align="center" style="background-color: #F9FAFB; padding: 24px 20px; border-top: 1px solid #E5E7EB; color: #9CA3AF; font-size: 12px; line-height: 1.5;">
+                            <p style="margin: 0 0 8px 0; font-weight: 500; color: #6B7280;">Al Shifaa Health Management Systems</p>
+                            <p style="margin: 0 0 4px 0;">Sector G-9, Islamabad, Pakistan</p>
+                            <p style="margin: 0;">&copy; 2026 Al Shifaa Clinic. All rights reserved.</p>
+                        </td>
+                    </tr>
+                </table>
+            </td>
+        </tr>
+    </table>
+</body>
+</html>

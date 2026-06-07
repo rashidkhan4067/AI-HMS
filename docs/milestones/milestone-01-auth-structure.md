@@ -1,49 +1,94 @@
-# Frontend Folder Structure: Authentication Module
+# Frontend & Backend Code Architecture: Milestone 1
 
-This document defines the strict directory structure for the Authentication module (Milestone 1) as implemented in the AI-HMS frontend. It adheres to the approved Feature-Based Architecture.
+---
+**Metadata**
+- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Target Audience:** Frontend Developers, Core Platform Engineers
+- **Status:** APPROVED
+---
+
+## 1. Frontend Structure Layout (React SPA)
+
+The frontend project utilizes a **Feature-Based Architecture (FBA)** pattern, segregating views and business logics into isolated domains.
+
+```
+frontend/src/
+├── app/
+│   ├── App.css
+│   ├── App.jsx              # Root component wrapping routes and context providers.
+│   ├── navigation.jsx       # Side drawer layout navigation mappings.
+│   ├── routes.jsx           # Decoupled high-level routing mapping definitions.
+│   └── theme/               # Material Design 3 tokens & MUI overrides.
+│       ├── index.js
+│       ├── palette.js
+│       ├── spacing.js
+│       └── typography.js    # Outfit font scaling rules.
+├── features/
+│   └── auth/                # Isolated Authentication Feature domain.
+│       ├── components/
+│       │   ├── ChangePassword.jsx  # Card with old/new/confirm fields.
+│       │   ├── LoginForm.jsx       # Card containing username/pass inputs.
+│       │   ├── ProfileForm.jsx
+│       │   ├── ProtectedRoute.jsx  # Router guard checks.
+│       │   └── RegisterForm.jsx    # Signup form for Patient accounts.
+│       ├── context/
+│       │   └── AuthContext.jsx     # NEW: Global session context provider.
+│       ├── hooks/
+│       │   └── useAuth.js          # Hook wrapper consuming AuthContext.
+│       ├── pages/
+│       │   ├── ForbiddenPage.jsx   # NEW: Plished 403 denied layout.
+│       │   ├── LoginPage.jsx
+│       │   ├── ProfilePage.jsx
+│       │   └── RegisterPage.jsx
+│       ├── routes/
+│       │   └── index.jsx           # Feature-level endpoint routings.
+│       └── services/
+│           └── authApi.js          # Axios payload client mappings.
+├── shared/                  # Common resources consumed by multiple features.
+│   ├── components/
+│   │   ├── layout/
+│   │   │   ├── AuthLayout.jsx
+│   │   │   └── DashboardLayout.jsx # Master frame containing header & nav drawer.
+│   │   └── ui/
+│   │       ├── BrandLogo.jsx
+│   │       ├── FormCard.jsx
+│   │       ├── LoadingButton.jsx
+│   │       ├── PageHeader.jsx
+│   │       ├── PasswordField.jsx
+│   │       ├── RoleChip.jsx
+│   │       └── index.js
+│   └── services/
+│       └── axios.js                # Shared HTTP instance with auto-refresh queue.
+├── main.jsx                 # Entrypoint loading App.jsx and Outfit CSS weights.
+└── index.css                # Global canvas settings (e.g., #root width overrides).
+```
 
 ---
 
-## 1. `app/` Directory
+## 2. Backend Structure Layout (Django API)
 
-*   **Purpose:** The entry point and global configurator for the React application.
-*   **Responsibility:** Initializing the root DOM, wrapping the application in global providers (Theme, Router, Context), and defining the high-level routing map.
-*   **Allowed Contents:** 
-    *   `App.jsx` (Root component)
-    *   `routes.jsx` (Global route definitions)
-    *   `theme.js` (Material Design 3 configuration)
-    *   Global state store initializations (e.g., Redux store setup, if added later).
+The backend exposes RESTful services, using a modular Django application structure.
 
-## 2. `features/auth/` Directory
-
-*   **Purpose:** The isolated domain encapsulating everything related to user identity, login, registration, and profile management.
-*   **Responsibility:** Handling all business logic, UI, and network requests required to authenticate a user and establish their role within the system.
-*   **Allowed Contents:** Strictly subdivided into the following folders:
-    *   **`pages/`**: Route-level containers (e.g., `LoginPage.jsx`, `RegisterPage.jsx`, `ProfilePage.jsx`). These compose components together but contain no complex logic.
-    *   **`components/`**: Auth-specific UI elements (e.g., `LoginForm.jsx`, `ChangePassword.jsx`, `ProtectedRoute.jsx`).
-    *   **`hooks/`**: Custom React hooks abstracting business logic (e.g., `useAuth.js`).
-    *   **`services/`**: The dedicated API delegation layer (e.g., `authApi.js`). No UI code is allowed here.
-
-## 3. `shared/` Directory
-
-*   **Purpose:** A global repository for highly reusable code that spans across multiple different features.
-*   **Responsibility:** Preventing code duplication by providing centralized utilities, UI components, and layouts that the entire application can consume.
-*   **Allowed Contents:**
-    *   **`components/layout/`**: Structural wrappers (e.g., `AuthLayout.jsx`, `DashboardLayout.jsx`).
-    *   **`components/ui/`**: Generic, dumb UI elements (e.g., custom styled M3 buttons or loading spinners).
-    *   **`services/`**: Global network configurations (e.g., `axios.js` interceptor).
-
-## 4. `theme/` Directory *(Virtual/Logical Grouping)*
-
-*   **Purpose:** To define the visual language of the application.
-*   **Responsibility:** Enforcing the Material Design 3 guidelines (Colors, Typography, Spacing, Component Overrides).
-*   **Allowed Contents:** Currently consolidated within `app/theme.js`. As the application scales, if multiple themes (Dark Mode, High Contrast) or complex overrides are needed, this will expand into a dedicated `src/theme/` directory containing palette and typography sub-files.
-
-## 5. `assets/` Directory
-
-*   **Purpose:** Storage for static, non-compiled resources.
-*   **Responsibility:** Providing static media and global stylesheets required by the application before runtime.
-*   **Allowed Contents:**
-    *   Images (e.g., Hospital Logos, placeholder avatars).
-    *   Global CSS resets (e.g., `index.css`).
-    *   Custom local fonts (if not utilizing `@fontsource` packages).
+```
+backend/
+├── accounts/                # User accounts & authorization operations module.
+│   ├── migrations/
+│   ├── __init__.py
+│   ├── apps.py
+│   ├── models.py            # CustomUser entity and UserManager settings.
+│   ├── permissions.py       # NEW: DRF IsAdminUser / IsDoctorUser permission checks.
+│   ├── serializers.py       # Payload formatting and signup constraints validators.
+│   ├── tests.py             # NEW: Model and API route endpoint integration tests.
+│   ├── urls.py              # Endpoint mappings (/register/, /login/, /me/, etc.).
+│   └── views.py             # View controllers handling JWT operations.
+├── core/                    # Core project configurations.
+│   ├── __init__.py
+│   ├── asgi.py
+│   ├── settings.py          # Secure configurations loading .env.
+│   ├── urls.py              # Central routing mapping.
+│   └── wsgi.py
+├── manage.py                # Command-line administrative gateway utility.
+└── requirements.txt         # Dependencies checklist (includes python-dotenv).
+```
+---
+*End of Milestone 1 Structural Layout.*
