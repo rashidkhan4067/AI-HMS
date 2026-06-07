@@ -1,8 +1,16 @@
 import axios from 'axios';
 
 const getBaseURL = () => {
-    const envBaseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
-    if (envBaseURL) return envBaseURL;
+    let envBaseURL = import.meta.env.VITE_API_BASE_URL || import.meta.env.VITE_API_URL;
+    if (envBaseURL) {
+        // Strip trailing /v1/ or /v1 from the base URL if configured to prevent double v1 in API paths
+        if (envBaseURL.endsWith('/v1/')) {
+            return envBaseURL.slice(0, -4);
+        } else if (envBaseURL.endsWith('/v1')) {
+            return envBaseURL.slice(0, -3);
+        }
+        return envBaseURL;
+    }
 
     // Automatically detect Vercel production hosting and point to production Railway backend
     if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname === 'ai-hms-drab.vercel.app')) {
