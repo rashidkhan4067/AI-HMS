@@ -224,3 +224,6 @@ frontend/.env
 frontend/.env.local
 venv/
 __pycache__/
+
+# Allow frontend source lib folder
+!frontend/src/lib/
