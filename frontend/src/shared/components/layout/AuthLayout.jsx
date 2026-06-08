@@ -251,8 +251,8 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
             initial="hidden"
             animate="visible"
             sx={{
-                minHeight: '100vh',
-                height: { md: '100vh' },
+                minHeight: '100dvh',
+                height: { md: '100dvh' },
                 display: 'flex',
                 backgroundColor: isDark ? '#0F1515' : '#F4FBFB',
                 position: 'relative',
@@ -448,12 +448,13 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                     flexDirection: 'column',
                     alignItems: 'center',
                     justifyContent: 'center',
-                    px: { xs: 3, sm: 5 },
+                    px: { xs: 2, sm: 5 }, // px-4 on mobile for better breathing room, px-10 on sm+
                     py: { xs: 4, md: 5 },
                     boxSizing: 'border-box',
                     zIndex: 1,
                     overflowY: 'auto',
-                    minHeight: '100vh',
+                    minHeight: '100dvh', // Use dvh for dynamic viewport heights on mobile
+                    height: { xs: 'auto', md: '100dvh' },
                 }}
             >
                 <Box
@@ -599,7 +600,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                                     fontWeight: 400,
                                 }}
                             >
-                                © 2025 Al Shifaa Health Systems •{' '}
+                                © {new Date().getFullYear()} Al Shifaa Health Systems •{' '}
                                 <Link
                                     component={RouterLink}
                                     to="/privacy"
