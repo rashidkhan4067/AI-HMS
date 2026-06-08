@@ -11,7 +11,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import {
     User, Mail, Phone, Briefcase, FileText,
     Lock, Eye, EyeOff, CheckCircle2, AlertCircle,
-    XCircle, X, ArrowRight, Loader2, ChevronDown,
+    XCircle, X, ArrowRight, ArrowLeft, Loader2, ChevronDown,
     Calendar, Heart, Shield, Pill, FlaskConical, Scan, Stethoscope
 } from 'lucide-react';
 import {
@@ -458,7 +458,10 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
                             </Box>
                         ) : (
                             <>
-                                <span>Create My Account →</span>
+                                <span>Create My Account</span>
+                                <Box component={motion.span} variants={{ hover: { x: 3 } }} transition={{ duration: 0.2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <ArrowRight size={16} />
+                                </Box>
                             </>
                         )}
                     </Box>
@@ -723,9 +726,36 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
                                     </Box>
                                 </Box>
 
-                                <Typography variant="body2" sx={{ textAlign: 'center', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary' }}>
+                                <Typography variant="body2" sx={{ textAlign: 'left', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary' }}>
                                     Already registered?{' '}
-                                    <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: 'primary.main' }}>Sign In</Link>
+                                    <Link
+                                        component={RouterLink}
+                                        to="/login"
+                                        underline="hover"
+                                        sx={{
+                                            fontWeight: 600,
+                                            color: 'primary.main',
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            gap: 0.5,
+                                            '&:hover .arrow-icon': {
+                                                transform: 'translateX(3px)',
+                                            },
+                                        }}
+                                    >
+                                        <span>Sign In</span>
+                                        <Box
+                                            component="span"
+                                            className="arrow-icon"
+                                            sx={{
+                                                display: 'inline-flex',
+                                                alignItems: 'center',
+                                                transition: 'transform 0.2s ease',
+                                            }}
+                                        >
+                                            <ArrowRight size={14} />
+                                        </Box>
+                                    </Link>
                                 </Typography>
                             </Box>
                         </motion.div>
@@ -926,8 +956,43 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
 
                                 {/* Nav buttons */}
                                 <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                    <Box component="button" type="button" onClick={goPatientBack} sx={{ flex: 1, height: 44, borderRadius: '12px', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: '14px', color: isDark ? '#E0F2F1' : '#4B5563', transition: 'all 0.2s ease', '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB', borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB' } }}>
-                                        ← Back
+                                    <Box
+                                        component={motion.button}
+                                        type="button"
+                                        onClick={goPatientBack}
+                                        whileHover="hover"
+                                        sx={{
+                                            flex: 1,
+                                            height: 44,
+                                            borderRadius: '12px',
+                                            border: '1px solid',
+                                            borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                                            backgroundColor: 'transparent',
+                                            cursor: 'pointer',
+                                            fontFamily: "'DM Sans', sans-serif",
+                                            fontWeight: 500,
+                                            fontSize: '14px',
+                                            color: isDark ? '#E0F2F1' : '#4B5563',
+                                            display: 'flex',
+                                            alignItems: 'center',
+                                            justifyContent: 'center',
+                                            gap: 0.5,
+                                            transition: 'all 0.2s ease',
+                                            '&:hover': {
+                                                backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                                                borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB',
+                                            }
+                                        }}
+                                    >
+                                        <Box
+                                            component={motion.span}
+                                            variants={{ hover: { x: -3 } }}
+                                            transition={{ duration: 0.2 }}
+                                            sx={{ display: 'flex', alignItems: 'center' }}
+                                        >
+                                            <ArrowLeft size={16} />
+                                        </Box>
+                                        <span>Back</span>
                                     </Box>
                                     <Box component={motion.button} type="submit" disabled={isBusy} whileHover={isBusy ? {} : 'hover'} sx={{ flex: 2, height: 44, borderRadius: '12px', border: 'none', cursor: isBusy ? 'not-allowed' : 'pointer', background: isBusy ? 'rgba(0,106,106,0.5)' : 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)', color: '#FFFFFF', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: '14px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, transition: 'all 0.2s ease', opacity: isBusy ? 0.9 : 1 }}>
                                         {isBusy ? (
@@ -937,7 +1002,10 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
                                             </Box>
                                         ) : (
                                             <>
-                                                <span>Create Patient Account →</span>
+                                                <span>Create Patient Account</span>
+                                                <Box component={motion.span} variants={{ hover: { x: 3 } }} transition={{ duration: 0.2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                    <ArrowRight size={16} />
+                                                </Box>
                                             </>
                                         )}
                                     </Box>
@@ -1097,9 +1165,36 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
                                 </Box>
                             </Box>
 
-                            <Typography variant="body2" sx={{ textAlign: 'center', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary' }}>
+                            <Typography variant="body2" sx={{ textAlign: 'left', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary' }}>
                                 Already registered?{' '}
-                                <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: 'primary.main' }}>Sign In</Link>
+                                <Link
+                                    component={RouterLink}
+                                    to="/login"
+                                    underline="hover"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: 'primary.main',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 0.5,
+                                        '&:hover .arrow-icon': {
+                                            transform: 'translateX(3px)',
+                                        },
+                                    }}
+                                >
+                                    <span>Sign In</span>
+                                    <Box
+                                        component="span"
+                                        className="arrow-icon"
+                                        sx={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            transition: 'transform 0.2s ease',
+                                        }}
+                                    >
+                                        <ArrowRight size={14} />
+                                    </Box>
+                                </Link>
                             </Typography>
                         </Box>
                     </motion.div>
@@ -1184,8 +1279,43 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
 
                             {/* Nav buttons */}
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <Box component="button" type="button" onClick={goBack} sx={{ flex: 1, height: 44, borderRadius: '12px', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: '14px', color: isDark ? '#E0F2F1' : '#4B5563', transition: 'all 0.2s ease', '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB', borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB' } }}>
-                                    ← Back
+                                <Box
+                                    component={motion.button}
+                                    type="button"
+                                    onClick={goBack}
+                                    whileHover="hover"
+                                    sx={{
+                                        flex: 1,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: '1px solid',
+                                        borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                                        backgroundColor: 'transparent',
+                                        cursor: 'pointer',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        color: isDark ? '#E0F2F1' : '#4B5563',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                                            borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB',
+                                        }
+                                    }}
+                                >
+                                    <Box
+                                        component={motion.span}
+                                        variants={{ hover: { x: -3 } }}
+                                        transition={{ duration: 0.2 }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </Box>
+                                    <span>Back</span>
                                 </Box>
                                 <Box component={motion.button} type="submit" whileHover="hover" sx={{ flex: 2, height: 44, borderRadius: '12px', border: 'none', background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)', color: '#FFFFFF', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: '14px', cursor: 'pointer', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1, transition: 'all 0.2s ease', '&:hover': { background: 'linear-gradient(135deg, #005858 0%, #003D3D 100%)' }, '&:active': { background: 'linear-gradient(135deg, #004848 0%, #002F2F 100%)' } }}>
                                     <span>Continue</span>
@@ -1301,8 +1431,43 @@ export const RegisterForm = ({ visitMode, inviteData }) => {
 
                             {/* Nav buttons */}
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <Box component="button" type="button" onClick={goBack} sx={{ flex: 1, height: 44, borderRadius: '12px', border: '1px solid', borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB', backgroundColor: 'transparent', cursor: 'pointer', fontFamily: "'DM Sans', sans-serif", fontWeight: 500, fontSize: '14px', color: isDark ? '#E0F2F1' : '#4B5563', transition: 'all 0.2s ease', '&:hover': { backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB', borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB' } }}>
-                                    ← Back
+                                <Box
+                                    component={motion.button}
+                                    type="button"
+                                    onClick={goBack}
+                                    whileHover="hover"
+                                    sx={{
+                                        flex: 1,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: '1px solid',
+                                        borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                                        backgroundColor: 'transparent',
+                                        cursor: 'pointer',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        color: isDark ? '#E0F2F1' : '#4B5563',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                                            borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB',
+                                        }
+                                    }}
+                                >
+                                    <Box
+                                        component={motion.span}
+                                        variants={{ hover: { x: -3 } }}
+                                        transition={{ duration: 0.2 }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </Box>
+                                    <span>Back</span>
                                 </Box>
                                 <Box
                                     component={motion.button}

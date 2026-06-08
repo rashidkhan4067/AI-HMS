@@ -1,7 +1,7 @@
-import { Box, Typography, Button } from '@mui/material';
+import { Box, Typography, Button, Link } from '@mui/material';
 import { Link as RouterLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { User, Stethoscope, ArrowRight, Info } from 'lucide-react';
+import { User, Stethoscope, ArrowRight, ArrowLeft, Info } from 'lucide-react';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 
 export const BlockedRegisterView = () => {
@@ -301,25 +301,41 @@ export const BlockedRegisterView = () => {
             </Box>
 
             {/* Back to Login Link */}
-            <Button
+            <Link
                 component={RouterLink}
                 to="/login"
-                variant="text"
+                underline="hover"
                 sx={{
-                    textTransform: 'none',
                     fontFamily: "'DM Sans', sans-serif",
                     fontWeight: 600,
                     fontSize: '13px',
-                    color: '#6B7280',
+                    color: isDark ? 'text.secondary' : '#6B7280',
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 0.5,
+                    mt: 1,
+                    textDecoration: 'none',
                     '&:hover': {
                         color: '#006A6A',
-                        backgroundColor: 'transparent',
-                        textDecoration: 'underline',
+                    },
+                    '&:hover .arrow-icon': {
+                        transform: 'translateX(-3px)',
                     },
                 }}
             >
-                Back to Sign In
-            </Button>
+                <Box
+                    component="span"
+                    className="arrow-icon"
+                    sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        transition: 'transform 0.2s ease',
+                    }}
+                >
+                    <ArrowLeft size={14} />
+                </Box>
+                <span>Back to Sign In</span>
+            </Link>
         </Box>
     );
 };

@@ -7,7 +7,7 @@ import { zodResolver } from '@hookform/resolvers/zod';
 import { z } from 'zod';
 import {
     User, Mail, Phone, Calendar, Briefcase, FileText, CheckCircle2,
-    UploadCloud, AlertCircle, ArrowRight, Loader2, ClipboardList, Check, Trash2
+    UploadCloud, AlertCircle, ArrowRight, ArrowLeft, Loader2, ClipboardList, Check, Trash2
 } from 'lucide-react';
 import StepProgressBar from './StepProgressBar';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
@@ -370,19 +370,69 @@ export const DoctorApplicationForm = () => {
                             </Box>
 
                             {/* Next CTA */}
-                            <Button
+                            <Box
+                                component={motion.button}
                                 type="submit"
-                                variant="contained"
-                                sx={{ mt: 1, height: 44, borderRadius: '12px', background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)', textTransform: 'none', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
+                                whileHover="hover"
+                                sx={{
+                                    mt: 1,
+                                    height: 44,
+                                    borderRadius: '12px',
+                                    border: 'none',
+                                    background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)',
+                                    color: '#FFFFFF',
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    fontWeight: 500,
+                                    fontSize: '14px',
+                                    cursor: 'pointer',
+                                    display: 'flex',
+                                    alignItems: 'center',
+                                    justifyContent: 'center',
+                                    gap: 1,
+                                    transition: 'all 0.2s ease',
+                                    '&:hover': {
+                                        background: 'linear-gradient(135deg, #005858 0%, #003D3D 100%)',
+                                    },
+                                    '&:active': {
+                                        background: 'linear-gradient(135deg, #004848 0%, #002F2F 100%)',
+                                    }
+                                }}
                             >
                                 <span>Continue</span>
-                                <ArrowRight size={16} />
-                            </Button>
+                                <Box component={motion.span} variants={{ hover: { x: 3 } }} transition={{ duration: 0.2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                    <ArrowRight size={16} />
+                                </Box>
+                            </Box>
 
-                            <Typography variant="body2" sx={{ textAlign: 'center', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary', mt: 1 }}>
+                            <Typography variant="body2" sx={{ textAlign: 'left', fontFamily: "'DM Sans', sans-serif", color: 'text.secondary', mt: 1 }}>
                                 Already have an account?{' '}
-                                <Link component={RouterLink} to="/login" underline="hover" sx={{ fontWeight: 600, color: 'primary.main' }}>
-                                    Sign In
+                                <Link
+                                    component={RouterLink}
+                                    to="/login"
+                                    underline="hover"
+                                    sx={{
+                                        fontWeight: 600,
+                                        color: 'primary.main',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        gap: 0.5,
+                                        '&:hover .arrow-icon': {
+                                            transform: 'translateX(3px)',
+                                        },
+                                    }}
+                                >
+                                    <span>Sign In</span>
+                                    <Box
+                                        component="span"
+                                        className="arrow-icon"
+                                        sx={{
+                                            display: 'inline-flex',
+                                            alignItems: 'center',
+                                            transition: 'transform 0.2s ease',
+                                        }}
+                                    >
+                                        <ArrowRight size={14} />
+                                    </Box>
                                 </Link>
                             </Typography>
                         </Box>
@@ -558,21 +608,77 @@ export const DoctorApplicationForm = () => {
 
                             {/* Nav Buttons */}
                             <Box sx={{ display: 'flex', gap: 1.5, mt: 1 }}>
-                                <Button
-                                    variant="outlined"
+                                <Box
+                                    component={motion.button}
+                                    type="button"
                                     onClick={goBack}
-                                    sx={{ flex: 1, height: 44, borderRadius: '12px', textTransform: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                                    whileHover="hover"
+                                    sx={{
+                                        flex: 1,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: '1px solid',
+                                        borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                                        backgroundColor: 'transparent',
+                                        cursor: 'pointer',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        color: isDark ? '#E0F2F1' : '#4B5563',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                                            borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB',
+                                        }
+                                    }}
                                 >
-                                    ← Back
-                                </Button>
-                                <Button
+                                    <Box
+                                        component={motion.span}
+                                        variants={{ hover: { x: -3 } }}
+                                        transition={{ duration: 0.2 }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </Box>
+                                    <span>Back</span>
+                                </Box>
+                                <Box
+                                    component={motion.button}
                                     type="submit"
-                                    variant="contained"
-                                    sx={{ flex: 2, height: 44, borderRadius: '12px', background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)', textTransform: 'none', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
+                                    whileHover="hover"
+                                    sx={{
+                                        flex: 2,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)',
+                                        color: '#FFFFFF',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        cursor: 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                        transition: 'all 0.2s ease',
+                                        '&:hover': {
+                                            background: 'linear-gradient(135deg, #005858 0%, #003D3D 100%)',
+                                        },
+                                        '&:active': {
+                                            background: 'linear-gradient(135deg, #004848 0%, #002F2F 100%)',
+                                        }
+                                    }}
                                 >
                                     <span>Continue</span>
-                                    <ArrowRight size={16} />
-                                </Button>
+                                    <Box component={motion.span} variants={{ hover: { x: 3 } }} transition={{ duration: 0.2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                        <ArrowRight size={16} />
+                                    </Box>
+                                </Box>
                             </Box>
                         </Box>
                     </motion.div>
@@ -662,32 +768,90 @@ export const DoctorApplicationForm = () => {
 
                             {/* Submit & Back */}
                             <Box sx={{ display: 'flex', gap: 1.5 }}>
-                                <Button
-                                    variant="outlined"
+                                <Box
+                                    component={motion.button}
+                                    type="button"
                                     onClick={goBack}
                                     disabled={isSubmitting}
-                                    sx={{ flex: 1, height: 44, borderRadius: '12px', textTransform: 'none', fontFamily: "'DM Sans', sans-serif" }}
+                                    whileHover={isSubmitting ? {} : 'hover'}
+                                    sx={{
+                                        flex: 1,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: '1px solid',
+                                        borderColor: isDark ? 'rgba(255,255,255,0.15)' : '#E5E7EB',
+                                        backgroundColor: 'transparent',
+                                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        color: isDark ? '#E0F2F1' : '#4B5563',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 0.5,
+                                        transition: 'all 0.2s ease',
+                                        opacity: isSubmitting ? 0.6 : 1,
+                                        '&:hover': {
+                                            backgroundColor: isDark ? 'rgba(255,255,255,0.04)' : '#F9FAFB',
+                                            borderColor: isDark ? 'rgba(255,255,255,0.3)' : '#D1D5DB',
+                                        }
+                                    }}
                                 >
-                                    ← Back
-                                </Button>
-                                <Button
+                                    <Box
+                                        component={motion.span}
+                                        variants={{ hover: { x: -3 } }}
+                                        transition={{ duration: 0.2 }}
+                                        sx={{ display: 'flex', alignItems: 'center' }}
+                                    >
+                                        <ArrowLeft size={16} />
+                                    </Box>
+                                    <span>Back</span>
+                                </Box>
+                                <Box
+                                    component={motion.button}
                                     type="submit"
-                                    variant="contained"
                                     disabled={isSubmitting}
-                                    sx={{ flex: 2, height: 44, borderRadius: '12px', background: 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)', textTransform: 'none', fontFamily: "'DM Sans', sans-serif", display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 1 }}
+                                    whileHover={isSubmitting ? {} : 'hover'}
+                                    sx={{
+                                        flex: 2,
+                                        height: 44,
+                                        borderRadius: '12px',
+                                        border: 'none',
+                                        background: isSubmitting ? 'rgba(0,106,106,0.5)' : 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)',
+                                        color: '#FFFFFF',
+                                        fontFamily: "'DM Sans', sans-serif",
+                                        fontWeight: 500,
+                                        fontSize: '14px',
+                                        cursor: isSubmitting ? 'not-allowed' : 'pointer',
+                                        display: 'flex',
+                                        alignItems: 'center',
+                                        justifyContent: 'center',
+                                        gap: 1,
+                                        transition: 'all 0.2s ease',
+                                        opacity: isSubmitting ? 0.9 : 1,
+                                        '&:hover': {
+                                            background: isSubmitting ? 'rgba(0,106,106,0.5)' : 'linear-gradient(135deg, #005858 0%, #003D3D 100%)',
+                                        },
+                                        '&:active': {
+                                            background: isSubmitting ? 'rgba(0,106,106,0.5)' : 'linear-gradient(135deg, #004848 0%, #002F2F 100%)',
+                                        }
+                                    }}
                                 >
                                     {isSubmitting ? (
-                                        <>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                             <Loader2 size={16} className="animate-spin" />
                                             <span>Submitting…</span>
-                                        </>
+                                        </Box>
                                     ) : (
                                         <>
                                             <span>Submit Application</span>
-                                            <Check size={16} />
+                                            <Box component={motion.span} variants={{ hover: { scale: 1.15 } }} transition={{ duration: 0.2 }} sx={{ display: 'flex', alignItems: 'center' }}>
+                                                <Check size={16} />
+                                            </Box>
                                         </>
                                     )}
-                                </Button>
+                                </Box>
                             </Box>
                         </Box>
                     </motion.div>
