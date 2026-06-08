@@ -10,6 +10,7 @@ import { Unauthorized } from '../components/Unauthorized';
 import { NotFoundPage } from '../features/auth/pages/NotFoundPage';
 import { PrivacyPage } from '../features/auth/pages/PrivacyPage';
 import { TermsPage } from '../features/auth/pages/TermsPage';
+import { LandingPage } from '../pages/LandingPage';
 import { useState } from 'react';
 
 // Temporary Dashboard Components until Milestone 2
@@ -56,8 +57,8 @@ export const AppRoutes = () => {
 
     return (
         <Routes>
-            {/* Root Route — Redirect to Login */}
-            <Route path="/" element={<Navigate to="/login" replace />} />
+            {/* Root Route — Landing Page */}
+            <Route path="/" element={<LandingPage />} />
 
             {/* Public Routes */}
             {AuthRoutes}
