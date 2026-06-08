@@ -281,29 +281,31 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
             {/* ── HTTPS Lock Badge (top-right) ── */}
             <Box
                 sx={{
-                    position: 'fixed',
+                    position: 'absolute',
                     top: 16,
                     right: 16,
                     zIndex: 100,
                     display: 'flex',
                     alignItems: 'center',
                     gap: 0.75,
-                    px: 1.25,
-                    py: 0.5,
+                    px: { xs: 0.5, sm: 1.25 },
+                    py: { xs: 0.5, sm: 0.5 },
                     borderRadius: '9999px',
-                    backgroundColor: isDark ? 'rgba(0,106,106,0.15)' : 'rgba(0,106,106,0.08)',
-                    border: '1px solid rgba(0,106,106,0.2)',
+                    backgroundColor: { xs: 'transparent', sm: isDark ? 'rgba(0,106,106,0.15)' : 'rgba(0,106,106,0.08)' },
+                    border: { xs: 'none', sm: '1px solid rgba(0,106,106,0.2)' },
                 }}
             >
-                <Lock size={11} color="#006A6A" />
-                <Typography variant="caption" sx={{ fontSize: '10px', fontWeight: 600, color: '#006A6A', fontFamily: "'DM Sans', sans-serif" }}>
-                    HTTPS Secure
-                </Typography>
+                <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 0.75, mr: { xs: 0, sm: 0.5 } }}>
+                    <Lock size={11} color="#006A6A" />
+                    <Typography variant="caption" sx={{ fontSize: '10px', fontWeight: 600, color: '#006A6A', fontFamily: "'DM Sans', sans-serif" }}>
+                        HTTPS Secure
+                    </Typography>
+                </Box>
                 {/* Theme toggle */}
                 <IconButton
                     onClick={toggleThemeMode}
                     size="small"
-                    sx={{ p: 0.25, ml: 0.5, color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
+                    sx={{ p: 0.25, color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
                     aria-label="Toggle theme"
                 >
                     {isDark ? <LightModeIcon sx={{ fontSize: 14 }} /> : <DarkModeIcon sx={{ fontSize: 14 }} />}
@@ -476,10 +478,10 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center',
+                    justifyContent: { xs: 'flex-start', md: 'center' },
                     alignItems: 'center',
-                    py: 4,
-                    px: { xs: 3, sm: 4 },
+                    py: { xs: 3, md: 4 },
+                    px: { xs: 2, sm: 4 },
                     boxSizing: 'border-box',
                     zIndex: 1,
                     overflowY: 'auto',
@@ -492,7 +494,8 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                         display: { xs: 'flex', md: 'none' },
                         flexDirection: 'column',
                         alignItems: 'center',
-                        mb: 4,
+                        mt: { xs: 2, md: 0 },
+                        mb: { xs: 2.5, md: 4 },
                         textAlign: 'center',
                     }}
                 >
@@ -523,7 +526,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                         width: '100%',
                         maxWidth: 440,
                         borderRadius: { xs: '20px', sm: '24px' },
-                        p: 4, // py-8 px-8 internally
+                        p: { xs: 2.5, sm: 4 }, // wider spacing on desktop, optimized on mobile
                         boxShadow: isDark
                             ? '0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3)'
                             : '0 12px 32px -4px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.05)',
