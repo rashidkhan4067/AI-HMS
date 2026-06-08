@@ -97,10 +97,10 @@ const HeadingBlock = ({ userPreview, isCheckingEmail, animKey, isDark, typeParam
         : defaultSubtitle;
 
     return (
-        <Box sx={{ mb: 3 }}>
+        <Box sx={{ mb: 3, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textAlign: 'left', width: '100%' }}>
             {isCheckingEmail ? (
                 /* Shimmer skeleton while fetching */
-                <Box sx={{ mb: 0.75 }}>
+                <Box sx={{ mb: 0.75, display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
                     <Box
                         sx={{
                             height:       32,
@@ -137,6 +137,7 @@ const HeadingBlock = ({ userPreview, isCheckingEmail, animKey, isDark, typeParam
                         animate={{ opacity: 1, y: 0 }}
                         exit={{   opacity: 0, y:  8 }}
                         transition={{ duration: 0.25 }}
+                        style={{ width: '100%', textAlign: 'left' }}
                     >
                         {/* h1 heading */}
                         <Box
@@ -144,12 +145,13 @@ const HeadingBlock = ({ userPreview, isCheckingEmail, animKey, isDark, typeParam
                             sx={{
                                 fontFamily:    "'DM Sans', sans-serif",
                                 fontWeight:    600,
-                                fontSize:      '26px',
+                                fontSize:      '24px',
                                 letterSpacing: '-0.5px',
                                 color:         isDark ? '#E0F2F1' : '#161D1D',
                                 mt:            0,
                                 mb:            0.5,
                                 lineHeight:    1.25,
+                                textAlign:     'left',
                             }}
                         >
                             {heading}
@@ -164,6 +166,7 @@ const HeadingBlock = ({ userPreview, isCheckingEmail, animKey, isDark, typeParam
                                 fontSize:   '14px',
                                 lineHeight: 1.5,
                                 m:          0,
+                                textAlign:  'left',
                             }}
                         >
                             {subtitle}
@@ -175,7 +178,9 @@ const HeadingBlock = ({ userPreview, isCheckingEmail, animKey, isDark, typeParam
             {/* Role badge — only when we have a preview */}
             <AnimatePresence>
                 {!isCheckingEmail && userPreview && userPreview.role !== 'PATIENT' && (
-                    <RoleBadge userPreview={userPreview} />
+                    <Box sx={{ mt: 1.5 }}>
+                        <RoleBadge userPreview={userPreview} />
+                    </Box>
                 )}
             </AnimatePresence>
         </Box>

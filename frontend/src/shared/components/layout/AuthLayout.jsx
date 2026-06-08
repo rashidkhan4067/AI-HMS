@@ -1,12 +1,11 @@
 import { useState, useEffect } from 'react';
-import { Box, Typography, IconButton, Card, Link } from '@mui/material';
+import { Box, Typography, Card, Link } from '@mui/material';
 import { Link as RouterLink, useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CalendarCheck2, Brain, Star, Lock } from 'lucide-react';
-import LightModeIcon from '@mui/icons-material/LightMode';
-import DarkModeIcon from '@mui/icons-material/DarkMode';
+import { ShieldCheck, CalendarCheck2, Brain, Star } from 'lucide-react';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 import { BrandIllustration } from '../../../components/auth/BrandIllustration';
+
 
 /* ─────────────────────────────────────────────
    Al Shifaa SVG Logo Mark
@@ -22,29 +21,28 @@ const AlShifaaLogo = ({ size = 40, white = false }) => {
             {/* Rounded hospital cross backing */}
             <rect x="16" y="4" width="16" height="40" rx="6" fill={primaryColor} fillOpacity={backingOpacity} />
             <rect x="4" y="16" width="40" height="16" rx="6" fill={primaryColor} fillOpacity={backingOpacity} />
-            
+
             {/* Inner solid cross */}
             <rect x="18.5" y="7" width="11" height="34" rx="4" fill={primaryColor} />
             <rect x="7" y="18.5" width="34" height="11" rx="4" fill={primaryColor} />
-            
+
             {/* Pulse wave (ECG) drawing inside cross */}
-            <path 
-                d="M 12 24 L 20 24 L 22.5 17 L 25.5 31 L 28 21 L 30 24 L 36 24" 
-                stroke={waveColor} 
-                strokeWidth="2.5" 
-                strokeLinecap="round" 
-                strokeLinejoin="round" 
+            <path
+                d="M 12 24 L 20 24 L 22.5 17 L 25.5 31 L 28 21 L 30 24 L 36 24"
+                stroke={waveColor}
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
             />
-            
+
             {/* Accent healing leaf / crescent in mint green */}
-            <path 
-                d="M32 14c-3.5 0-7 2.5-7.5 6 2.5-0.5 5.5 1 6.5 3.5 1-2.5 3.5-4 7-4 0-3.5-2.5-5.5-6-5.5z" 
-                fill={accentColor} 
+            <path
+                d="M32 14c-3.5 0-7 2.5-7.5 6 2.5-0.5 5.5 1 6.5 3.5 1-2.5 3.5-4 7-4 0-3.5-2.5-5.5-6-5.5z"
+                fill={accentColor}
             />
         </svg>
     );
 };
-
 
 /* ─────────────────────────────────────────────
    Animated ECG / Heartbeat SVG
@@ -82,9 +80,9 @@ const FeaturePills = ({ pills = [] }) => {
     }, [pills]);
 
     const activePills = pills.length > 0 ? pills : [
-        { icon: ShieldCheck,    label: 'Secure Patient Records' },
+        { icon: ShieldCheck, label: 'Secure Patient Records' },
         { icon: CalendarCheck2, label: 'Real-time Appointments' },
-        { icon: Brain,          label: 'AI-powered Insights' },
+        { icon: Brain, label: 'AI-powered Insights' },
     ];
 
     return (
@@ -148,12 +146,12 @@ const FiveStars = () => (
 ───────────────────────────────────────────── */
 
 const pageVariants = {
-    hidden:  { opacity: 0, y: 16 },
+    hidden: { opacity: 0, y: 16 },
     visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
 };
 
 const cardVariants = {
-    hidden:  { opacity: 0, scale: 0.98 },
+    hidden: { opacity: 0, scale: 0.98 },
     visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: 'easeOut', delay: 0.05 } },
 };
 
@@ -221,7 +219,7 @@ const SHOWCASE_DATA = {
 };
 
 export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMode: propShowcaseMode }) => {
-    const { mode, toggleThemeMode } = useThemeMode();
+    const { mode } = useThemeMode();
     const isDark = mode === 'dark';
     const location = useLocation();
     const [searchParams] = useSearchParams();
@@ -254,10 +252,12 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
             animate="visible"
             sx={{
                 minHeight: '100vh',
+                height: { md: '100vh' },
                 display: 'flex',
                 backgroundColor: isDark ? '#0F1515' : '#F4FBFB',
                 position: 'relative',
-                overflow: 'hidden',
+                overflowX: 'hidden',
+                overflowY: { xs: 'auto', md: 'hidden' },
             }}
         >
             {/* ── Subtle background mesh (right side only) ── */}
@@ -278,39 +278,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                 }}
             />
 
-            {/* ── HTTPS Lock Badge (top-right) ── */}
-            <Box
-                sx={{
-                    position: 'absolute',
-                    top: 16,
-                    right: 16,
-                    zIndex: 100,
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 0.75,
-                    px: { xs: 0.5, sm: 1.25 },
-                    py: { xs: 0.5, sm: 0.5 },
-                    borderRadius: '9999px',
-                    backgroundColor: { xs: 'transparent', sm: isDark ? 'rgba(0,106,106,0.15)' : 'rgba(0,106,106,0.08)' },
-                    border: { xs: 'none', sm: '1px solid rgba(0,106,106,0.2)' },
-                }}
-            >
-                <Box sx={{ display: { xs: 'none', sm: 'flex' }, alignItems: 'center', gap: 0.75, mr: { xs: 0, sm: 0.5 } }}>
-                    <Lock size={11} color="#006A6A" />
-                    <Typography variant="caption" sx={{ fontSize: '10px', fontWeight: 600, color: '#006A6A', fontFamily: "'DM Sans', sans-serif" }}>
-                        HTTPS Secure
-                    </Typography>
-                </Box>
-                {/* Theme toggle */}
-                <IconButton
-                    onClick={toggleThemeMode}
-                    size="small"
-                    sx={{ p: 0.25, color: 'text.secondary', '&:hover': { color: 'primary.main' } }}
-                    aria-label="Toggle theme"
-                >
-                    {isDark ? <LightModeIcon sx={{ fontSize: 14 }} /> : <DarkModeIcon sx={{ fontSize: 14 }} />}
-                </IconButton>
-            </Box>
+
 
             {/* ══════════════════════════════════════════
                 LEFT PANEL — Brand / Clinical Showcase
@@ -319,7 +287,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
             <Box
                 sx={{
                     display: { xs: 'none', md: 'flex' },
-                    width:   { md: '38%', lg: '42%' },
+                    width: { md: '38%', lg: '42%' },
                     flexShrink: 0,
                     flexDirection: 'column',
                     justifyContent: 'space-between',
@@ -389,9 +357,9 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                     animate={{ opacity: 1, y: 0 }}
                     transition={{ duration: 0.6, delay: 0.25 }}
                 >
-                    <BrandIllustration 
-                        stats={currentShowcase.stats} 
-                        showcaseMode={showcaseMode} 
+                    <BrandIllustration
+                        stats={currentShowcase.stats}
+                        showcaseMode={showcaseMode}
                         isRegister={location.pathname.includes('/register')}
                     />
 
@@ -478,148 +446,187 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                     flex: 1,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: { xs: 'flex-start', md: 'center' },
                     alignItems: 'center',
-                    py: { xs: 3, md: 4 },
-                    px: { xs: 2, sm: 4 },
+                    justifyContent: 'center',
+                    px: { xs: 3, sm: 5 },
+                    py: { xs: 4, md: 5 },
                     boxSizing: 'border-box',
                     zIndex: 1,
                     overflowY: 'auto',
                     minHeight: '100vh',
                 }}
             >
-                {/* Mobile logo header */}
                 <Box
                     sx={{
-                        display: { xs: 'flex', md: 'none' },
+                        width: '100%',
+                        maxWidth: 420,
+                        display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
-                        mt: { xs: 2, md: 0 },
-                        mb: { xs: 2.5, md: 4 },
-                        textAlign: 'center',
+                        boxSizing: 'border-box',
                     }}
                 >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mb: 1 }}>
-                        <AlShifaaLogo size={32} />
-                        <Typography
-                            variant="h6"
-                            sx={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontWeight: 700,
-                                color: '#006A6A',
-                                letterSpacing: '-0.3px',
-                            }}
-                        >
-                            Al Shifaa HMS
-                        </Typography>
-                    </Box>
-                </Box>
-
-                {/* Card */}
-                <Card
-                    component={motion.div}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    elevation={0}
-                    sx={{
-                        width: '100%',
-                        maxWidth: 440,
-                        borderRadius: { xs: '20px', sm: '24px' },
-                        p: { xs: 2.5, sm: 4 }, // wider spacing on desktop, optimized on mobile
-                        boxShadow: isDark
-                            ? '0 12px 32px -4px rgba(0, 0, 0, 0.5), 0 4px 12px -2px rgba(0, 0, 0, 0.3)'
-                            : '0 12px 32px -4px rgba(0, 0, 0, 0.1), 0 4px 12px -2px rgba(0, 0, 0, 0.05)',
-                        border: isDark
-                            ? '1px solid rgba(255,255,255,0.08)'
-                            : '1px solid rgba(0,106,106,0.08)',
-                        backgroundColor: isDark
-                            ? 'rgba(24,31,31,0.92)'
-                            : 'rgba(255,255,255,0.98)',
-                        backdropFilter: 'blur(24px)',
-                    }}
-                >
-                    {/* Logo mark in card (desktop) */}
-                    <Box
+                    {/* Card */}
+                    <Card
+                        component={motion.div}
+                        variants={cardVariants}
+                        initial="hidden"
+                        animate="visible"
+                        elevation={0}
                         sx={{
-                            display: { xs: 'none', md: 'flex' },
-                            alignItems: 'center',
-                            gap: 1,
-                            mb: 2.5, // mb-5
+                            position: 'relative',
+                            overflow: 'visible',
+                            width: '100%',
+                            maxWidth: 420,
+                            borderRadius: '20px',
+                            px: { xs: 3, sm: 3.5 },
+                            pt: { xs: 3, sm: 3.5 },
+                            pb: { xs: 3, sm: 3.5 },
+                            boxShadow: isDark
+                                ? '0 8px 24px -4px rgba(0,0,0,0.45), 0 2px 8px -2px rgba(0,0,0,0.25)'
+                                : '0 4px 24px -4px rgba(0,0,0,0.08), 0 1px 6px -1px rgba(0,0,0,0.04)',
+                            border: isDark
+                                ? '1px solid rgba(255,255,255,0.08)'
+                                : '1px solid rgba(0,106,106,0.1)',
+                            backgroundColor: isDark
+                                ? 'rgba(22,30,30,0.95)'
+                                : '#FFFFFF',
+                            backdropFilter: 'blur(24px)',
                         }}
                     >
-                        <AlShifaaLogo size={28} />
-                        <Typography
+                        {/* Logo row at the top-left of the card */}
+                        <Box
                             sx={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontWeight: 600,
-                                fontSize: '14px',
-                                color: '#006A6A',
-                                letterSpacing: '-0.2px',
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1, // gap-2
+                                mb: 3, // mb-6 (24px)
                             }}
                         >
-                            Al Shifaa HMS
-                        </Typography>
-                    </Box>
+                            <AlShifaaLogo size={24} />
+                            <Typography
+                                sx={{
+                                    fontFamily: "'Outfit', 'DM Sans', sans-serif",
+                                    fontWeight: 600, // font-semibold
+                                    fontSize: '14px', // text-sm
+                                    color: '#006A6A', // text-[#006A6A]
+                                    lineHeight: 1,
+                                }}
+                            >
+                                Al Shifaa HMS
+                            </Typography>
+                        </Box>
 
-                    {/* Title / Subtitle — or custom headingSlot injected by the page */}
-                    {headingSlot
-                        ? headingSlot
-                        : (title || subtitle) && (
-                            <Box sx={{ mb: 0 }}>
-                                {title && (
-                                    <Typography
-                                        component="h1"
-                                        sx={{
-                                            fontFamily: "'DM Sans', sans-serif",
-                                            fontWeight: 600,
-                                            fontSize: '26px',
-                                            letterSpacing: '-0.5px',
-                                            color: isDark ? '#E0F2F1' : '#161D1D',
-                                            mt: 0,
-                                            mb: 0.5,
-                                            lineHeight: 1.25,
-                                        }}
-                                    >
-                                        {title}
-                                    </Typography>
-                                )}
-                                {subtitle && (
-                                    <Typography
-                                        variant="body2"
-                                        sx={{
-                                            fontFamily: "'DM Sans', sans-serif",
-                                            color: isDark ? 'text.secondary' : '#6B7280',
-                                            fontSize: '14px',
-                                            lineHeight: 1.5,
-                                            mb: 3,
-                                        }}
-                                    >
-                                        {subtitle}
-                                    </Typography>
-                                )}
-                            </Box>
-                        )
-                    }
+                        {/* Title / Subtitle — or custom headingSlot injected by the page */}
+                        {headingSlot
+                            ? headingSlot
+                            : (title || subtitle) && (
+                                <Box sx={{ mb: 3, textAlign: 'left', width: '100%' }}>
+                                    {title && (
+                                        <Typography
+                                            component="h1"
+                                            sx={{
+                                                fontFamily: "'DM Sans', sans-serif",
+                                                fontWeight: 600,
+                                                fontSize: '24px',
+                                                letterSpacing: '-0.5px',
+                                                color: isDark ? '#E0F2F1' : '#161D1D',
+                                                mt: 0,
+                                                mb: 0.5,
+                                                lineHeight: 1.25,
+                                            }}
+                                        >
+                                            {title}
+                                        </Typography>
+                                    )}
+                                    {subtitle && (
+                                        <Typography
+                                            variant="body2"
+                                            sx={{
+                                                fontFamily: "'DM Sans', sans-serif",
+                                                color: isDark ? 'text.secondary' : '#6B7280',
+                                                fontSize: '14px',
+                                                lineHeight: 1.5,
+                                            }}
+                                        >
+                                            {subtitle}
+                                        </Typography>
+                                    )}
+                                </Box>
+                            )
+                        }
 
+                        {/* Form content */}
+                        {children}
 
-                    {/* Form content */}
-                    {children}
+                        {/* Security Notification Banner inside the card */}
+                        <Box
+                            sx={{
+                                width: '100%',
+                                mt: 2.5,
+                                p: 1.5, // p-3
+                                borderRadius: '12px', // rounded-xl
+                                backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : '#F9FAFB', // bg-gray-50
+                                border: isDark ? '1px solid rgba(255,255,255,0.05)' : '1px solid #F3F4F6', // border-gray-100
+                                display: 'flex',
+                                alignItems: 'center',
+                                gap: 1, // gap-2
+                                boxSizing: 'border-box',
+                            }}
+                        >
+                            <ShieldCheck size={14} color="#006A6A" style={{ flexShrink: 0 }} />
+                            <Typography
+                                sx={{
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    fontSize: '12px', // text-xs
+                                    color: isDark ? '#A3B3B3' : '#6B7280', // text-gray-500
+                                    lineHeight: 1.3,
+                                }}
+                            >
+                                Your data is secure and encrypted
+                            </Typography>
+                        </Box>
 
-                    {/* Footer */}
-                    <Box sx={{ mt: 4, pt: 2.5, borderTop: '1px solid', borderColor: 'divider', textAlign: 'center' }}>
-                        <Typography variant="caption" sx={{ color: 'text.disabled', fontFamily: "'DM Sans', sans-serif", fontSize: '11px' }}>
-                            © 2025 Al Shifaa Health Systems •{' '}
-                            <Link component={RouterLink} to="/privacy" sx={{ color: 'text.disabled', textDecoration: 'underline', '&:hover': { color: '#006A6A' } }}>
-                                Privacy
-                            </Link>
-                            {' '}•{' '}
-                            <Link component={RouterLink} to="/terms" sx={{ color: 'text.disabled', textDecoration: 'underline', '&:hover': { color: '#006A6A' } }}>
-                                Terms
-                            </Link>
-                        </Typography>
-                    </Box>
-                </Card>
+                        {/* Compact Footer inside the card */}
+                        <Box sx={{ mt: 2, textAlign: 'center', width: '100%' }}>
+                            <Typography
+                                variant="caption"
+                                sx={{
+                                    display: 'block',
+                                    color: isDark ? '#6B7280' : '#9CA3AF', // text-gray-400
+                                    fontFamily: "'DM Sans', sans-serif",
+                                    fontSize: '11px',
+                                    fontWeight: 400,
+                                }}
+                            >
+                                © 2025 Al Shifaa Health Systems •{' '}
+                                <Link
+                                    component={RouterLink}
+                                    to="/privacy"
+                                    sx={{
+                                        color: 'inherit',
+                                        textDecoration: 'none',
+                                        '&:hover': { color: '#006A6A', textDecoration: 'underline' },
+                                    }}
+                                >
+                                    Privacy Policy
+                                </Link>{' '}
+                                •{' '}
+                                <Link
+                                    component={RouterLink}
+                                    to="/terms"
+                                    sx={{
+                                        color: 'inherit',
+                                        textDecoration: 'none',
+                                        '&:hover': { color: '#006A6A', textDecoration: 'underline' },
+                                    }}
+                                >
+                                    Terms of Service
+                                </Link>
+                            </Typography>
+                        </Box>
+                    </Card>
+                </Box>
             </Box>
         </Box>
     );

@@ -141,7 +141,7 @@ export const LoginForm = ({ onEmailBlur }) => {
                         mb: 0.75, // mb-1.5 (6px)
                     }}
                 >
-                    Email Address
+                    Email address
                 </Typography>
                 <TextField
                     {...register('email', {
@@ -324,7 +324,7 @@ export const LoginForm = ({ onEmailBlur }) => {
                     </Box>
                 ) : (
                     <>
-                        <span>Sign In</span>
+                        <span>Sign in</span>
                         <Box
                             component={motion.span}
                             variants={{
@@ -341,11 +341,11 @@ export const LoginForm = ({ onEmailBlur }) => {
 
             {/* ── Divider ── */}
             <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5, mb: 2 }}>
-                <Divider sx={{ flex: 1 }} />
-                <Typography variant="caption" sx={{ color: 'text.disabled', fontWeight: 600, fontSize: '11px', fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.5px' }}>
+                <Divider sx={{ flex: 1, borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#E5E7EB', borderBottomWidth: 1 }} />
+                <Typography variant="caption" sx={{ color: isDark ? '#A3B3B3' : '#6B7280', fontWeight: 600, fontSize: '11px', fontFamily: "'DM Sans', sans-serif", letterSpacing: '0.5px' }}>
                     OR
                 </Typography>
-                <Divider sx={{ flex: 1 }} />
+                <Divider sx={{ flex: 1, borderColor: isDark ? 'rgba(255, 255, 255, 0.15)' : '#E5E7EB', borderBottomWidth: 1 }} />
             </Box>
 
             {/* ── Google SSO ── */}
@@ -432,9 +432,29 @@ export const LoginForm = ({ onEmailBlur }) => {
                     component={RouterLink}
                     to={typeParam === 'patient' ? "/register?type=patient" : applyParam === 'doctor' ? "/register?apply=doctor" : "/register"}
                     underline="hover"
-                    sx={{ fontWeight: 600, color: 'primary.main' }}
+                    sx={{
+                        fontWeight: 600,
+                        color: 'primary.main',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.5,
+                        '&:hover .arrow-icon': {
+                            transform: 'translateX(3px)',
+                        },
+                    }}
                 >
-                    Create an account →
+                    <span>Create an account</span>
+                    <Box
+                        component="span"
+                        className="arrow-icon"
+                        sx={{
+                            display: 'inline-flex',
+                            alignItems: 'center',
+                            transition: 'transform 0.2s ease',
+                        }}
+                    >
+                        <ArrowRight size={14} />
+                    </Box>
                 </Link>
             </Typography>
             

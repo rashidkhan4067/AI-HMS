@@ -727,14 +727,6 @@ export const BrandIllustration = ({ stats, showcaseMode, isRegister }) => {
                 initial="hidden"
                 animate="visible"
                 className="glass-illustration-card"
-                style={{
-                    backgroundColor: 'rgba(255, 255, 255, 0.10)',
-                    backdropFilter: 'blur(12px)',
-                    WebkitBackdropFilter: 'blur(12px)',
-                    border: '1px solid rgba(255, 255, 255, 0.20)',
-                    borderRadius: '16px',
-                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15)',
-                }}
                 sx={{
                     width: '100%',
                     maxWidth: 320,
@@ -746,6 +738,12 @@ export const BrandIllustration = ({ stats, showcaseMode, isRegister }) => {
                     justifyContent: 'center',
                     position: 'relative',
                     overflow: 'hidden',
+                    backgroundColor: 'rgba(255, 255, 255, 0.10) !important',
+                    backdropFilter: 'blur(8px) !important',
+                    WebkitBackdropFilter: 'blur(8px) !important',
+                    border: '1px solid rgba(255, 255, 255, 0.20) !important',
+                    borderRadius: '16px !important',
+                    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.2), inset 0 1px 0 rgba(255, 255, 255, 0.15) !important',
                 }}
             >
                 {/* Backing decorative glow */}
