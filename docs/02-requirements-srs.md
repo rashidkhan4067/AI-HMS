@@ -60,6 +60,22 @@ The scope of this document is limited to the Milestone 1 release, which covers c
 - **FR-PASS-1 (Change Password Fields):** The change password service must require `old_password`, `new_password`, and `confirm_new_password`.
 - **FR-PASS-2 (Password Confirmation Checks):** The service must reject the update with a 400 Bad Request error if `new_password` and `confirm_new_password` do not match.
 
+### 2.6 Google Single Sign-On (FR-SSO)
+- **FR-SSO-1 (SSO Authentication):** The system shall allow users to log in using Google SSO by validating a Google-issued token (`id_token` or `access_token`).
+- **FR-SSO-2 (Account Linking):** If the Google user's email matches an active account in the system, the system shall link the account by storing the Google unique subject ID (`google_sub`).
+- **FR-SSO-3 (SSO Profile Completion):** New Google users (who have not registered an account previously) or linked users missing crucial staff identifiers must be flagged with `must_complete_profile = true` and prompted to complete their profiles (providing department, employee ID, and phone number) before accessing their dashboards.
+
+### 2.7 Password Reset OTP Flow (FR-OTP)
+- **FR-OTP-1 (OTP Generation):** On receiving a valid email request, the system shall generate a secure, short-lived 6-digit One-Time Password (OTP) valid for 10 minutes.
+- **FR-OTP-2 (OTP Delivery):** The system shall dispatch the generated OTP to the user's email.
+- **FR-OTP-3 (Zero-Knowledge Validation):** Verification of OTP must mark the OTP as consumed, returning a short-lived token to the client. This token must be validated when submitting the new password to prevent unauthorized credential modifications.
+
+### 2.8 Staff Invitations & Doctor Applications (FR-ONBOARD)
+- **FR-ONBOARD-1 (Staff Invitations):** Administrative or clinical staff must register using a unique, valid, and unexpired invitation token. The system shall enforce that the registered email and role match the invitation token exactly.
+- **FR-ONBOARD-2 (Doctor Applications):** Prospective doctors may submit onboarding applications detailing full name, contact, PMDC registration number, experience, and uploaded CNIC/PMDC proof files.
+- **FR-ONBOARD-3 (File Upload Checks):** PMDC and CNIC document file sizes must be restricted to <5MB, allowing only PDF and JPEG/JPG uploads.
+- **FR-ONBOARD-4 (Application Reviews):** Doctor applications must remain `PENDING` until reviewed and approved by an administrator, who then issues a staff invitation token.
+
 ---
 
 ## 3. Non-Functional Requirements

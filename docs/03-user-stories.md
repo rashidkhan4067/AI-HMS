@@ -73,3 +73,39 @@
 #### Acceptance Criteria
 - **AC-6.1:** Given a password change request, when I provide my old password, my new password, and my confirm password correctly, the system updates my credentials.
 - **AC-6.2:** Given a password change request, when the confirm new password does not match the new password, the system rejects the request with a validation warning.
+
+---
+
+### 1.7 US-7: Google Single Sign-On & Account Linking
+> **As a clinical or patient portal user**  
+> **I want to** log in using my Google credentials  
+> **So that** I can access the system securely and quickly without remembering another password.
+
+#### Acceptance Criteria
+- **AC-7.1:** Given an active account matching my Google email, when I authenticate using Google SSO, the system logs me in and associates my profile with my Google ID.
+- **AC-7.2:** Given a new Google SSO session, when my email does not match any registered user, the system rejects the login and informs me that I must register first.
+- **AC-7.3:** Given a successful Google SSO session, when my account profile is incomplete (e.g. missing department for staff), the frontend redirects me to complete my profile before allowing access to my dashboard.
+
+---
+
+### 1.8 US-8: Password Reset via OTP Code
+> **As a registered user who forgot their password**  
+> **I want to** receive a 6-digit verification code on my email  
+> **So that** I can safely verify my identity and reset my password.
+
+#### Acceptance Criteria
+- **AC-8.1:** Given a password reset request, when I submit my registered email, the system generates a 6-digit OTP code, sends it to my email address, and returns a success response.
+- **AC-8.2:** Given an OTP verification submission, when I enter the correct, unexpired OTP code, the system validates the request and returns a one-time session reset token.
+- **AC-8.3:** Given a new password submission with a valid reset session token, when the passwords match, the system updates my password and invalidates all previous OTP codes.
+
+---
+
+### 1.9 US-9: Doctor Onboarding Application
+> **As a medical doctor wishing to join the hospital network**  
+> **I want to** submit a digital application form with my credentials and document proofs  
+> **So that** the system administrator can verify my licenses and invite me to onboard.
+
+#### Acceptance Criteria
+- **AC-9.1:** Given the doctor application form, when I fill in my PMDC number, specialization, experience, and upload valid PMDC/CNIC PDF/JPEG documents (<5MB), the system saves my application as `PENDING`.
+- **AC-9.2:** Given the doctor application form, when I upload a file larger than 5MB or with an unsupported extension (e.g. ZIP), the system rejects the file and shows an error message.
+

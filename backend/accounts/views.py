@@ -252,9 +252,48 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             )
 
         # ── 3. Attempt authentication via SimpleJWT ──────────────────────────
-        response = super().post(request, *args, **kwargs)
+        try:
+            response = super().post(request, *args, **kwargs)
+        except Exception as e:
+            # Failure — increment counter, lock if threshold hit
+            MAX_ATTEMPTS = 5
+            LOCKOUT_MINUTES = 15
+            if user:
+                user.failed_attempts += 1
+                if user.failed_attempts >= MAX_ATTEMPTS:
+                    from datetime import timedelta
+                    user.locked_until = timezone.now() + timedelta(minutes=LOCKOUT_MINUTES)
+                    failure_reason = f'Account locked after {MAX_ATTEMPTS} failed attempts'
+                else:
+                    failure_reason = f'Invalid credentials (attempt {user.failed_attempts}/{MAX_ATTEMPTS})'
+                user.save(update_fields=['failed_attempts', 'locked_until'])
+            else:
+                failure_reason = 'No account found with this email'
+
+            LoginAuditLog.objects.create(
+                user=user,
+                email_attempted=email,
+                ip_address=ip,
+                login_method='PASSWORD',
+                success=False,
+                failure_reason=failure_reason,
+            )
+            logger.warning(f'Failed password login for {email} from {ip}: {failure_reason}')
+            raise e
 
         if response.status_code == 200:
+            # Set the refresh token as an httpOnly SameSite=Strict cookie and remove it from JSON body
+            refresh_token = response.data.pop('refresh', None)
+            if refresh_token:
+                response.set_cookie(
+                    key='refresh_token',
+                    value=refresh_token,
+                    httponly=True,
+                    samesite='Strict',
+                    secure=not settings.DEBUG,
+                    max_age=7 * 24 * 60 * 60 # 7 days
+                )
+
             # Success — reset counters, update audit fields
             if user:
                 user.failed_attempts = 0

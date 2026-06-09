@@ -32,28 +32,44 @@
 
 ## 2. Milestone Details
 
+### 🟢 Milestone 0: Public Landing Page & Design System (Completed)
+- **Deliverables:**
+  - Responsive landing page routing page (`LandingPage.jsx`) displaying brand assets.
+  - Public marketing modules including `Navbar`, `HeroSection`, `StatsBar`, `FeaturesSection`, `HowItWorksSection`, `ForPatientsSection`, `ForHospitalsSection`, `TestimonialsSection`, `CtaSection`, and `Footer`.
+  - Accessible Cookie Consent Manager component (`CookieConsent.jsx`) with analytical preferences toggling.
+  - Global heartbeat loading overlay transition (`GlobalLoader.jsx`) for clinical workspace loading visual feedback.
+  - Base design system colors, border-radius presets, and layout grids in MUI v9 configurations.
+
+---
+
 ### 🟢 Milestone 1: Authentication & Authorization (Completed)
 - **Deliverables:**
-  - Custom user model with UUID keys, email indexing, and role-check constraints.
+  - Custom user model with UUID keys, email indexing, and role-check constraints (`HMSUser`).
   - JWT token rotation and invalidation blacklists on logout.
-  - Custom Django REST Framework RBAC permission classes.
+  - Google OAuth SSO integration & Profile Completion (linking `google_sub` for authenticated SSO users).
+  - OTP-based Password Reset flow (6-digit verification code generation, expiration validation, and email dispatch).
+  - Multi-step Patient registration form with client validation.
+  - Doctor onboarding application form with CNIC/PMDC license document file uploads.
+  - Custom Django REST Framework RBAC permission classes (`IsAdminUser`, `IsDoctorUser`, etc.).
   - Global `AuthContext` React state provider and consumed `useAuth` hook.
   - Queue-based Axios response interceptor for background token refreshing on 401s.
-  - Public registration locked down to Patient role self-registration.
-  - Typographic integration of `@fontsource/outfit` and responsive `#root` adjustments.
+  - Public registration locked down to Patient role self-registration (staff registration restricted to administrator invites).
+  - Responsive split-panel Auth layout with dynamic `BrandPanel` variants.
+  - Theme mode context provider supporting dark/light options.
+  - Slide-up Cookie Consent banner and global heartbeat loading overlays.
   - Automated testing running locally via SQLite database test fallbacks.
   - Automated CI configuration checking code building, linting, and tests.
 
 ---
 
-### 📅 Milestone 2: Patient & Doctor Directory
-- **Objective:** Provision databases and profile sheets for patient registry and clinician records.
+### 📅 Milestone 2: Professional Admin Layout & Workspace Routing
+- **Objective:** Design and implement a premium, high-fidelity workspace shell for the Admin portal, featuring collapsible sidebar layouts, notification centers, dynamic headers, and sub-routing transitions.
 - **Tasks:**
-  - Create the `patient_profile` model, automated MRN (Medical Record Number) generator.
-  - Create the `doctor_profile` model with specialty fields and availability toggles.
-  - Implement RESTful CRUD views for Patient and Doctor directories.
-  - Build frontend dashboards for clinical staff (`DOCTOR`, `RECEPTIONIST`, `ADMIN`) to lookup profiles.
-  - Implement partial-matching search endpoints on name and MRN records.
+  - Build a collapsible left sidebar navigation (using MUI `Drawer`) with custom active/inactive styling.
+  - Integrate a top bar (`AppBar`) featuring a collapsible trigger icon, breadcrumbs, and user avatar menu.
+  - Implement a system notifications center dropdown menu listing security and onboarding events.
+  - Register `/admin/dashboard`, `/admin/invites`, `/admin/applications`, `/admin/users`, and `/admin/audits` sub-routes.
+  - Create high-fidelity visual stubs and cards for each of the five admin workspace tabs.
 
 ---
 

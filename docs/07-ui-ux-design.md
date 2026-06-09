@@ -44,31 +44,37 @@ To guarantee legibility, the application imports `@fontsource/outfit` and `@font
 
 ## 4. Key Customized UI Components
 
-### 4.1 Step Progress Bar
-- **Component:** `StepProgressBar.jsx`
-- **Layout:** A linear stepper displaying active pulses and connector lines.
+### 4.1 Split-Panel Onboarding Layout (`AuthLayout.jsx`)
+- **Layout:** On desktops, a visual split-panel layout: a left panel (`BrandPanel`) taking 42% width and a right panel taking 58% containing the form card.
+- **Background Details:** Fluent-style geometric background grids and line patterns rendered via inline SVG vectors.
+
+### 4.2 Dynamic Contextual Brand Panel (`BrandPanel.jsx`)
+- **Visuals:** A deep-teal (`#0D3D38`) sidebar rendered on large displays containing customized headers, checklists, and stats grids based on the active route:
+  - **Login:** Displays a 2x3 statistics grid outlining hospital KPIs ("1,200+ Patients", "99.9% Uptime", "50+ Doctors", etc.).
+  - **Register:** Displays a checkmark list of clinical features ("Unified patient records", "AI-assisted scheduling").
+  - **Forgot Password / Reset Password:** Displays checklists for password strength and security protocols.
+  - **OTP Verification:** Displays verification metrics ("valid for 30s", "6 digits").
+
+### 4.3 Step Progress Bar (`StepProgressBar.jsx`)
+- **Layout:** A linear stepper indicating progress in multi-step workflows (e.g. 3-step Patient Registration, 3-step Doctor Application).
 - **Responsive Alignment:** To prevent step label text (such as "Account Security" or "Review & Submit") from clipping on narrow cards:
   - First step label: Aligns to the left edge of its node (`left: 0`, `textAlign: 'left'`).
   - Last step label: Aligns to the right edge of its node (`right: 0`, `left: 'auto'`, `textAlign: 'right'`).
   - Middle step labels: Center-aligned (`left: '50%'`, `transform: 'translateX(-50%)'`).
 
-### 4.2 Dynamic Brand Illustration Widgets
-- **Component:** `BrandIllustration.jsx`
-- **Widgets:** Dynamic interactive dark-glass mock-ups matching the current user portal role context:
-  - **Patient Widget**: ECG heartbeat graphs (animating SVG sparklines), live vital cards (BPM, SpO2), and appointment badges.
-  - **Doctor Widget**: Specialist practice queue, consultations overview, active consult slots.
-  - **Staff Widget**: Bed occupancy indicators, real-time hospital system operational terminal feed logs.
-  - **General Widget**: Interconnected node maps showing security locks and HIPAA compliance.
+### 4.4 Global Loader Overlay (`GlobalLoader.jsx`)
+- **Visuals:** Full screen glassmorphic loading overlay. Renders a slow-rotating dotted outer ring, a neon-glowing inner rotating ring, and a centered glass sphere containing the clinical `BrandLogo` which pulses via a **double-contraction heartbeat animation**.
+- **Usage:** Automatically displayed during application initialization checks and registration loading hooks.
 
-### 4.3 Global Loader Overlay
-- **Component:** `GlobalLoader.jsx`
-- **Visuals**: Full screen glassmorphic transition loading overlay. Renders a slow-rotating dotted outer ring, a neon-glowing inner rotating ring, and a centered glass sphere containing the clinical `BrandLogo` which pulses via a **double-contraction heartbeat animation**.
-- **Usage**: Automatically loaded during session checks and page registration loading hooks.
+### 4.5 Cookie Consent Banner (`CookieConsent.jsx`)
+- **Triggers:** Displays only on the landing/login pages (`/`, `/login`) for first-time visitors using local storage keys.
+- **Visuals:** Slide-up transition, customizable toggles for analytical cookies, and a high contrast Accept All button (dark gray `#1F2937` in light mode, light gray/white `#F4F4F5` in dark mode) for excellent visual readability.
 
-### 4.4 Cookie Consent Banner
-- **Component:** `CookieConsent.jsx`
-- **Triggers**: Displays only on the landing/login pages (`/`, `/login`) for first-time visitors using local storage keys.
-- **Visuals**: Slide-up transition, customizable toggles for analytical cookies, and a high contrast Accept All button (dark gray `#1F2937` in light mode, light gray/white `#F4F4F5` in dark mode) for excellent visual readability.
+### 4.6 Theme Mode Context (`ThemeModeContext.jsx`)
+- **Visuals:** Implements theme toggling (light/dark mode) utilizing MUI's theme configuration context, updating background colors, text contrast, borders, and input fields globally.
+
+### 4.7 Blocked Register View (`BlockedRegisterView.jsx`)
+- **Visuals:** Displayed when users attempt to self-register as clinical staff (which is blocked by zero-trust constraints). Renders a warning panel directing doctors to apply via the onboarding application form, and other staff to request an invitation from their administrator.
 
 ---
 

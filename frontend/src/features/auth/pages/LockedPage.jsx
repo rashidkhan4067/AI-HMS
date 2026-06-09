@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { useLocation, useNavigate, Link as RouterLink, useSearchParams } from 'react-router-dom';
 import { Box, Typography, Link, Button } from '@mui/material';
 import { motion } from 'framer-motion';
-import { ShieldAlert, Mail, ArrowLeft } from 'lucide-react';
+import { ShieldAlert, Mail, ArrowLeft, Phone } from 'lucide-react';
 import { AuthLayout } from '../../../shared/components/layout/AuthLayout';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 
@@ -14,8 +14,9 @@ export const LockedPage = () => {
     const { mode } = useThemeMode();
     const isDark = mode === 'dark';
 
-    // Retrieve lock duration from state or sessionStorage
+    // Retrieve lock duration and locked email from state or sessionStorage
     const lockUntil = location.state?.lockUntil || parseInt(sessionStorage.getItem('lockUntil') || '0', 10);
+    const lockedEmail = location.state?.email || sessionStorage.getItem('lockedEmail') || '';
 
     const [secondsLeft, setSecondsLeft] = useState(() => {
         const diff = lockUntil - Date.now();
@@ -49,7 +50,7 @@ export const LockedPage = () => {
         }, 1000);
 
         return () => clearInterval(interval);
-    }, [lockUntil, navigate]);
+    }, [lockUntil, navigate, typeParam]);
 
 
     // Format seconds into mm:ss
@@ -104,6 +105,11 @@ export const LockedPage = () => {
 
                 {/* Countdown display */}
                 <Box sx={{ textAlign: 'center', width: '100%' }}>
+                    {lockedEmail && (
+                        <Typography variant="body2" sx={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, color: 'text.primary', mb: 2.5 }}>
+                            Locked Account: <span style={{ color: '#BA1A1A' }}>{lockedEmail}</span>
+                        </Typography>
+                    )}
                     {secondsLeft > 0 ? (
                         <>
                             <Typography variant="body2" sx={{ fontFamily: "'DM Sans', sans-serif", color: 'text.secondary', mb: 1 }}>
@@ -146,41 +152,75 @@ export const LockedPage = () => {
                 <Box
                     sx={{
                         width: '100%',
-                        p: 2,
-                        borderRadius: '12px',
+                        p: 2.5,
+                        borderRadius: '16px',
                         border: '1px solid',
                         borderColor: 'divider',
-                        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,0,0,0.01)',
+                        backgroundColor: isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0, 0, 0, 0.01)',
                         display: 'flex',
                         flexDirection: 'column',
-                        alignItems: 'center',
-                        gap: 1.5,
+                        gap: 2,
                     }}
                 >
-                    <Typography variant="caption" sx={{ fontFamily: "'DM Sans', sans-serif", color: 'text.secondary', textAlign: 'center' }}>
-                        {typeParam === 'patient'
-                            ? "If you have forgotten your credentials or need urgent access, please reach out to our support helpdesk."
-                            : "If you have forgotten your credentials or need urgent clinical access, please reach out to the hospital IT desk."}
+                    <Typography variant="body2" sx={{ fontFamily: "'DM Sans', sans-serif", color: 'text.primary', fontWeight: 600, textAlign: 'center' }}>
+                        Need Assistance? Contact IT Support
                     </Typography>
-                    <Link
-                        href={typeParam === 'patient' 
-                            ? "mailto:support@alshifaa.pk?subject=Patient Portal Lockout Request"
-                            : "mailto:support@alshifaa.pk?subject=HMS Terminal Lockout Request"
-                        }
-                        underline="hover"
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 0.75,
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: '13px',
-                            fontWeight: 600,
-                            color: 'primary.main',
-                        }}
-                    >
-                        <Mail size={14} />
-                        Contact {typeParam === 'patient' ? 'Support' : 'IT Support'}
-                    </Link>
+                    <Typography variant="caption" sx={{ fontFamily: "'DM Sans', sans-serif", color: 'text.secondary', textAlign: 'center', mt: -1 }}>
+                        {typeParam === 'patient'
+                            ? "If you have forgotten your credentials or need urgent portal access, please contact our support helpdesk."
+                            : "If you have forgotten your credentials or need urgent clinical terminal access, please reach out to the hospital IT desk."}
+                    </Typography>
+                    
+                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.25, width: '100%' }}>
+                        <Link
+                            href={typeParam === 'patient' 
+                                ? "mailto:support@alshifaa.pk?subject=Patient Portal Lockout Request"
+                                : "mailto:support@alshifaa.pk?subject=HMS Terminal Lockout Request"
+                            }
+                            underline="hover"
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 1,
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: 'primary.main',
+                                py: 0.75,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: '8px',
+                                bgcolor: isDark ? 'rgba(0, 106, 106, 0.05)' : '#FFFFFF',
+                            }}
+                        >
+                            <Mail size={14} />
+                            support@alshifaa.pk
+                        </Link>
+                        
+                        <Link
+                            href="tel:+9251111257443"
+                            underline="hover"
+                            sx={{
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                gap: 1,
+                                fontFamily: "'DM Sans', sans-serif",
+                                fontSize: '13px',
+                                fontWeight: 600,
+                                color: 'text.primary',
+                                py: 0.75,
+                                border: '1px solid',
+                                borderColor: 'divider',
+                                borderRadius: '8px',
+                                bgcolor: isDark ? 'rgba(255, 255, 255, 0.03)' : '#FFFFFF',
+                            }}
+                        >
+                            <Phone size={14} />
+                            +92 (51) 111-257-443
+                        </Link>
+                    </Box>
                 </Box>
 
                 {/* Back to Login Button */}

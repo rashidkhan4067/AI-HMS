@@ -30,18 +30,20 @@ The UI color system complies with Material Design 3, optimized for clinic and ho
 
 ## 2. Typographic Scale Configuration (Outfit & DM Sans)
 
-The custom typography settings in [`typography.js`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/app/theme/typography.js) use the `Outfit` and `DM Sans` font families.
+The baseline typography settings are defined in [`typography.js`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/app/theme/typography.js), but are extended in [`theme/index.js`](file:///e:/Download/solid%20project/AI-HMS/frontend/src/app/theme/index.js) to enforce `'DM Sans'` across all components:
 
 ```javascript
-export const typography = {
-    fontFamily: '"Outfit", "DM Sans", "Roboto", "Helvetica", "Arial", sans-serif',
-    h1: { fontSize: '57px', fontWeight: 400, letterSpacing: '-0.25px', lineHeight: 1.12 },
-    h2: { fontSize: '32px', fontWeight: 400, letterSpacing: '0px', lineHeight: 1.25 },
-    h3: { fontSize: '22px', fontWeight: 500, letterSpacing: '0px', lineHeight: 1.27 },
-    body1: { fontSize: '16px', fontWeight: 400, letterSpacing: '0.5px', lineHeight: 1.5 },
-    body2: { fontSize: '14px', fontWeight: 400, letterSpacing: '0.25px', lineHeight: 1.43 },
-    button: { fontSize: '14px', fontWeight: 500, letterSpacing: '0.1px', textTransform: 'none' },
-};
+// Extended configuration in theme/index.js:
+typography: {
+    ...typography,
+    fontFamily: "'DM Sans', system-ui, -apple-system, sans-serif",
+    h1: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.5px' },
+    h2: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
+    h3: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
+    body1: { fontFamily: "'DM Sans', sans-serif" },
+    body2: { fontFamily: "'DM Sans', sans-serif" },
+    button: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600, textTransform: 'none' },
+}
 ```
 
 ---

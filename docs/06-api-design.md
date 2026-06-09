@@ -116,6 +116,157 @@
 
 ---
 
+### 2.4 Google Authentication (`POST auth/google/`)
+- **Request Body:**
+  ```json
+  {
+    "id_token": "eyJhbGciOiJSUzI1NiIsImtpZCI6...",
+    "access_token": "ya29.a0AfH6SM..."
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+    "must_complete_profile": false,
+    "redirect_to": "/doctor/dashboard",
+    "user": {
+      "id": "b2f8b8b4-4b52-47ef-8d6e-826d17cf9052",
+      "email": "doctor.johndoe@gmail.com",
+      "full_name": "Dr. John Doe",
+      "role": "DOCTOR",
+      "department": "9d9b4b52-47ef-8d6e-826d-17cf9052d9a1",
+      "department_name": "Cardiology",
+      "employee_id": "EMP-00921",
+      "phone": "+923001234567",
+      "must_complete_profile": false,
+      "created_at": "2026-06-05T12:00:00Z"
+    }
+  }
+  ```
+  *Cookie set: `refresh_token` (HttpOnly, Secure, SameSite=Strict)*
+  *Note: If `must_complete_profile` is true, the response contains `must_complete_profile: true` and the user object has missing fields. The frontend must navigate to `/auth/complete-profile`.*
+
+---
+
+### 2.5 Complete Profile (`PATCH auth/complete-profile/`)
+- **Request Body (Authenticated Bearer JWT):**
+  ```json
+  {
+    "department": "9d9b4b52-47ef-8d6e-826d-17cf9052d9a1",
+    "employee_id": "EMP-00921",
+    "phone": "+923001234567"
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "detail": "Profile completed successfully.",
+    "access": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+  }
+  ```
+  *Cookie set: rotated `refresh_token` with updated claims (HttpOnly, Secure, SameSite=Strict)*
+
+---
+
+### 2.6 Forgot Password OTP (`POST auth/forgot-password/`)
+- **Request Body:**
+  ```json
+  {
+    "email": "patient.doe@example.com"
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "message": "A password reset code has been sent to your email address.",
+    "email": "patient.doe@example.com"
+  }
+  ```
+
+---
+
+### 2.7 Verify OTP Code (`POST auth/verify-otp/`)
+- **Request Body:**
+  ```json
+  {
+    "email": "patient.doe@example.com",
+    "otp": "123456"
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "message": "OTP verified successfully.",
+    "token": 472
+  }
+  ```
+  *Note: The returned `token` integer represents the verified OTP record ID, which is consumed as a verification session key in the reset step.*
+
+---
+
+### 2.8 Reset Password (`POST auth/reset-password/`)
+- **Request Body:**
+  ```json
+  {
+    "otp_record_id": 472,
+    "password": "NewSecurePassword123!",
+    "confirm_password": "NewSecurePassword123!"
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "message": "Password reset successfully. You can now sign in with your new credentials."
+  }
+  ```
+
+---
+
+### 2.9 Doctor Application (`POST auth/apply-doctor/`)
+- **Request Body (Multipart Form-Data):**
+  - `full_name`: `"Dr. Alice Smith"`
+  - `email`: `"alice.smith@example.com"`
+  - `phone`: `"+923214567890"`
+  - `dob`: `"1990-05-15"`
+  - `gender`: `"FEMALE"`
+  - `city`: `"Lahore"`
+  - `specialization`: `"Pediatrics"`
+  - `pmdc_number`: `"99887-P"`
+  - `experience_years`: `7`
+  - `current_hospital`: `"Mayo Hospital"`
+  - `pmdc_certificate`: `[File binary - PDF/JPG]`
+  - `cnic_document`: `[File binary - PDF/JPG]`
+- **Response Body (201 Created):**
+  ```json
+  {
+    "message": "Application submitted successfully."
+  }
+  ```
+
+---
+
+### 2.10 Validate Invite Token (`POST auth/validate-invite/`)
+- **Request Body:**
+  ```json
+  {
+    "token": "d7a4b8b4-4b52-47ef-8d6e-826d17cf9053"
+  }
+  ```
+- **Response Body (200 OK):**
+  ```json
+  {
+    "valid": true,
+    "email": "invited.doctor@example.com",
+    "role": "DOCTOR",
+    "role_label": "Doctor / Clinician",
+    "department_id": "9d9b4b52-47ef-8d6e-826d-17cf9052d9a1",
+    "department_name": "Cardiology"
+  }
+  ```
+
+---
+
 ## 3. Error Classification
 
 ### 3.1 Field-Level Errors (400 Bad Request)

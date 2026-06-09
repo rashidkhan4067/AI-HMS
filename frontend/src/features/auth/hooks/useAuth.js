@@ -50,7 +50,8 @@ export const useAuth = () => {
         // Check if already locked
         const lockUntil = parseInt(sessionStorage.getItem('lockUntil') || '0', 10);
         if (Date.now() < lockUntil) {
-            navigate('/locked', { state: { lockUntil } });
+            const lockedEmail = sessionStorage.getItem('lockedEmail') || '';
+            navigate('/locked', { state: { lockUntil, email: lockedEmail } });
             return false;
         }
 
@@ -61,6 +62,7 @@ export const useAuth = () => {
             attemptsRef.current = 0;
             sessionStorage.removeItem('loginAttempts');
             sessionStorage.removeItem('lockUntil');
+            sessionStorage.removeItem('lockedEmail');
 
             return true;
         } catch {
@@ -71,7 +73,8 @@ export const useAuth = () => {
             if (attemptsRef.current >= MAX_ATTEMPTS) {
                 const lockUntilTime = Date.now() + LOCKOUT_MS;
                 sessionStorage.setItem('lockUntil', String(lockUntilTime));
-                navigate('/locked', { state: { lockUntil: lockUntilTime } });
+                sessionStorage.setItem('lockedEmail', email);
+                navigate('/locked', { state: { lockUntil: lockUntilTime, email } });
             }
 
             return false;

@@ -7,6 +7,28 @@
 - **Last Updated:** June 6, 2026
 ---
 
+## 🟢 Milestone 0: Public Landing Page & Design System (Completed)
+
+### 0a. Responsive Landing Page Layout & Navbar
+* **Priority:** High
+* **Status:** COMPLETED
+* **Story Points:** 5
+* **User Story:** As a portal visitor, I want a modern responsive landing page with sections explaining patient and hospital portals so I can learn about Al Shifaa.
+
+### 0b. Global Cookie Consent preferences
+* **Priority:** Medium
+* **Status:** COMPLETED
+* **Story Points:** 3
+* **User Story:** As a visitor, I want to manage my analytics cookies preferences using an interactive popup banner to protect my privacy.
+
+### 0c. Heartbeat loading overlay transition
+* **Priority:** Medium
+* **Status:** COMPLETED
+* **Story Points:** 2
+* **User Story:** As a user, I want a custom heartbeat loading indicator when pages or sessions initialize so the app feels responsive and premium.
+
+---
+
 ## 🟢 Milestone 1: Authentication & User Management (Completed)
 
 ### 1. Codebase Scaffolding & CI Integration
@@ -40,21 +62,45 @@
 * **Story Points:** 5
 * **User Story:** As the system, I want to restrict page and API route access based on the user's role (Admin/Doctor/Patient/Receptionist) so that data remains secure.
 
+### 5a. Google OAuth SSO & Profile Completion Onboarding
+* **Priority:** High
+* **Status:** COMPLETED
+* **Story Points:** 8
+* **User Story:** As a user, I want to authenticate using my Google credentials and complete any missing details before accessing my workspace.
+
+### 5b. Password Recovery OTP Code Verification
+* **Priority:** High
+* **Status:** COMPLETED
+* **Story Points:** 5
+* **User Story:** As a user who forgot their password, I want to generate a 6-digit verification code and reset my credentials.
+
+### 5c. Doctor Onboarding & Staff Invitations
+* **Priority:** High
+* **Status:** COMPLETED
+* **Story Points:** 8
+* **User Story:** As a doctor, I want to submit my PMDC credentials and licensing proofs so that administrators can review my application and invite me.
+
 ---
 
-## 📅 Milestone 2: Patient & Clinician Directory (Next Milestone)
+## 📅 Milestone 2: Professional Admin Layout & Workspace Routing (Next Milestone)
 
-### 6. Patient Onboarding & Profile Registry
-* **Priority:** High
-* **Status:** TO DO
-* **Story Points:** 8
-* **User Story:** As a receptionist, I want to register a new patient and automatically generate a unique Medical Record Number (MRN).
-
-### 7. Clinician Directory Registry
+### 6. Collapsible Left Navigation Drawer (AdminDrawer)
 * **Priority:** High
 * **Status:** TO DO
 * **Story Points:** 5
-* **User Story:** As an administrator, I want to create doctor profiles with specialties, license numbers, and scheduling shifts.
+* **User Story:** As an administrator, I want to toggle a collapsible navigation sidebar so that I can maximize my workspace screen estate while navigating between administrative modules.
+
+### 7. Custom Admin Breadcrumbs & Notifications Header
+* **Priority:** High
+* **Status:** TO DO
+* **Story Points:** 5
+* **User Story:** As an administrator, I want to view a dynamic breadcrumb trail, access a notifications center, and view my profile details in the layout header.
+
+### 7b. Admin Workspace Sub-Routing & Visual Mock-ups
+* **Priority:** High
+* **Status:** TO DO
+* **Story Points:** 5
+* **User Story:** As an administrator, I want to switch between different workspace tabs (Overview, Invites, Applications, Users, Audits) with smooth page transition animations.
 
 ---
 

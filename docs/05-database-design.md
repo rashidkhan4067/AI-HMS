@@ -35,6 +35,75 @@ The custom user table stores authentication identifiers, profile fields, session
 | **`emergency_contact_phone`** | `VARCHAR(20)` | YES | `NULL` | Emergency contact phone (`+923xxxxxxxxx`). |
 | **`created_at`** | `TIMESTAMP WITH TZ`| NO | `CURRENT_TIMESTAMP` | Account creation timestamp. |
 
+### 1.2 Table: `accounts_department`
+Stores hospital departments (e.g. Cardiology, Outpatient, etc.) that users and invites associate with.
+
+| Column Name | Data Type | Nullable | Default | Description / Constraints |
+|:---|:---|:---:|:---|:---|
+| **`id`** | `UUID` | NO | `uuid_generate_v4()` | Primary Key. |
+| **`name`** | `VARCHAR(100)` | NO | None | Unique constraint. Department name. |
+| **`description`** | `TEXT` | YES | `NULL` | Optional details. |
+
+### 1.3 Table: `accounts_loginauditlog`
+Stores audit records of all password and Google authentication attempts for security reviews.
+
+| Column Name | Data Type | Nullable | Default | Description / Constraints |
+|:---|:---|:---:|:---|:---|
+| **`id`** | `BIGINT` | NO | Next sequence | Primary Key. |
+| **`user_id`** | `UUID` | YES | `NULL` | Foreign Key referencing `accounts_hmsuser(id)`. |
+| **`email_attempted`**| `VARCHAR(255)`| NO | None | Email used during the login request. |
+| **`ip_address`** | `INET` | YES | `NULL` | IP address of request client. |
+| **`login_method`** | `VARCHAR(50)` | NO | None | Method used (`'PASSWORD'` or `'GOOGLE'`). |
+| **`success`** | `BOOLEAN` | NO | None | True if credentials matched, False otherwise. |
+| **`failure_reason`**| `VARCHAR(255)`| YES | `NULL` | Lockouts, incorrect password, or non-existent emails. |
+| **`timestamp`** | `TIMESTAMP WITH TZ`| NO | `CURRENT_TIMESTAMP` | Time of login execution. |
+
+### 1.4 Table: `accounts_passwordresetotp`
+Stores short-lived verification codes issued to recover accounts.
+
+| Column Name | Data Type | Nullable | Default | Description / Constraints |
+|:---|:---|:---:|:---|:---|
+| **`id`** | `BIGINT` | NO | Next sequence | Primary Key. |
+| **`email`** | `VARCHAR(254)` | NO | None | Target user email. |
+| **`otp`** | `VARCHAR(6)` | NO | Generated string | Random 6-digit verification code. |
+| **`created_at`** | `TIMESTAMP WITH TZ`| NO | `CURRENT_TIMESTAMP` | Generation time. |
+| **`expires_at`** | `TIMESTAMP WITH TZ`| NO | None | Expiration limit (exactly 10 minutes from creation). |
+| **`is_used`** | `BOOLEAN` | NO | `FALSE` | Set to True upon verification checks. |
+
+### 1.5 Table: `accounts_staffinvite`
+Stores unique invitation links issued by administrators to onboard clinical staff.
+
+| Column Name | Data Type | Nullable | Default | Description / Constraints |
+|:---|:---|:---:|:---|:---|
+| **`id`** | `UUID` | NO | `uuid_generate_v4()` | Primary Key (acts as verification token). |
+| **`email`** | `VARCHAR(254)` | NO | None | Unique constraint. Invited staff member email. |
+| **`role`** | `VARCHAR(20)` | NO | `'DOCTOR'` | Enforced role of invited staff member. |
+| **`department_id`** | `UUID` | YES | `NULL` | Foreign Key referencing `accounts_department(id)`. |
+| **`is_used`** | `BOOLEAN` | NO | `FALSE` | Set to True when staff onboarding registration completes. |
+| **`created_at`** | `TIMESTAMP WITH TZ`| NO | `CURRENT_TIMESTAMP` | Invite issuance time. |
+| **`expires_at`** | `TIMESTAMP WITH TZ`| NO | None | Expiration limit (exactly 7 days from creation). |
+
+### 1.6 Table: `accounts_doctorapplication`
+Stores credentials and uploaded documents of prospective doctors requesting system access.
+
+| Column Name | Data Type | Nullable | Default | Description / Constraints |
+|:---|:---|:---:|:---|:---|
+| **`id`** | `UUID` | NO | `uuid_generate_v4()` | Primary Key. |
+| **`full_name`** | `VARCHAR(255)` | NO | None | Application doctor full name. |
+| **`email`** | `VARCHAR(254)` | NO | None | Contact email. |
+| **`phone`** | `VARCHAR(50)` | NO | None | Contact mobile number. |
+| **`dob`** | `DATE` | NO | None | Date of Birth. |
+| **`gender`** | `VARCHAR(20)` | NO | None | Gender choice: `['MALE', 'FEMALE', 'OTHER']`. |
+| **`city`** | `VARCHAR(100)` | NO | None | Residential/practice city. |
+| **`specialization`**| `VARCHAR(100)`| NO | None | Medical specialization. |
+| **`pmdc_number`** | `VARCHAR(50)` | NO | None | PMDC registration license number. |
+| **`experience_years`**| `INTEGER` | NO | None | Years of clinical practice. |
+| **`current_hospital`**| `VARCHAR(255)`| YES | `NULL` | Current clinical affiliate. |
+| **`pmdc_certificate`**| `VARCHAR(100)`| NO | None | Path to PMDC PDF/JPEG document file. |
+| **`cnic_document`** | `VARCHAR(100)` | NO | None | Path to CNIC ID PDF/JPEG document file. |
+| **`status`** | `VARCHAR(20)` | NO | `'PENDING'` | Choices: `['PENDING', 'APPROVED', 'REJECTED']`. |
+| **`created_at`** | `TIMESTAMP WITH TZ`| NO | `CURRENT_TIMESTAMP` | Application submission time. |
+
 ---
 
 ## 2. Constraints & Database Rules

@@ -23,7 +23,15 @@ This project follows:
 
 ## Project Status
 
-🚧 Currently in Development — Milestone 1: Authentication & Authorization
+✅ **Milestone 1: Authentication & Authorization — COMPLETED**
+- Custom User Model (UUID keys, email authentication)
+- Stateless JWT-based authentication with token rotation & blacklist on logout
+- Google OAuth SSO integration & Profile Completion workflow
+- Multi-step Patient self-registration & Doctor Onboarding application submissions
+- Global `AuthContext` with custom hooks & Axios auto-refresh interceptors
+- Role-Based Access Control (RBAC) frontend guards & custom backend permission classes
+- Responsive split-panel Auth layout (light/dark theme modes) with Cookie Consent & Global heartbeat loader
+
 
 ## Planned Modules
 

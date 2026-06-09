@@ -50,11 +50,13 @@ gantt
     title Al Shifaa HMS Implementation Roadmap
     dateFormat  YYYY-MM-DD
     section Phase 1
-    Planning & Baseline Design      :done, 2026-06-01, 2026-06-05
+    Planning & Baseline Design      :done, 2026-06-01, 2026-06-03
+    section Phase 1.5
+    Landing Page & UI (Milestone 0) :done, 2026-06-03, 2026-06-05
     section Phase 2
-    Authentication (Milestone 1)    :active, 2026-06-05, 2026-06-06
+    Authentication (Milestone 1)    :done, 2026-06-05, 2026-06-06
     section Phase 3
-    Patient & Clinician Directory  : 2026-06-07, 2026-06-15
+    Admin Layout & Routing (Milestone 2)  :active, 2026-06-07, 2026-06-15
     section Phase 4
     Scheduling & Medical Records    : 2026-06-16, 2026-06-30
     section Phase 5

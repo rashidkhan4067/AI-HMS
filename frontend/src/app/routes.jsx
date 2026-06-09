@@ -1,6 +1,7 @@
 import { Routes, Route, useLocation, Navigate } from 'react-router-dom';
 import { ProtectedRoute } from '../components/ProtectedRoute';
 import { DashboardLayout } from '../shared/components/layout/DashboardLayout';
+import { AdminLayout } from '../shared/components/layout/AdminLayout';
 import { AuthRoutes, ProtectedAuthRoutes } from '../features/auth/routes';
 import { useAuth } from '../features/auth/hooks/useAuth';
 import { mainNavigation } from './navigation.jsx';
@@ -11,11 +12,32 @@ import { NotFoundPage } from '../features/auth/pages/NotFoundPage';
 import { PrivacyPage } from '../features/auth/pages/PrivacyPage';
 import { TermsPage } from '../features/auth/pages/TermsPage';
 import { LandingPage } from '../pages/LandingPage';
+import { AdminDashboardOverview } from '../features/admin/pages/AdminDashboardOverview';
+import { AdminInvitations } from '../features/admin/pages/AdminInvitations';
+import { AdminApplications } from '../features/admin/pages/AdminApplications';
+import { AdminUsers } from '../features/admin/pages/AdminUsers';
+import { AdminAudits } from '../features/admin/pages/AdminAudits';
+import { ProfilePage } from '../features/auth/pages/ProfilePage';
 import { useState } from 'react';
 
-// Temporary Dashboard Components until Milestone 2
-const Dashboard             = () => <Typography variant="h4">Welcome to the Dashboard</Typography>;
-const AdminDashboard        = () => <Typography variant="h4">Admin Dashboard Workspace</Typography>;
+const Dashboard = () => {
+    const { user } = useAuth();
+    if (!user) return null;
+
+    const roleRedirectMap = {
+        'ADMIN': '/admin/dashboard',
+        'DOCTOR': '/doctor/dashboard',
+        'NURSE': '/nurse/dashboard',
+        'RECEPTIONIST': '/receptionist/dashboard',
+        'PHARMACIST': '/pharmacist/dashboard',
+        'LAB_TECHNICIAN': '/lab/dashboard',
+        'RADIOLOGIST': '/radiology/dashboard',
+        'PATIENT': '/patient/dashboard',
+    };
+
+    const target = roleRedirectMap[user.role] || '/unauthorized';
+    return <Navigate to={target} replace />;
+};
 const DoctorDashboard       = () => <Typography variant="h4">Doctor Dashboard Workspace</Typography>;
 const NurseDashboard        = () => <Typography variant="h4">Nurse Dashboard Workspace</Typography>;
 const ReceptionistDashboard = () => <Typography variant="h4">Receptionist Dashboard Workspace</Typography>;
@@ -77,11 +99,17 @@ export const AppRoutes = () => {
                 </Route>
             </Route>
 
-            {/* Role-Specific Clinical Dashboards */}
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
-                <Route element={<DashboardLayout navItems={mainNavigation} onLogout={logout} />}>
-                    <Route path="/admin/dashboard" element={<AdminDashboard />} />
-                    <Route path="/admin/*"         element={<AdminDashboard />} />
+                <Route element={<AdminLayout />}>
+                    <Route path="/admin/dashboard" element={<AdminDashboardOverview />} />
+                    <Route path="/admin/invites"   element={<AdminInvitations />} />
+                    <Route path="/admin/applications" element={<AdminApplications />} />
+                    <Route path="/admin/users"       element={<AdminUsers />} />
+                    <Route path="/admin/audits"      element={<AdminAudits />} />
+                    <Route path="/admin/profile"     element={<ProfilePage />} />
+                    {/* Fallback to System Overview */}
+                    <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} />
+                    <Route path="/admin/*"         element={<Navigate to="/admin/dashboard" replace />} />
                 </Route>
             </Route>
 

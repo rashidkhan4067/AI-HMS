@@ -17,14 +17,19 @@ Milestone 1 establishes the baseline security, session state, and Role-Based Acc
 | Requirement ID | Description | Code Implementation | Status |
 |:---|:---|:---|:---:|
 | **BR-01** | Non-authenticated users cannot access patient information. | `IsAuthenticated` check on protected views. | ✅ |
-| **BR-02** | Segregate user privileges across 4 user roles. | `IsAdminUser`, `IsDoctorUser` permissions in backend. | ✅ |
-| **FR-01** | Allow public registrations. | `RegisterView` mapped to `/api/v1/auth/register/`. | ✅ |
-| **FR-01-SEC**| Restrict registration role to PATIENT. | Role validation validator in `RegisterSerializer`. | ✅ |
+| **BR-02** | Segregate user privileges across user roles. | `IsAdminUser`, `IsDoctorUser` permissions in backend. | ✅ |
+| **FR-01** | Allow public registrations. | `RegisterPatientView` mapped to `/api/v1/auth/register-patient/`. | ✅ |
+| **FR-01-SEC**| Restrict registration role to PATIENT. | Role validation in `RegisterPatientSerializer`. | ✅ |
 | **FR-02** | Secure login credentials check. | `CustomTokenObtainPairView` mapped to `/auth/login/`. | ✅ |
 | **FR-03** | Stateless token issuance (JWT). | DRF-SimpleJWT access/refresh token rotation. | ✅ |
 | **FR-04** | Route and view protection. | `ProtectedRoute` components in frontend client. | ✅ |
-| **FR-05** | Secure logout token invalidation. | `LogoutView` adding token signatures to blacklist. | ✅ |
+| **FR-05** | Secure logout token invalidation. | `CustomLogoutView` blacklisting HttpOnly cookies. | ✅ |
 | **FR-06** | Enforce RBAC checks. | DRF custom permission classes and router guards. | ✅ |
+| **FR-SSO** | Google SSO login & Account linking. | `GoogleLoginView` verifying id_token or access_token. | ✅ |
+| **FR-PROFILE**| SSO Profile Completion step. | `CompleteProfileView` updating department details. | ✅ |
+| **FR-OTP** | Password recovery via 6-digit OTP. | `ForgotPasswordView` & `VerifyOtpView` flows. | ✅ |
+| **FR-INVITE** | Administrator-invited staff signup. | `RegisterInvitedView` verifying invitation tokens. | ✅ |
+| **FR-DOCAPP** | Prospective doctor onboarding. | `ApplyDoctorView` validating PMDC & CNIC files. | ✅ |
 | **NFR-01** | Cryptographic password hashing. | Django UserManager default hashing (PBKDF2/bcrypt). | ✅ |
 | **NFR-02** | HTTPS/TLS data in transit. | Platform-level deployment settings (Render/Vercel). | ✅ |
 | **NFR-03** | Auto background token refresh. | Axios response queue interceptor in `axios.js`. | ✅ |
