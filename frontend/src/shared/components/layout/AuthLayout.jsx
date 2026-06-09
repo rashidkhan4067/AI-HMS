@@ -2,10 +2,9 @@ import { useState, useEffect } from 'react';
 import { Box, Typography, Card, Link } from '@mui/material';
 import { Link as RouterLink, useLocation, useSearchParams } from 'react-router-dom';
 import { motion } from 'framer-motion';
-import { ShieldCheck, CalendarCheck2, Brain, Star } from 'lucide-react';
+import { ShieldCheck, Check, ArrowLeft } from 'lucide-react';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
-import { BrandIllustration } from '../../../components/auth/BrandIllustration';
-
+import { BrandPanel } from '../../../components/auth/BrandPanel';
 
 /* ─────────────────────────────────────────────
    Al Shifaa SVG Logo Mark
@@ -45,204 +44,80 @@ const AlShifaaLogo = ({ size = 40, white = false }) => {
 };
 
 /* ─────────────────────────────────────────────
-   Animated ECG / Heartbeat SVG
-───────────────────────────────────────────── */
-const EcgLine = () => (
-    <Box sx={{ width: '100%', height: 48, opacity: 0.4, mb: 2.5 }}>
-        <svg viewBox="0 0 400 48" fill="none" xmlns="http://www.w3.org/2000/svg" style={{ width: '100%', height: '100%' }}>
-            <motion.path
-                d="M0 24 L60 24 L80 4 L95 44 L110 10 L125 38 L140 24 L200 24 L220 24 L240 4 L255 44 L270 10 L285 38 L300 24 L400 24"
-                stroke="#FFFFFF"
-                strokeWidth="1.5"
-                strokeLinecap="round"
-                strokeLinejoin="round"
-                fill="none"
-                initial={{ pathLength: 0 }}
-                animate={{ pathLength: 1 }}
-                transition={{ duration: 2, ease: 'easeInOut' }}
-            />
-        </svg>
-    </Box>
-);
-
-/* ─────────────────────────────────────────────
-   Rotating Feature Pills
-   ───────────────────────────────────────────── */
-const FeaturePills = ({ pills = [] }) => {
-    const [activeIdx, setActiveIdx] = useState(0);
-
-    useEffect(() => {
-        if (pills.length <= 1) return;
-        const timer = setInterval(() => {
-            setActiveIdx((prev) => (prev + 1) % pills.length);
-        }, 3000);
-        return () => clearInterval(timer);
-    }, [pills]);
-
-    const activePills = pills.length > 0 ? pills : [
-        { icon: ShieldCheck, label: 'Secure Patient Records' },
-        { icon: CalendarCheck2, label: 'Real-time Appointments' },
-        { icon: Brain, label: 'AI-powered Insights' },
-    ];
-
-    return (
-        <Box sx={{ display: 'flex', gap: 1.5, justifyContent: 'center', mt: 3, flexWrap: 'wrap', mb: 3 }}>
-            {activePills.map((pill, idx) => {
-                const Icon = pill.icon;
-                const isActive = idx === activeIdx;
-
-                return (
-                    <Box
-                        key={pill.label}
-                        component={motion.div}
-                        whileHover={{ scale: 1.04 }}
-                        transition={{ duration: 0.2 }}
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1,
-                            px: 2,
-                            py: 0.75,
-                            borderRadius: '9999px',
-                            border: '1px solid',
-                            borderColor: isActive ? 'rgba(255, 255, 255, 0.5)' : 'rgba(255, 255, 255, 0.3)',
-                            backgroundColor: isActive ? 'rgba(255, 255, 255, 0.2)' : 'rgba(255, 255, 255, 0.1)',
-                            color: isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.9)',
-                            cursor: 'pointer',
-                            transition: 'background-color 0.3s, border-color 0.3s, color 0.3s',
-                        }}
-                    >
-                        <Icon size={16} color={isActive ? '#FFFFFF' : 'rgba(255, 255, 255, 0.7)'} />
-                        <Typography
-                            sx={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                fontWeight: 500,
-                                fontSize: '13px',
-                                lineHeight: 1.2,
-                            }}
-                        >
-                            {pill.label}
-                        </Typography>
-                    </Box>
-                );
-            })}
-        </Box>
-    );
-};
-
-/* ─────────────────────────────────────────────
-   Stars Rating
-───────────────────────────────────────────── */
-const FiveStars = () => (
-    <Box sx={{ display: 'flex', gap: 0.5 }}>
-        {Array(5).fill(null).map((_, i) => (
-            <Star key={i} size={16} fill="#FACC15" color="#FACC15" />
-        ))}
-    </Box>
-);
-
-/* ─────────────────────────────────────────────
    Main AuthLayout — Split Panel
-───────────────────────────────────────────── */
+   ───────────────────────────────────────────── */
 
 const pageVariants = {
-    hidden: { opacity: 0, y: 16 },
-    visible: { opacity: 1, y: 0, transition: { duration: 0.35, ease: 'easeOut' } },
+    hidden: { opacity: 0 },
+    visible: { opacity: 1, transition: { duration: 0.3, ease: 'easeOut' } },
 };
 
 const cardVariants = {
     hidden: { opacity: 0, scale: 0.98 },
-    visible: { opacity: 1, scale: 1, transition: { duration: 0.4, ease: 'easeOut', delay: 0.05 } },
+    visible: { opacity: 1, scale: 1, transition: { duration: 0.35, ease: 'easeOut', delay: 0.05 } },
 };
 
 const SHOWCASE_DATA = {
     patient: {
-        tagline: <>Your Health, Connected.<br />Care At Your Fingertips.</>,
+        tagline: "Trusted Healthcare. Seamless Management.",
         description: "Al Shifaa Patient Portal gives you secure, direct access to your electronic health records, lab reports, and seamless doctor scheduling.",
-        pills: [
-            { icon: ShieldCheck, label: "Encrypted Health Data" },
-            { icon: CalendarCheck2, label: "24/7 Appointment Booking" },
-            { icon: Brain, label: "Instant Lab Reports" }
-        ],
-        trustText: "Access your medical records securely from anywhere in Pakistan.",
         stats: [
-            { value: "100%", label: "Secure & Encrypted", color: "#4DB6AC" },
-            { value: "24/7", label: "Instant Portal Access", color: "#4DB6AC" },
-            { value: "15 min", label: "Average Response", color: "#4DB6AC" }
+            { value: "100%", label: "Encrypted" },
+            { value: "24/7", label: "Portal Access" },
+            { value: "15 min", label: "Response" }
         ]
     },
     doctor: {
-        tagline: <>Empowering Doctors.<br />Elevating Patient Care.</>,
+        tagline: "Trusted Healthcare. Seamless Management.",
         description: "Join Pakistan's leading digital health network. Streamline your clinic workflow, write digital prescriptions, and connect with patients easily.",
-        pills: [
-            { icon: ShieldCheck, label: "Smart Practice ERP" },
-            { icon: CalendarCheck2, label: "Telehealth & Clinic Slots" },
-            { icon: Brain, label: "E-Prescriptions & History" }
-        ],
-        trustText: "Empowering 500+ premium clinicians nationwide.",
         stats: [
-            { value: "500+", label: "Verified Specialists", color: "#4DB6AC" },
-            { value: "90%", label: "Reduced Admin Overhead", color: "#4DB6AC" },
-            { value: "PMDC", label: "Verified Registration", color: "#4DB6AC" }
+            { value: "500+", label: "Specialists" },
+            { value: "90%", label: "Admin Saved" },
+            { value: "PMDC", label: "Verified" }
         ]
     },
     staff: {
-        tagline: <>Secure Hospital Operations.<br />Unified Coordination.</>,
+        tagline: "Trusted Healthcare. Seamless Management.",
         description: "Complete your onboarding registration to access Al Shifaa's unified Hospital Management System (HMS) and coordinate daily patient workflows.",
-        pills: [
-            { icon: ShieldCheck, label: "Zero-Trust Data Protection" },
-            { icon: CalendarCheck2, label: "Real-time Bed & Room Tracker" },
-            { icon: Brain, label: "Integrated Lab & Pharmacy" }
-        ],
-        trustText: "Audited & secured in compliance with ISO & Zero-Trust standards.",
         stats: [
-            { value: "HMS", label: "Unified ERP Sync", color: "#4DB6AC" },
-            { value: "Role-Based", label: "Granular Access Security", color: "#4DB6AC" },
-            { value: "Zero-Trust", label: "Audited System Logs", color: "#4DB6AC" }
+            { value: "HMS", label: "ERP Sync" },
+            { value: "Role-Based", label: "Access Control" },
+            { value: "Zero-Trust", label: "Audited System" }
         ]
     },
     general: {
-        tagline: <>Trusted Healthcare.<br />Seamless Management.</>,
+        tagline: "Trusted Healthcare. Seamless Management.",
         description: "Enterprise-grade hospital operations platform built for Pakistan's leading clinical institutions.",
-        pills: [
-            { icon: ShieldCheck, label: "Secure Patient Records" },
-            { icon: CalendarCheck2, label: "Real-time Appointments" },
-            { icon: Brain, label: "AI-powered Insights" }
-        ],
-        trustText: <>Trusted by <Box component="span" sx={{ color: '#FFFFFF', fontWeight: 600 }}>50+ hospitals</Box> across Pakistan</>,
         stats: [
-            { value: "1,200+", label: "Patients Managed", color: "#9CF1F0" },
-            { value: "99.9%", label: "System Uptime", color: "#9CF1F0" },
-            { value: "50+", label: "Hospitals Onboarded", color: "#9CF1F0" }
+            { value: "1,200+", label: "Patients served" },
+            { value: "99.9%", label: "Uptime SLA" },
+            { value: "ISO 27001", label: "Certified" }
         ]
     }
 };
 
-export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMode: propShowcaseMode }) => {
+export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMode: propShowcaseMode, panelVariant }) => {
     const { mode } = useThemeMode();
     const isDark = mode === 'dark';
     const location = useLocation();
     const [searchParams] = useSearchParams();
 
-    // Determine showcaseMode automatically if not explicitly provided as a prop
-    let showcaseMode = propShowcaseMode;
-    if (!showcaseMode) {
-        const typeParam = searchParams.get('type');
-        const applyParam = searchParams.get('apply');
-        const inviteParam = searchParams.get('invite');
-
-        if (typeParam === 'patient') {
-            showcaseMode = 'patient';
-        } else if (applyParam === 'doctor') {
-            showcaseMode = 'doctor';
-        } else if (inviteParam) {
-            showcaseMode = 'staff';
+    // Determine the panel variant based on prop or route path
+    let activeVariant = panelVariant;
+    if (!activeVariant) {
+        const path = location.pathname;
+        if (path.includes('/register')) {
+            activeVariant = 'register';
+        } else if (path.includes('/forgot-password') || path.includes('/forgotpassword')) {
+            activeVariant = 'forgot_password';
+        } else if (path.includes('/verify-otp') || path.includes('/verifyotp') || path.includes('/otp')) {
+            activeVariant = 'otp';
+        } else if (path.includes('/reset-password') || path.includes('/resetpassword')) {
+            activeVariant = 'reset_password';
         } else {
-            showcaseMode = 'general';
+            activeVariant = 'login';
         }
     }
-
-    const currentShowcase = SHOWCASE_DATA[showcaseMode] || SHOWCASE_DATA['general'];
 
     return (
         <Box
@@ -260,6 +135,39 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                 overflowY: { xs: 'auto', md: 'hidden' },
             }}
         >
+            {/* Back to Home floating link */}
+            <Box
+                sx={{
+                    position: 'absolute',
+                    top: { xs: 16, md: 24 },
+                    right: { xs: 16, md: 24 },
+                    zIndex: 10,
+                }}
+            >
+                <Link
+                    component={RouterLink}
+                    to="/"
+                    sx={{
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: 0.75,
+                        fontSize: '13px',
+                        fontFamily: "'Inter', 'DM Sans', sans-serif",
+                        fontWeight: 600,
+                        color: isDark ? '#BEC9C8' : '#4A6363',
+                        textDecoration: 'none',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                            color: '#006A6A',
+                            transform: 'translateX(-2px)',
+                        }
+                    }}
+                >
+                    <ArrowLeft size={14} />
+                    <span>Back to Website</span>
+                </Link>
+            </Box>
+
             {/* ── Subtle background mesh (right side only) ── */}
             <Box
                 sx={{
@@ -278,165 +186,10 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                 }}
             />
 
-
-
             {/* ══════════════════════════════════════════
-                LEFT PANEL — Brand / Clinical Showcase
-                Hidden on mobile (<768px), narrow on tablet
+                LEFT PANEL — Contextual Brand Panel
             ══════════════════════════════════════════ */}
-            <Box
-                sx={{
-                    display: { xs: 'none', md: 'flex' },
-                    width: { md: '38%', lg: '42%' },
-                    flexShrink: 0,
-                    flexDirection: 'column',
-                    justifyContent: 'space-between',
-                    p: { md: 5, lg: 6, xl: 8 },
-                    background: 'linear-gradient(145deg, #006A6A 0%, #004F4F 55%, #003838 100%)',
-                    position: 'relative',
-                    overflow: 'hidden',
-                    zIndex: 1,
-                }}
-            >
-                {/* Radial glow accents */}
-                <Box sx={{
-                    position: 'absolute', top: -80, right: -80,
-                    width: 300, height: 300, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(156,241,240,0.12) 0%, transparent 70%)',
-                    pointerEvents: 'none',
-                }} />
-                <Box sx={{
-                    position: 'absolute', bottom: -60, left: -60,
-                    width: 250, height: 250, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(156,241,240,0.08) 0%, transparent 70%)',
-                    pointerEvents: 'none',
-                }} />
-
-                {/* ── Logo + Wordmark ── */}
-                <motion.div
-                    initial={{ opacity: 0, y: -10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.5, delay: 0.1 }}
-                >
-                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                        <AlShifaaLogo size={44} white />
-                        <Box>
-                            <Typography
-                                variant="h6"
-                                sx={{
-                                    fontFamily: "'DM Sans', sans-serif",
-                                    fontWeight: 700,
-                                    fontSize: '20px',
-                                    color: '#FFFFFF',
-                                    letterSpacing: '-0.3px',
-                                    lineHeight: 1.1,
-                                }}
-                            >
-                                Al Shifaa
-                            </Typography>
-                            <Typography
-                                variant="caption"
-                                sx={{
-                                    fontFamily: "'DM Sans', sans-serif",
-                                    fontSize: '10px',
-                                    fontWeight: 500,
-                                    color: 'rgba(156,241,240,0.8)',
-                                    letterSpacing: '1px',
-                                    textTransform: 'uppercase',
-                                }}
-                            >
-                                Health Management System
-                            </Typography>
-                        </Box>
-                    </Box>
-                </motion.div>
-
-                {/* ── Center Content ── */}
-                <motion.div
-                    initial={{ opacity: 0, y: 20 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ duration: 0.6, delay: 0.25 }}
-                >
-                    <BrandIllustration
-                        stats={currentShowcase.stats}
-                        showcaseMode={showcaseMode}
-                        isRegister={location.pathname.includes('/register')}
-                    />
-
-                    {/* Tagline */}
-                    <Typography
-                        variant="h3"
-                        sx={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontWeight: 600,
-                            fontSize: { md: '24px', lg: '28px', xl: '32px' },
-                            color: '#FFFFFF',
-                            lineHeight: 1.3,
-                            mb: 1.5,
-                            mt: 3,
-                            letterSpacing: '-0.5px',
-                        }}
-                    >
-                        {currentShowcase.tagline}
-                    </Typography>
-                    <Typography
-                        variant="body2"
-                        sx={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            color: 'rgba(255,255,255,0.65)',
-                            fontSize: '14px',
-                            lineHeight: 1.6,
-                            mb: 1,
-                        }}
-                    >
-                        {currentShowcase.description}
-                    </Typography>
-
-                    {/* ECG animation */}
-                    <EcgLine />
-
-                    {/* Feature pills */}
-                    <FeaturePills pills={currentShowcase.pills} />
-                </motion.div>
-
-                {/* ── Trust Badge — Bottom ── */}
-                <motion.div
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    transition={{ duration: 0.6, delay: 0.5 }}
-                >
-                    {/* Subtle horizontal divider */}
-                    <Box
-                        component="hr"
-                        sx={{
-                            border: 'none',
-                            borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                            width: '100%',
-                            my: 3, // my-6 (24px)
-                        }}
-                    />
-
-                    <Box
-                        sx={{
-                            display: 'flex',
-                            alignItems: 'center',
-                            gap: 1.5,
-                            pb: 3, // pb-6 (24px)
-                        }}
-                    >
-                        <FiveStars />
-                        <Typography
-                            sx={{
-                                fontFamily: "'DM Sans', sans-serif",
-                                color: 'rgba(255, 255, 255, 0.7)', // text-white/70
-                                fontSize: '14px', // text-sm
-                            }}
-                        >
-                            {currentShowcase.trustText}
-                        </Typography>
-                    </Box>
-                </motion.div>
-            </Box>
+            <BrandPanel variant={activeVariant} />
 
             {/* ══════════════════════════════════════════
                 RIGHT PANEL — Auth Card
@@ -460,7 +213,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                 <Box
                     sx={{
                         width: '100%',
-                        maxWidth: 420,
+                        maxWidth: { xs: '100%', sm: 440, md: 480, lg: 520 },
                         display: 'flex',
                         flexDirection: 'column',
                         alignItems: 'center',
@@ -478,7 +231,7 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                             position: 'relative',
                             overflow: 'visible',
                             width: '100%',
-                            maxWidth: 420,
+                            maxWidth: { xs: '100%', sm: 440, md: 480, lg: 520 },
                             borderRadius: '20px',
                             px: { xs: 3, sm: 3.5 },
                             pt: { xs: 3, sm: 3.5 },
@@ -497,20 +250,27 @@ export const AuthLayout = ({ children, title, subtitle, headingSlot, showcaseMod
                     >
                         {/* Logo row at the top-left of the card */}
                         <Box
+                            component={RouterLink}
+                            to="/"
                             sx={{
-                                display: 'flex',
+                                display: 'inline-flex',
                                 alignItems: 'center',
-                                gap: 1, // gap-2
-                                mb: 3, // mb-6 (24px)
+                                gap: 1,
+                                mb: 3,
+                                textDecoration: 'none',
+                                cursor: 'pointer',
+                                '&:hover': {
+                                    opacity: 0.85,
+                                }
                             }}
                         >
                             <AlShifaaLogo size={24} />
                             <Typography
                                 sx={{
                                     fontFamily: "'Outfit', 'DM Sans', sans-serif",
-                                    fontWeight: 600, // font-semibold
-                                    fontSize: '14px', // text-sm
-                                    color: '#006A6A', // text-[#006A6A]
+                                    fontWeight: 600,
+                                    fontSize: '14px',
+                                    color: '#006A6A',
                                     lineHeight: 1,
                                 }}
                             >
