@@ -62,7 +62,7 @@ export const CtaSection = () => {
                     variant="h2"
                     sx={{
                         fontFamily: "'Outfit', sans-serif",
-                        fontSize: { xs: '26px', sm: '34px', md: '40px' },
+                        fontSize: { xs: '24px', sm: '34px', md: '40px' },
                         fontWeight: 700,
                         lineHeight: 1.2,
                         mb: { xs: 1.5, md: 2 },

@@ -21,57 +21,79 @@ import { useThemeMode } from '../../app/theme/ThemeModeContext';
 const HeroVitalsTab = ({ isDark }) => {
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%', justifyContent: 'space-between' }}>
+            {/* Patient Header */}
             <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
                     <Box sx={{
-                        width: 32,
-                        height: 32,
+                        width: 36,
+                        height: 36,
                         borderRadius: '50%',
                         backgroundColor: isDark ? 'rgba(77, 182, 172, 0.15)' : 'rgba(0, 106, 106, 0.08)',
                         color: isDark ? '#4DB6AC' : '#006A6A',
+                        border: `1px solid ${isDark ? 'rgba(77, 182, 172, 0.3)' : 'rgba(0, 106, 106, 0.15)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
                         fontWeight: 700,
                         fontFamily: "'Outfit', sans-serif",
-                        fontSize: '12px'
+                        fontSize: '13px',
+                        boxShadow: isDark ? '0 0 10px rgba(77, 182, 172, 0.1)' : 'none'
                     }}>
                         SJ
                     </Box>
                     <Box>
-                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: '12.5px', color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
+                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: '13px', color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
                             Sara Jenkins
                         </Typography>
-                        <Typography sx={{ fontSize: '10px', color: isDark ? '#A2B8B8' : '#7A9292' }}>
+                        <Typography sx={{ fontSize: '10px', color: isDark ? '#A2B8B8' : '#7A9292', fontWeight: 500 }}>
                             Female • ID: #PT-8940
                         </Typography>
                     </Box>
                 </Box>
-                <Box sx={{
-                    px: 1,
-                    py: 0.2,
-                    borderRadius: '20px',
-                    backgroundColor: isDark ? 'rgba(77, 182, 172, 0.12)' : 'rgba(0, 106, 106, 0.05)',
-                    color: isDark ? '#4DB6AC' : '#006A6A',
-                    fontSize: '9.5px',
-                    fontWeight: 600,
-                }}>
-                    Outpatient
+                <Box sx={{ display: 'flex', gap: 1 }}>
+                    <Box sx={{
+                        px: 1.2,
+                        py: 0.3,
+                        borderRadius: '20px',
+                        backgroundColor: isDark ? 'rgba(77, 182, 172, 0.12)' : 'rgba(0, 106, 106, 0.05)',
+                        color: isDark ? '#4DB6AC' : '#006A6A',
+                        fontSize: '9.5px',
+                        fontWeight: 600,
+                        border: `1px solid ${isDark ? 'rgba(77, 182, 172, 0.2)' : 'rgba(0, 106, 106, 0.1)'}`,
+                    }}>
+                        Outpatient
+                    </Box>
+                    <Box sx={{
+                        px: 1.2,
+                        py: 0.3,
+                        borderRadius: '20px',
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        color: '#10B981',
+                        fontSize: '9.5px',
+                        fontWeight: 600,
+                        border: '1px solid rgba(16, 185, 129, 0.2)',
+                    }}>
+                        Stable
+                    </Box>
                 </Box>
             </Box>
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 1.5 }}>
+            {/* Vitals Grid */}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr' }, gap: 2 }}>
+                {/* Heart Rate Card */}
                 <Box sx={{
-                    p: 1.2,
-                    borderRadius: '10px',
-                    backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(0,106,106,0.02)',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.04)'}`,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}`,
+                    position: 'relative',
+                    overflow: 'hidden'
                 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.2 }}>
-                        <Typography sx={{ fontSize: '10px', fontWeight: 500, color: isDark ? '#A2B8B8' : '#7A9292' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: isDark ? '#8A9F9F' : '#687878', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                             Heart Rate
                         </Typography>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.3 }}>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, backgroundColor: 'rgba(186, 26, 26, 0.08)', px: 0.8, py: 0.2, borderRadius: '4px' }}>
                             <Box sx={{
                                 width: 5,
                                 height: 5,
@@ -79,62 +101,81 @@ const HeroVitalsTab = ({ isDark }) => {
                                 backgroundColor: '#BA1A1A',
                                 animation: 'pulse 1.2s infinite'
                             }} />
-                            <Typography sx={{ fontSize: '9px', fontWeight: 600, color: '#BA1A1A' }}>Live</Typography>
+                            <Typography sx={{ fontSize: '8.5px', fontWeight: 700, color: '#BA1A1A', textTransform: 'uppercase', letterSpacing: '0.03em' }}>Live</Typography>
                         </Box>
                     </Box>
-                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '15px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
-                        78 <span style={{ fontSize: '9.5px', fontWeight: 400, opacity: 0.7 }}>BPM</span>
+                    
+                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#004D40', display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
+                        78 <span style={{ fontSize: '10px', fontWeight: 500, color: isDark ? '#8A9F9F' : '#687878' }}>BPM</span>
                     </Typography>
-                    <Box sx={{ position: 'relative', height: 16, width: '100%', mt: 0.5, overflow: 'hidden' }}>
-                        <svg width="100%" height="16" viewBox="0 0 100 16" preserveAspectRatio="none">
+
+                    {/* ECG Graph Line Animation */}
+                    <Box sx={{ position: 'relative', height: 24, width: '100%', mt: 1, overflow: 'hidden' }}>
+                        <svg width="100%" height="24" viewBox="0 0 100 24" preserveAspectRatio="none">
                             <path
-                                d="M 0 8 L 25 8 L 28 2 L 31 14 L 34 8 L 45 8 L 48 1 L 51 15 L 54 8 L 100 8"
+                                d="M 0 12 L 20 12 L 25 12 L 28 3 L 31 21 L 34 12 L 45 12 L 48 2 L 51 22 L 54 12 L 75 12 L 100 12"
                                 fill="none"
                                 stroke={isDark ? '#4DB6AC' : '#006A6A'}
-                                strokeWidth="1.2"
+                                strokeWidth="1.5"
+                                strokeLinecap="round"
                                 strokeDasharray="400"
                                 strokeDashoffset="400"
                                 style={{
-                                    animation: 'ecg-draw 4s linear infinite'
+                                    animation: 'ecg-draw 4s linear infinite',
+                                    filter: isDark ? 'drop-shadow(0 0 4px rgba(77, 182, 172, 0.6))' : 'drop-shadow(0 0 3px rgba(0, 106, 106, 0.4))'
                                 }}
                             />
                         </svg>
                     </Box>
                 </Box>
 
+                {/* Blood Pressure & SpO2 Card */}
                 <Box sx={{
-                    p: 1.2,
-                    borderRadius: '10px',
-                    backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : 'rgba(0,106,106,0.02)',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.04)'}`,
+                    p: 1.5,
+                    borderRadius: '12px',
+                    backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD',
+                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}`,
                     display: 'flex',
                     flexDirection: 'column',
-                    justifyContent: 'center'
+                    justifyContent: 'space-between',
+                    gap: 1.5
                 }}>
-                    <Typography sx={{ fontSize: '10px', fontWeight: 500, color: isDark ? '#A2B8B8' : '#7A9292', mb: 0.2 }}>
-                        Blood Pressure
-                    </Typography>
-                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '14px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.2 }}>
-                        120/80 <span style={{ fontSize: '9px', fontWeight: 400, opacity: 0.7 }}>mmHg</span>
-                    </Typography>
-                    <Typography sx={{ fontSize: '11px', fontWeight: 600, color: isDark ? '#4DB6AC' : '#006A6A' }}>
-                        SpO2: 99% <span style={{ fontSize: '8px', fontWeight: 400, color: isDark ? '#A2B8B8' : '#7A9292' }}>(Normal)</span>
-                    </Typography>
+                    <Box>
+                        <Typography sx={{ fontSize: '10px', fontWeight: 600, color: isDark ? '#8A9F9F' : '#687878', textTransform: 'uppercase', letterSpacing: '0.05em', mb: 0.5 }}>
+                            Blood Pressure
+                        </Typography>
+                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '18px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#004D40' }}>
+                            120/80 <span style={{ fontSize: '9.5px', fontWeight: 500, color: isDark ? '#8A9F9F' : '#687878' }}>mmHg</span>
+                        </Typography>
+                    </Box>
+                    <Box>
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                            <Typography sx={{ fontSize: '9.5px', fontWeight: 600, color: isDark ? '#4DB6AC' : '#006A6A' }}>
+                                SpO2: 99% <span style={{ fontSize: '8px', fontWeight: 500, color: isDark ? '#8A9F9F' : '#687878' }}>(Normal)</span>
+                            </Typography>
+                        </Box>
+                        {/* SpO2 Level Indicator */}
+                        <Box sx={{ width: '100%', height: 4, borderRadius: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)', overflow: 'hidden' }}>
+                            <Box sx={{ width: '99%', height: '100%', backgroundColor: '#10B981', borderRadius: 2 }} />
+                        </Box>
+                    </Box>
                 </Box>
             </Box>
 
+            {/* EHR Allergy Banner */}
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
-                p: 1,
-                borderRadius: '6px',
-                backgroundColor: isDark ? 'rgba(186, 26, 26, 0.15)' : 'rgba(186, 26, 26, 0.04)',
-                borderLeft: '3px solid #BA1A1A',
+                gap: 1.2,
+                p: 1.2,
+                borderRadius: '8px',
+                backgroundColor: isDark ? 'rgba(186, 26, 26, 0.12)' : 'rgba(186, 26, 26, 0.04)',
+                border: '1px solid rgba(186, 26, 26, 0.2)',
+                borderLeft: '4px solid #BA1A1A',
             }}>
-                <AlertCircle size={13} color="#BA1A1A" style={{ flexShrink: 0 }} />
-                <Typography sx={{ fontSize: '10px', fontWeight: 500, color: isDark ? '#FF8A8A' : '#BA1A1A' }}>
-                    <strong>Warning:</strong> Penicillin allergy flagged.
+                <AlertCircle size={15} color="#BA1A1A" style={{ flexShrink: 0 }} />
+                <Typography sx={{ fontSize: '10.5px', fontWeight: 500, color: isDark ? '#FF8A8A' : '#BA1A1A', lineHeight: 1.4 }}>
+                    <strong>Clinical Warning:</strong> Patient has a documented <strong>Penicillin allergy</strong>. Verify before orders.
                 </Typography>
             </Box>
         </Box>
@@ -143,52 +184,81 @@ const HeroVitalsTab = ({ isDark }) => {
 
 const HeroQueueTab = ({ isDark }) => {
     const doctors = [
-        { name: 'Dr. Amelia Hart', dept: 'Cardiology', queue: '3 Patients waiting', status: 'Active' },
-        { name: 'Dr. Liam Stone', dept: 'Pediatrics', queue: '1 Patient waiting', status: 'On Break' }
+        { name: 'Dr. Amelia Hart', dept: 'Cardiology', queue: '3 Patients waiting', status: 'Active', initials: 'AH' },
+        { name: 'Dr. Liam Stone', dept: 'Pediatrics', queue: '1 Patient waiting', status: 'On Break', initials: 'LS' }
     ];
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,106,106,0.08)'}`, pb: 1 }}>
                 <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: '12.5px', color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
-                    Live Outpatient Queue
+                    Live Outpatient Queue Status
                 </Typography>
-                <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#7A9292', fontWeight: 500 }}>
-                    8 Checked In
-                </Typography>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5, backgroundColor: 'rgba(16, 185, 129, 0.1)', px: 0.8, py: 0.2, borderRadius: '4px' }}>
+                    <Box sx={{ width: 5, height: 5, borderRadius: '50%', backgroundColor: '#10B981', animation: 'pulse 1.5s infinite' }} />
+                    <Typography sx={{ fontSize: '8.5px', color: '#10B981', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        8 Online
+                    </Typography>
+                </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
+            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.2 }}>
                 {doctors.map((doc, idx) => (
                     <Box key={idx} sx={{
-                        p: 1,
-                        borderRadius: '8px',
+                        p: 1.2,
+                        borderRadius: '10px',
                         backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : '#FFFFFF',
-                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.05)'}`,
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}`,
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'space-between',
-                        boxShadow: isDark ? 'none' : '0 2px 6px rgba(0,106,106,0.01)'
+                        boxShadow: isDark ? 'none' : '0 2px 6px rgba(0,106,106,0.01)',
+                        transition: 'all 0.2s ease',
+                        '&:hover': {
+                            borderColor: isDark ? 'rgba(77, 182, 172, 0.3)' : 'rgba(0, 106, 106, 0.15)',
+                            transform: 'translateY(-1px)'
+                        }
                     }}>
-                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
-                            <Clock size={13} style={{ color: isDark ? '#4DB6AC' : '#006A6A' }} />
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.2 }}>
+                            <Box sx={{
+                                width: 30,
+                                height: 30,
+                                borderRadius: '50%',
+                                backgroundColor: doc.status === 'Active' 
+                                    ? (isDark ? 'rgba(77, 182, 172, 0.15)' : 'rgba(0, 106, 106, 0.08)')
+                                    : (isDark ? 'rgba(255, 255, 255, 0.05)' : 'rgba(0,0,0,0.04)'),
+                                color: doc.status === 'Active' 
+                                    ? (isDark ? '#4DB6AC' : '#006A6A')
+                                    : (isDark ? '#BEC9C8' : '#687878'),
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                fontSize: '10.5px',
+                                fontWeight: 700,
+                                border: `1px solid ${doc.status === 'Active' ? (isDark ? 'rgba(77, 182, 172, 0.2)' : 'rgba(0, 106, 106, 0.1)') : 'transparent'}`
+                            }}>
+                                {doc.initials}
+                            </Box>
                             <Box>
-                                <Typography sx={{ fontSize: '11px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
+                                <Typography sx={{ fontSize: '11.5px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
                                     {doc.name}
                                 </Typography>
                                 <Typography sx={{ fontSize: '9.5px', color: isDark ? '#A2B8B8' : '#7A9292' }}>
-                                    {doc.dept} • {doc.queue}
+                                    {doc.dept} • <strong style={{ color: doc.status === 'Active' ? (isDark ? '#4DB6AC' : '#006A6A') : 'inherit' }}>{doc.queue}</strong>
                                 </Typography>
                             </Box>
                         </Box>
                         <Box sx={{
-                            px: 1,
-                            py: 0.1,
+                            px: 1.2,
+                            py: 0.3,
                             borderRadius: '6px',
                             fontSize: '9px',
-                            fontWeight: 600,
-                            backgroundColor: doc.status === 'Active' ? 'rgba(29, 107, 53, 0.12)' : 'rgba(74, 99, 99, 0.1)',
-                            color: doc.status === 'Active' ? '#2E7D32' : (isDark ? '#BEC9C8' : '#4A6363'),
+                            fontWeight: 700,
+                            textTransform: 'uppercase',
+                            letterSpacing: '0.05em',
+                            backgroundColor: doc.status === 'Active' ? 'rgba(16, 185, 129, 0.12)' : 'rgba(245, 158, 11, 0.12)',
+                            color: doc.status === 'Active' ? '#10B981' : '#F59E0B',
+                            border: `1px solid ${doc.status === 'Active' ? 'rgba(16, 185, 129, 0.2)' : 'rgba(245, 158, 11, 0.2)'}`
                         }}>
                             {doc.status}
                         </Box>
@@ -199,15 +269,16 @@ const HeroQueueTab = ({ isDark }) => {
             <Box sx={{
                 display: 'flex',
                 alignItems: 'center',
-                gap: 1,
-                p: 1,
-                borderRadius: '6px',
+                gap: 1.2,
+                p: 1.2,
+                borderRadius: '8px',
                 backgroundColor: isDark ? 'rgba(0, 106, 106, 0.12)' : 'rgba(0, 106, 106, 0.04)',
-                borderLeft: `3px solid ${isDark ? '#4DB6AC' : '#006A6A'}`,
+                border: `1px solid ${isDark ? 'rgba(0, 106, 106, 0.2)' : 'rgba(0, 106, 106, 0.08)'}`,
+                borderLeft: `4px solid ${isDark ? '#4DB6AC' : '#006A6A'}`,
             }}>
-                <Users size={13} color={isDark ? '#4DB6AC' : '#006A6A'} style={{ flexShrink: 0 }} />
-                <Typography sx={{ fontSize: '10px', color: isDark ? '#B2C7C7' : '#006A6A', fontWeight: 500 }}>
-                    Average clinic wait time: <strong>12 minutes</strong>
+                <Clock size={15} color={isDark ? '#4DB6AC' : '#006A6A'} style={{ flexShrink: 0 }} />
+                <Typography sx={{ fontSize: '10.5px', color: isDark ? '#B2C7C7' : '#006A6A', fontWeight: 500, lineHeight: 1.4 }}>
+                    Live Wait Time Metric: Avg clinic consultation delay is currently stable at <strong>12 minutes</strong>.
                 </Typography>
             </Box>
         </Box>
@@ -216,54 +287,82 @@ const HeroQueueTab = ({ isDark }) => {
 
 const HeroAnalyticsTab = ({ isDark }) => {
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, height: '100%', justifyContent: 'space-between' }}>
-            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: isDark ? '#4DB6AC' : '#006A6A' }}>
-                <BarChart3 size={14} />
-                <Typography sx={{ fontSize: '11px', fontWeight: 600, fontFamily: "'DM Sans', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                    Operational Analytics
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2, height: '100%', justifyContent: 'space-between' }}>
+            <Box sx={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,106,106,0.08)'}`, pb: 1 }}>
+                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, color: isDark ? '#4DB6AC' : '#006A6A' }}>
+                    <BarChart3 size={15} />
+                    <Typography sx={{ fontSize: '11.5px', fontWeight: 600, fontFamily: "'Outfit', sans-serif", textTransform: 'uppercase', letterSpacing: '0.08em' }}>
+                        Hospital Resource Analytics
+                    </Typography>
+                </Box>
+                <Typography sx={{ fontSize: '8.5px', color: isDark ? '#8A9F9F' : '#687878', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                    Real-time
                 </Typography>
             </Box>
 
-            <Box sx={{ display: 'grid', gridTemplateColumns: '1.2fr 0.8fr', gap: 2, alignItems: 'center' }}>
-                {/* Bar chart */}
-                <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: 60, pt: 1, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : '#E5E7EB'}` }}>
-                    {[40, 65, 30, 85, 55, 75, 90].map((h, i) => (
-                        <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '9%', gap: 0.2 }}>
-                            <Box
-                                component={motion.div}
-                                initial={{ height: 0 }}
-                                animate={{ height: `${h}%` }}
-                                transition={{ duration: 0.8, delay: 0.1 * i }}
-                                sx={{
-                                    width: '100%',
-                                    backgroundColor: i === 6 ? (isDark ? '#4DB6AC' : '#006A6A') : (isDark ? 'rgba(77,182,172,0.25)' : '#B2DFDB'),
-                                    borderRadius: '2px 2px 0 0',
-                                }}
-                            />
-                            <Typography sx={{ fontSize: '7px', color: isDark ? '#A2B8B8' : '#9CA3AF', fontWeight: 500 }}>
-                                {['M','T','W','T','F','S','S'][i]}
-                            </Typography>
-                        </Box>
-                    ))}
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1.2fr 0.8fr' }, gap: 2.5, alignItems: 'center' }}>
+                {/* Bar chart with Gridlines */}
+                <Box sx={{ 
+                    position: 'relative',
+                    height: 70, 
+                    display: 'flex', 
+                    flexDirection: 'column', 
+                    justifyContent: 'flex-end',
+                    pt: 1 
+                }}>
+                    {/* Background grid lines */}
+                    <Box sx={{ position: 'absolute', top: 10, left: 0, right: 0, borderTop: `1px dashed ${isDark ? 'rgba(255,255,255,0.04)' : '#E5E7EB'}` }} />
+                    <Box sx={{ position: 'absolute', top: 35, left: 0, right: 0, borderTop: `1px dashed ${isDark ? 'rgba(255,255,255,0.04)' : '#E5E7EB'}` }} />
+                    
+                    <Box sx={{ display: 'flex', alignItems: 'flex-end', justifyContent: 'space-between', height: '100%', zIndex: 1, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : '#E5E7EB'}` }}>
+                        {[40, 65, 30, 85, 55, 75, 95].map((h, i) => (
+                            <Box key={i} sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', width: '9%', gap: 0.2 }}>
+                                <Box
+                                    component={motion.div}
+                                    initial={{ height: 0 }}
+                                    animate={{ height: `${h}%` }}
+                                    transition={{ duration: 0.8, delay: 0.05 * i }}
+                                    sx={{
+                                        width: '100%',
+                                        background: i === 6 
+                                            ? (isDark ? 'linear-gradient(180deg, #4DB6AC 0%, rgba(77,182,172,0.3) 100%)' : 'linear-gradient(180deg, #006A6A 0%, rgba(0,106,106,0.3) 100%)')
+                                            : (isDark ? 'linear-gradient(180deg, rgba(77,182,172,0.3) 0%, rgba(77,182,172,0.05) 100%)' : 'linear-gradient(180deg, #B2DFDB 0%, rgba(178,223,219,0.2) 100%)'),
+                                        borderRadius: '3px 3px 0 0',
+                                        border: `1px solid ${i === 6 ? (isDark ? '#4DB6AC' : '#006A6A') : 'transparent'}`
+                                    }}
+                                />
+                                <Typography sx={{ fontSize: '7px', color: isDark ? '#8A9F9F' : '#9CA3AF', fontWeight: 600, mt: 0.2 }}>
+                                    {['M','T','W','T','F','S','S'][i]}
+                                </Typography>
+                            </Box>
+                        ))}
+                    </Box>
                 </Box>
 
                 {/* ICU gauge */}
                 <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
-                    <Box sx={{ position: 'relative', width: 44, height: 44 }}>
-                        <svg width="44" height="44" viewBox="0 0 36 36">
-                            <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                    <Box sx={{ position: 'relative', width: 48, height: 48 }}>
+                        <svg width="48" height="48" viewBox="0 0 36 36" style={{ transform: 'rotate(-90deg)' }}>
+                            <circle
+                                cx="18"
+                                cy="18"
+                                r="15.915"
                                 fill="none"
-                                stroke={isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.06)'}
+                                stroke={isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,106,106,0.05)'}
                                 strokeWidth="3"
                             />
-                            <path
-                                d="M18 2.0845 a 15.9155 15.9155 0 0 1 0 31.831 a 15.9155 15.9155 0 0 1 0 -31.831"
+                            <circle
+                                cx="18"
+                                cy="18"
+                                r="15.915"
                                 fill="none"
                                 stroke={isDark ? '#4DB6AC' : '#006A6A'}
-                                strokeDasharray="70, 100"
                                 strokeWidth="3"
+                                strokeDasharray="70, 100"
                                 strokeLinecap="round"
+                                style={{
+                                    filter: isDark ? 'drop-shadow(0 0 3px rgba(77, 182, 172, 0.5))' : 'none'
+                                }}
                             />
                         </svg>
                         <Box sx={{
@@ -276,20 +375,26 @@ const HeroAnalyticsTab = ({ isDark }) => {
                             alignItems: 'center',
                             justifyContent: 'center',
                         }}>
-                            <Typography sx={{ fontSize: '9.5px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#1A2E2E' }}>
+                            <Typography sx={{ fontSize: '10px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#1A2E2E', fontFamily: "'Outfit', sans-serif" }}>
                                 70%
                             </Typography>
                         </Box>
                     </Box>
-                    <Typography sx={{ fontSize: '8px', color: isDark ? '#A2B8B8' : '#7A9292', fontWeight: 600, mt: 0.5, textAlign: 'center' }}>
+                    <Typography sx={{ fontSize: '8.5px', color: isDark ? '#B2C7C7' : '#5C7474', fontWeight: 700, mt: 0.5, textAlign: 'center', textTransform: 'uppercase', letterSpacing: '0.03em' }}>
                         ICU Bed Load
                     </Typography>
                 </Box>
             </Box>
 
-            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', color: isDark ? '#A2B8B8' : '#7A9292' }}>
-                <Typography>Bed Occupancy: <strong>82%</strong></Typography>
-                <Typography>Lab Queue: <strong>4 logs</strong></Typography>
+            <Box sx={{ display: 'flex', justifyContent: 'space-between', fontSize: '9.5px', color: isDark ? '#A2B8B8' : '#5C7474', borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,106,106,0.05)'}`, pt: 1 }}>
+                <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: isDark ? '#4DB6AC' : '#006A6A' }} />
+                    Bed Occupancy: <strong>82%</strong>
+                </Typography>
+                <Typography sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Box component="span" sx={{ width: 6, height: 6, borderRadius: '50%', backgroundColor: '#10B981' }} />
+                    Active Lab Runs: <strong>4 logs</strong>
+                </Typography>
             </Box>
         </Box>
     );
@@ -310,9 +415,9 @@ export const HeroSection = () => {
                 minHeight: { xs: 'auto', md: 'calc(100vh - 64px)' },
                 display: 'flex',
                 alignItems: 'center',
-                pt: { xs: 10, md: 11 }, // Clears the fixed 64px navbar cleanly without excessive blank space
+                pt: { xs: 13, md: 15 }, // Clears the fixed 64px navbar cleanly and prevents overlaps
                 pb: { xs: 6, md: 8 },
-                px: { xs: 3, md: 6 },
+                px: { xs: 2.5, sm: 4, md: 6 },
                 background: isDark
                     ? 'radial-gradient(circle at 80% 20%, rgba(0, 106, 106, 0.15) 0%, #161D1D 50%, #161D1D 100%)'
                     : 'radial-gradient(circle at 80% 20%, rgba(0, 106, 106, 0.05) 0%, #FFFFFF 50%, #FFFFFF 100%)',
@@ -326,7 +431,7 @@ export const HeroSection = () => {
                     margin: '0 auto',
                     display: 'grid',
                     gridTemplateColumns: { xs: '1fr', md: '55fr 45fr' },
-                    gap: { xs: 6, md: 8 },
+                    gap: { xs: 4, sm: 6, md: 8 },
                     alignItems: 'center',
                 }}
             >
@@ -351,14 +456,14 @@ export const HeroSection = () => {
                             backgroundColor: isDark ? 'rgba(0, 106, 106, 0.25)' : 'rgba(0, 106, 106, 0.08)',
                             border: `1px solid ${isDark ? 'rgba(0, 106, 106, 0.4)' : 'rgba(0, 106, 106, 0.15)'}`,
                             color: isDark ? '#4DB6AC' : '#006A6A',
-                            px: { xs: 1.5, sm: 2 },
-                            py: { xs: 0.5, sm: 0.75 },
+                            px: { xs: 1.2, sm: 2 },
+                            py: { xs: 0.4, sm: 0.75 },
                             borderRadius: '9999px',
                             mb: { xs: 2, md: 2.5 },
                             maxWidth: '100%',
                         }}
                     >
-                        <Typography sx={{ fontSize: { xs: '10.5px', sm: '12px' }, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
+                        <Typography sx={{ fontSize: { xs: '10px', sm: '12px' }, fontWeight: 600, fontFamily: "'DM Sans', sans-serif" }}>
                             🏥 Pakistan's #1 Hospital Management System
                         </Typography>
                         <Box
@@ -374,17 +479,17 @@ export const HeroSection = () => {
                             }}
                         />
                     </Box>
-
+ 
                     {/* Headline */}
                     <Typography
                         variant="h1"
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
-                            fontSize: { xs: '38px', sm: '48px', md: '52px' },
+                            fontSize: { xs: '30px', sm: '44px', md: '52px' },
                             fontWeight: 700,
-                            lineHeight: 1.15,
+                            lineHeight: { xs: 1.2, md: 1.15 },
                             color: isDark ? '#E0F2F1' : '#161D1D',
-                            mb: { xs: 2, md: 2.5 },
+                            mb: { xs: 1.5, md: 2.5 },
                             letterSpacing: '-1px',
                         }}
                     >
@@ -393,27 +498,27 @@ export const HeroSection = () => {
                             Simplified.
                         </Box>
                     </Typography>
-
+ 
                     {/* Subtitle */}
                     <Typography
                         sx={{
                             fontFamily: "'DM Sans', sans-serif",
-                            fontSize: '18px',
+                            fontSize: { xs: '14.5px', sm: '16px', md: '18px' },
                             lineHeight: 1.6,
                             color: isDark ? '#B2C7C7' : '#6B7280',
-                            mb: { xs: 3, md: 3.5 },
+                            mb: { xs: 2.5, md: 3.5 },
                             maxWidth: 500,
                         }}
                     >
                         Al Shifaa HMS unifies patient records, appointments, billing, pharmacy, lab results, and AI-powered insights into one secure platform trusted by 50+ hospitals across Pakistan.
                     </Typography>
-
+ 
                     {/* CTA Buttons */}
                     <Box
                         sx={{
                             display: 'flex',
                             flexDirection: { xs: 'column', sm: 'row' },
-                            gap: 2,
+                            gap: { xs: 1.5, sm: 2 },
                             mb: { xs: 3.5, md: 4 },
                             width: '100%',
                         }}
@@ -533,7 +638,7 @@ export const HeroSection = () => {
                     <Box
                         sx={{
                             width: '100%',
-                            aspectRatio: '1.45/1',
+                            aspectRatio: { xs: 'auto', sm: '1.45/1' },
                             borderRadius: '20px',
                             border: '1px solid',
                             borderColor: isDark ? 'rgba(255, 255, 255, 0.08)' : '#E5E7EB',
@@ -544,7 +649,8 @@ export const HeroSection = () => {
                             backdropFilter: 'blur(10px)',
                             overflow: 'hidden',
                             display: 'grid',
-                            gridTemplateColumns: { xs: '44px 1fr', sm: '60px 1fr' },
+                            gridTemplateColumns: { xs: '1fr', sm: '60px 1fr' },
+                            minHeight: { xs: 260, sm: 'auto' },
                         }}
                     >
                         {/* Sidebar Mockup */}
@@ -554,7 +660,7 @@ export const HeroSection = () => {
                                 borderColor: isDark ? 'rgba(255,255,255,0.06)' : '#F3F4F6',
                                 backgroundColor: isDark ? 'rgba(28, 36, 36, 0.4)' : '#F9FAFB',
                                 py: { xs: 1.5, sm: 2 },
-                                display: 'flex',
+                                display: { xs: 'none', sm: 'flex' },
                                 flexDirection: 'column',
                                 alignItems: 'center',
                                 gap: { xs: 1.5, sm: 2.5 },
@@ -573,19 +679,21 @@ export const HeroSection = () => {
                                             width: { xs: 26, sm: 32 },
                                             height: { xs: 26, sm: 32 },
                                             borderRadius: '8px',
-                                            backgroundColor: isActive ? 'rgba(0, 106, 106, 0.08)' : 'transparent',
+                                            backgroundColor: isActive ? (isDark ? 'rgba(77, 182, 172, 0.15)' : 'rgba(0, 106, 106, 0.08)') : 'transparent',
                                             cursor: 'pointer',
                                             display: 'flex',
                                             alignItems: 'center',
                                             justifyContent: 'center',
-                                            border: isActive ? `1px solid ${isDark ? 'rgba(77, 182, 172, 0.25)' : 'rgba(0, 106, 106, 0.15)'}` : '1px solid transparent',
+                                            border: isActive ? `1px solid ${isDark ? 'rgba(77, 182, 172, 0.3)' : 'rgba(0, 106, 106, 0.15)'}` : '1px solid transparent',
                                             transition: 'all 0.2s ease',
                                             '&:hover': {
                                                 backgroundColor: 'rgba(0, 106, 106, 0.05)'
                                             }
                                         }}
                                     >
-                                        <Box sx={{ width: { xs: 11, sm: 14 }, height: { xs: 11, sm: 14 }, borderRadius: '3px', border: '2px solid', borderColor: isActive ? (isDark ? '#4DB6AC' : '#006A6A') : (isDark ? '#5A7575' : '#9CA3AF'), opacity: isActive ? 1 : 0.6 }} />
+                                        {tabKey === 'vitals' && <Activity size={16} color={isActive ? (isDark ? '#4DB6AC' : '#006A6A') : (isDark ? '#8A9F9F' : '#6B7280')} />}
+                                        {tabKey === 'queue' && <Users size={16} color={isActive ? (isDark ? '#4DB6AC' : '#006A6A') : (isDark ? '#8A9F9F' : '#6B7280')} />}
+                                        {tabKey === 'analytics' && <BarChart3 size={16} color={isActive ? (isDark ? '#4DB6AC' : '#006A6A') : (isDark ? '#8A9F9F' : '#6B7280')} />}
                                     </Box>
                                 );
                             })}

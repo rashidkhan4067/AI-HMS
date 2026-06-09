@@ -34,6 +34,7 @@ export const TestimonialsSection = () => {
         <Box
             id="testimonials"
             sx={{
+                scrollMarginTop: '80px',
                 py: { xs: 6, sm: 8, md: 12 },
                 px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: isDark ? '#1F2929' : '#F9FAFB',
@@ -50,7 +51,7 @@ export const TestimonialsSection = () => {
                         variant="h2"
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
-                            fontSize: { xs: '26px', sm: '34px', md: '40px' },
+                            fontSize: { xs: '24px', sm: '34px', md: '40px' },
                             fontWeight: 700,
                             lineHeight: 1.2,
                             mb: 1.5,
@@ -199,7 +200,7 @@ export const TestimonialsSection = () => {
                                 borderRadius: '16px',
                                 border: '1px solid',
                                 borderColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)',
-                                p: 3,
+                                p: { xs: 2.5, sm: 3 },
                                 display: 'flex',
                                 flexDirection: 'column',
                                 justifyContent: 'space-between',

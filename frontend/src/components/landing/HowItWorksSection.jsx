@@ -223,8 +223,6 @@ const LaunchWidget = ({ isDark }) => {
 export const HowItWorksSection = () => {
     const { mode } = useThemeMode();
     const isDark = mode === 'dark';
-    const theme = useTheme();
-    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const [activeStep, setActiveStep] = useState(0);
 
@@ -278,6 +276,7 @@ export const HowItWorksSection = () => {
         <Box
             id="how-it-works"
             sx={{
+                scrollMarginTop: '80px',
                 py: { xs: 6, sm: 8, md: 16 },
                 px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: isDark ? '#121919' : '#FFFFFF',
@@ -335,7 +334,7 @@ export const HowItWorksSection = () => {
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
                             fontWeight: 700,
-                            fontSize: { xs: '26px', sm: '34px', md: '44px' },
+                            fontSize: { xs: '24px', sm: '34px', md: '44px' },
                             color: isDark ? '#E0F2F1' : '#1A2E2E',
                             mb: { xs: 1.5, md: 2 },
                             lineHeight: 1.2,
@@ -365,13 +364,15 @@ export const HowItWorksSection = () => {
                 {/* Stepper Pills navigation bar */}
                 <Box sx={{
                     display: 'flex',
-                    justifyContent: isMobile ? 'flex-start' : 'center',
+                    justifyContent: { xs: 'flex-start', md: 'center' },
                     alignItems: 'center',
                     gap: 1.5,
                     mb: { xs: 3.5, md: 7 },
-                    overflowX: isMobile ? 'auto' : 'visible',
-                    pb: isMobile ? 1.5 : 0,
-                    width: '100%',
+                    mx: { xs: -2.5, sm: 0 },
+                    px: { xs: 2.5, sm: 0 },
+                    overflowX: { xs: 'auto', md: 'visible' },
+                    pb: { xs: 1.5, md: 0 },
+                    width: { xs: 'calc(100% + 40px)', sm: '100%' },
                     '&::-webkit-scrollbar': { display: 'none' }, // hide visual scroll bars
                     scrollbarWidth: 'none',
                 }}>
@@ -424,6 +425,7 @@ export const HowItWorksSection = () => {
                                     fontSize: { xs: '12.5px', sm: '13.5px' },
                                     fontWeight: isActive ? 600 : 500,
                                     fontFamily: "'Outfit', sans-serif",
+                                    whiteSpace: 'nowrap',
                                     color: isActive 
                                         ? (isDark ? '#E0F2F1' : '#006A6A') 
                                         : (isDark ? '#BEC9C8' : '#4A6363'),
@@ -444,7 +446,7 @@ export const HowItWorksSection = () => {
                         ? '0 20px 50px rgba(0, 0, 0, 0.35)'
                         : '0 20px 50px rgba(0, 106, 106, 0.03)',
                     backdropFilter: 'blur(10px)',
-                    p: { xs: 2.5, md: 5 },
+                    p: { xs: 2, sm: 3.5, md: 5 },
                 }}>
                     <AnimatePresence mode="wait">
                         <motion.div
@@ -470,18 +472,19 @@ export const HowItWorksSection = () => {
                                             fontWeight: 700,
                                             fontSize: { xs: '18px', sm: '26px' },
                                             color: isDark ? '#E0F2F1' : '#1A2E2E',
-                                            mb: { xs: 0, md: 2 },
+                                            mb: { xs: 1, md: 2 },
                                         }}
                                     >
                                         {steps[activeStep].title}
                                     </Typography>
                                     <Typography
                                         sx={{
-                                            display: { xs: 'none', md: 'block' },
+                                            display: 'block',
                                             fontFamily: "'DM Sans', sans-serif",
-                                            fontSize: '14.5px',
+                                            fontSize: { xs: '13.5px', sm: '14.5px' },
                                             lineHeight: 1.6,
                                             color: isDark ? '#A2B8B8' : '#5C7474',
+                                            mb: { xs: 2.5, md: 0 },
                                         }}
                                     >
                                         {steps[activeStep].description}

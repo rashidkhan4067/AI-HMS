@@ -75,8 +75,9 @@ export const ForHospitalsSection = () => {
         <Box
             id="hospitals"
             sx={{
+                scrollMarginTop: '80px',
                 py: { xs: 5, sm: 8, md: 12 },
-                px: { xs: 2, sm: 4, md: 6 },
+                px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: isDark ? '#111717' : '#FAFDFD',
                 backgroundImage: isDark
                     ? 'radial-gradient(circle at 80% 20%, rgba(0, 106, 106, 0.08) 0%, transparent 50%)'
@@ -131,47 +132,29 @@ export const ForHospitalsSection = () => {
                         variant="h2"
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
-                            fontSize: { xs: '22px', sm: '32px', md: '42px' },
+                            fontSize: { xs: '24px', sm: '32px', md: '42px' },
                             fontWeight: 700,
                             lineHeight: 1.15,
                             color: isDark ? '#E0F2F1' : '#111717',
-                            mb: { xs: 1, md: 2.5 },
+                            mb: { xs: 1.5, md: 2.5 },
                             letterSpacing: '-0.8px',
                         }}
                     >
-                        Clinical Operations{' '}
-                        <Box component="span" sx={{ display: { xs: 'none', sm: 'inline' } }}>
-                            Command
-                        </Box>
+                        Clinical Operations Command
                     </Typography>
 
                     <Typography
                         sx={{
                             fontFamily: "'DM Sans', sans-serif",
-                            fontSize: { xs: '13px', md: '16px' },
-                            lineHeight: 1.5,
+                            fontSize: { xs: '14px', md: '16px' },
+                            lineHeight: 1.6,
                             color: isDark ? '#B2C7C7' : '#4E5D5D',
-                            mb: { xs: 2, md: 4 },
+                            mb: { xs: 3, md: 4 },
                             maxWidth: 580,
-                            display: { xs: 'none', sm: 'block' },
                         }}
                     >
                         Orchestrate multi-department patient flow, resource mapping, and role-based permissions
                         into a single real-time console designed for modern scale.
-                    </Typography>
-
-                    {/* Mobile-only: compact 2-line description */}
-                    <Typography
-                        sx={{
-                            fontFamily: "'DM Sans', sans-serif",
-                            fontSize: '12.5px',
-                            lineHeight: 1.5,
-                            color: isDark ? '#B2C7C7' : '#4E5D5D',
-                            mb: 2,
-                            display: { xs: 'block', sm: 'none' },
-                        }}
-                    >
-                        Unified real-time console for patient flow, resource mapping & HIPAA-secured clearances.
                     </Typography>
 
                     {/* Detailed Features – desktop only */}
@@ -259,7 +242,7 @@ export const ForHospitalsSection = () => {
                             border: '1px solid',
                             borderColor: isDark ? 'rgba(255, 255, 255, 0.06)' : 'rgba(0, 106, 106, 0.08)',
                             borderRadius: '18px',
-                            p: { xs: 1.8, sm: 3 },
+                            p: { xs: 2.5, sm: 3 },
                             boxShadow: isDark
                                 ? '0 15px 35px rgba(0,0,0,0.3), 0 0 30px rgba(0, 106, 106, 0.08)'
                                 : '0 15px 35px rgba(0, 106, 106, 0.04), 0 0 15px rgba(0, 0, 0, 0.01)',
@@ -313,11 +296,14 @@ export const ForHospitalsSection = () => {
                         <Box 
                             sx={{ 
                                 display: 'flex', 
-                                gap: 0.4, 
+                                gap: 0.5, 
                                 p: 0.4, 
                                 borderRadius: '8px', 
                                 backgroundColor: isDark ? 'rgba(0, 0, 0, 0.2)' : '#F0F6F6',
-                                mb: { xs: 2, sm: 3 } 
+                                mb: { xs: 2, sm: 3 },
+                                overflowX: { xs: 'auto', sm: 'visible' },
+                                '&::-webkit-scrollbar': { display: 'none' },
+                                scrollbarWidth: 'none',
                             }}
                         >
                             {Object.values(roles).map((role) => {
@@ -327,14 +313,14 @@ export const ForHospitalsSection = () => {
                                         key={role.id}
                                         onClick={() => setActiveRole(role.id)}
                                         sx={{
-                                            flex: 1,
+                                            flex: { xs: '1 0 auto', sm: 1 },
                                             py: { xs: 0.6, sm: 0.9 },
-                                            px: { xs: 0.3, sm: 1.2 },
+                                            px: { xs: 1.5, sm: 1.2 },
                                             borderRadius: '6px',
                                             textTransform: 'none',
                                             fontFamily: "'Outfit', sans-serif",
                                             fontWeight: 600,
-                                            fontSize: { xs: '10px', sm: '11.5px' },
+                                            fontSize: { xs: '11px', sm: '11.5px' },
                                             color: isSelected 
                                                 ? (isDark ? '#E0F2F1' : '#006A6A') 
                                                 : (isDark ? '#7A9292' : '#687878'),
@@ -372,9 +358,9 @@ export const ForHospitalsSection = () => {
                                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
                                         <Avatar 
                                             sx={{ 
-                                                width: { xs: 28, sm: 36 }, 
-                                                height: { xs: 28, sm: 36 }, 
-                                                fontSize: { xs: '10px', sm: '13px' }, 
+                                                width: { xs: 34, sm: 36 }, 
+                                                height: { xs: 34, sm: 36 }, 
+                                                fontSize: { xs: '11px', sm: '13px' }, 
                                                 fontFamily: "'Outfit', sans-serif",
                                                 fontWeight: 700,
                                                 backgroundColor: isDark ? 'rgba(0, 106, 106, 0.2)' : 'rgba(0, 106, 106, 0.08)',
@@ -385,57 +371,57 @@ export const ForHospitalsSection = () => {
                                             {currentData.initials}
                                         </Avatar>
                                         <Box>
-                                            <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '11.5px', sm: '13.5px' }, fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', lineHeight: 1.2 }}>
+                                            <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '13px', sm: '13.5px' }, fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', lineHeight: 1.2 }}>
                                                 {currentData.userName}
                                             </Typography>
-                                            <Typography sx={{ fontSize: { xs: '9.5px', sm: '10.5px' }, color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
+                                            <Typography sx={{ fontSize: { xs: '10.5px', sm: '11px' }, color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
                                                 {currentData.userRole}
                                             </Typography>
                                         </Box>
                                     </Box>
-
+ 
                                     {/* Clearance level indicator */}
                                     <Box 
                                         sx={{ 
                                             display: 'flex', 
                                             alignItems: 'center', 
-                                            gap: 0.4,
-                                            px: { xs: 0.7, sm: 1 },
-                                            py: { xs: 0.3, sm: 0.4 },
+                                            gap: 0.5,
+                                            px: { xs: 0.9, sm: 1 },
+                                            py: { xs: 0.4, sm: 0.5 },
                                             borderRadius: '5px',
                                             backgroundColor: isDark ? 'rgba(46, 125, 50, 0.12)' : 'rgba(46, 125, 50, 0.08)',
                                             border: '1px solid rgba(46, 125, 50, 0.2)',
                                         }}
                                     >
-                                        <ShieldCheck size={9} color="#2E7D32" />
-                                        <Typography sx={{ fontSize: { xs: '8px', sm: '9.5px' }, fontWeight: 700, color: '#2E7D32', textTransform: 'uppercase', letterSpacing: '0.2px', whiteSpace: 'nowrap' }}>
+                                        <ShieldCheck size={10} color="#2E7D32" />
+                                        <Typography sx={{ fontSize: { xs: '10px', sm: '10.5px' }, fontWeight: 700, color: '#2E7D32', textTransform: 'uppercase', letterSpacing: '0.2px', whiteSpace: 'nowrap' }}>
                                             {currentData.clearance}
                                         </Typography>
                                     </Box>
                                 </Box>
-
+ 
                                 {/* Compact stats row on mobile, grid on desktop */}
                                 <Box 
                                     sx={{ 
                                         display: 'grid', 
                                         gridTemplateColumns: { xs: '1fr', sm: '1fr 1.1fr' }, 
-                                        gap: { xs: 1.5, sm: 2.5 }, 
-                                        mb: { xs: 2, sm: 3 }
+                                        gap: { xs: 2, sm: 2.5 }, 
+                                        mb: { xs: 2.5, sm: 3 }
                                     }}
                                 >
                                     {/* Left: Capacity / Metric load */}
-                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.5, sm: 2 } }}>
+                                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2, sm: 2 } }}>
                                         {/* Dynamic Progress Indicator */}
                                         <Box>
-                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.6 }}>
-                                                <Typography sx={{ fontSize: { xs: '10px', sm: '11.5px' }, fontWeight: 600, color: isDark ? '#B2C7C7' : '#4E5D5D' }}>
+                                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
+                                                <Typography sx={{ fontSize: { xs: '12px', sm: '12.5px' }, fontWeight: 600, color: isDark ? '#B2C7C7' : '#4E5D5D' }}>
                                                     {currentData.progressLabel}
                                                 </Typography>
-                                                <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '10px', sm: '11.5px' }, fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>
+                                                <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '12px', sm: '12.5px' }, fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>
                                                     {currentData.progressValue}%
                                                 </Typography>
                                             </Box>
-                                            <Box sx={{ width: '100%', height: 4, borderRadius: 3, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#E5F0F0', overflow: 'hidden' }}>
+                                            <Box sx={{ width: '100%', height: 6, borderRadius: 3, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : '#E5F0F0', overflow: 'hidden' }}>
                                                 <Box 
                                                     component={motion.div}
                                                     initial={{ width: 0 }}
@@ -449,17 +435,17 @@ export const ForHospitalsSection = () => {
                                                 />
                                             </Box>
                                         </Box>
-
+ 
                                         {/* Metric Indicator */}
                                         <Box 
                                             sx={{ 
-                                                p: { xs: 1, sm: 1.5 }, 
+                                                p: { xs: 1.5, sm: 1.75 }, 
                                                 borderRadius: '8px', 
                                                 backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : '#F5FAFA',
                                                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}`,
                                                 display: 'flex',
                                                 alignItems: 'center',
-                                                gap: 1
+                                                gap: 1.5
                                             }}
                                         >
                                             <Box 
@@ -467,27 +453,27 @@ export const ForHospitalsSection = () => {
                                                     display: 'flex', 
                                                     alignItems: 'center', 
                                                     justifyContent: 'center', 
-                                                    width: { xs: 24, sm: 28 }, 
-                                                    height: { xs: 24, sm: 28 }, 
+                                                    width: { xs: 32, sm: 32 }, 
+                                                    height: { xs: 32, sm: 32 }, 
                                                     borderRadius: '6px', 
                                                     backgroundColor: isDark ? 'rgba(77, 182, 172, 0.1)' : 'rgba(0, 106, 106, 0.06)',
                                                     color: isDark ? '#4DB6AC' : '#006A6A',
                                                     flexShrink: 0
                                                 }}
                                             >
-                                                <HeartPulse size={12} />
+                                                <HeartPulse size={14} />
                                             </Box>
                                             <Box>
-                                                <Typography sx={{ fontSize: '9.5px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
+                                                <Typography sx={{ fontSize: '11px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
                                                     {currentData.statLabel}
                                                 </Typography>
-                                                <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '12px', sm: '13.5px' }, fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>
+                                                <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: { xs: '13px', sm: '14px' }, fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>
                                                     {currentData.statValue}
                                                 </Typography>
                                             </Box>
                                         </Box>
                                     </Box>
-
+ 
                                     {/* Right: Live log ticker (Hidden on mobile) */}
                                     <Box 
                                         sx={{ 
@@ -522,24 +508,24 @@ export const ForHospitalsSection = () => {
                                 </Box>
                             </motion.div>
                         </AnimatePresence>
-
+ 
                         {/* HIPAA Security Banner */}
                         <Box
                             sx={{
                                 borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)'}`,
-                                pt: { xs: 1.2, sm: 1.8 },
+                                pt: { xs: 1.5, sm: 1.8 },
                                 display: 'flex',
                                 alignItems: 'center',
                                 justifyContent: 'space-between',
                             }}
                         >
                             <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.7 }}>
-                                <Lock size={10} color={isDark ? '#A2B8B8' : '#687878'} />
-                                <Typography sx={{ fontSize: { xs: '8.5px', sm: '10px' }, color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
+                                <Lock size={12} color={isDark ? '#A2B8B8' : '#687878'} />
+                                <Typography sx={{ fontSize: { xs: '10.5px', sm: '11.5px' }, color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>
                                     End-to-End HIPAA Encrypted
                                 </Typography>
                             </Box>
-                            <Typography sx={{ fontSize: { xs: '8px', sm: '9.5px' }, color: '#2E7D32', fontWeight: 700, letterSpacing: '0.5px' }}>
+                            <Typography sx={{ fontSize: { xs: '10.5px', sm: '11.5px' }, color: '#2E7D32', fontWeight: 700, letterSpacing: '0.5px' }}>
                                 AES-256 SECURE
                             </Typography>
                         </Box>

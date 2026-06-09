@@ -54,8 +54,8 @@ export const Footer = () => {
             sx={{
                 backgroundColor: isDark ? '#0B0F0F' : '#F4FBFB',
                 color: isDark ? '#E0F2F1' : '#111717',
-                pt: { xs: 5, md: 10 },
-                pb: { xs: 4, md: 8 },
+                pt: { xs: 7, md: 10 },
+                pb: { xs: 6, md: 8 },
                 px: { xs: 3, md: 6 },
                 display: 'flex',
                 justifyContent: 'center',
@@ -69,7 +69,7 @@ export const Footer = () => {
                   Main grid container where each column is a direct child.
                   This ensures proper spacing and prevents horizontal compression on desktop sizes.
                 */}
-                <Grid container spacing={{ xs: 4, md: 6 }} sx={{ mb: { xs: 4, md: 8 } }}>
+                <Grid container spacing={{ xs: 4, md: 6 }} sx={{ mb: { xs: 5, md: 8 } }}>
                     {/* Brand Section */}
                     <Grid
                         item
@@ -78,8 +78,8 @@ export const Footer = () => {
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: { xs: 'center', md: 'flex-start' },
-                            textAlign: { xs: 'center', md: 'left' }
+                            alignItems: 'flex-start',
+                            textAlign: 'left'
                         }}
                     >
                         <Box sx={{ mb: 2 }}>
@@ -92,7 +92,7 @@ export const Footer = () => {
                                 color: isDark ? '#B2C7C7' : '#4E5D5D',
                                 mb: 3.5,
                                 lineHeight: 1.6,
-                                maxWidth: { xs: 290, md: 340 },
+                                maxWidth: { xs: '100%', sm: 340 },
                             }}
                         >
                             Pakistan's leading unified clinical system orchestrating healthcare operations at scale.
@@ -139,31 +139,45 @@ export const Footer = () => {
                     {/* Platform Column */}
                     <Grid
                         item
-                        xs={4}
+                        xs={6}
+                        sm={4}
                         md={2.5}
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: { xs: 'center', md: 'flex-start' }
+                            alignItems: 'flex-start'
                         }}
                     >
-                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: { xs: '12px', sm: '14px', md: '15.5px' }, color: isDark ? '#E0F2F1' : '#111717', mb: { xs: 2, md: 3 } }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 700,
+                                fontSize: { xs: '11.5px', md: '13px' },
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.08em',
+                                color: isDark ? '#E0F2F1' : '#006A6A',
+                                mb: { xs: 2, md: 3 }
+                            }}
+                        >
                             Platform
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 1.75 }, alignItems: { xs: 'center', md: 'flex-start' } }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 }, alignItems: 'flex-start' }}>
                             {platformLinks.map((item) => (
                                 <Link
                                     key={item.name}
                                     href={item.href}
                                     sx={{
                                         fontFamily: "'DM Sans', sans-serif",
-                                        fontSize: { xs: '11.5px', sm: '13px', md: '13.8px' },
-                                        color: isDark ? '#8A9F9F' : '#687878',
+                                        fontSize: { xs: '13px', sm: '13.5px', md: '14px' },
+                                        color: isDark ? '#8A9F9F' : '#4E5D5D',
                                         textDecoration: 'none',
-                                        transition: 'all 0.2s ease',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        py: 0.5,
                                         '&:hover': {
                                             color: isDark ? '#4DB6AC' : '#006A6A',
-                                            transform: 'translateX(2px)'
+                                            transform: 'translateX(3px)'
                                         }
                                     }}
                                 >
@@ -176,18 +190,29 @@ export const Footer = () => {
                     {/* Portals Column */}
                     <Grid
                         item
-                        xs={4}
+                        xs={6}
+                        sm={4}
                         md={2.5}
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: { xs: 'center', md: 'flex-start' }
+                            alignItems: 'flex-start'
                         }}
                     >
-                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: { xs: '12px', sm: '14px', md: '15.5px' }, color: isDark ? '#E0F2F1' : '#111717', mb: { xs: 2, md: 3 } }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 700,
+                                fontSize: { xs: '11.5px', md: '13px' },
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.08em',
+                                color: isDark ? '#E0F2F1' : '#006A6A',
+                                mb: { xs: 2, md: 3 }
+                            }}
+                        >
                             Portals
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 1.75 }, alignItems: { xs: 'center', md: 'flex-start' } }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 }, alignItems: 'flex-start' }}>
                             {userLinks.map((item) => (
                                 <Link
                                     key={item.name}
@@ -195,13 +220,16 @@ export const Footer = () => {
                                     to={item.to}
                                     sx={{
                                         fontFamily: "'DM Sans', sans-serif",
-                                        fontSize: { xs: '11.5px', sm: '13px', md: '13.8px' },
-                                        color: isDark ? '#8A9F9F' : '#687878',
+                                        fontSize: { xs: '13px', sm: '13.5px', md: '14px' },
+                                        color: isDark ? '#8A9F9F' : '#4E5D5D',
                                         textDecoration: 'none',
-                                        transition: 'all 0.2s ease',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        py: 0.5,
                                         '&:hover': {
                                             color: isDark ? '#4DB6AC' : '#006A6A',
-                                            transform: 'translateX(2px)'
+                                            transform: 'translateX(3px)'
                                         }
                                     }}
                                 >
@@ -214,31 +242,45 @@ export const Footer = () => {
                     {/* Legal Column */}
                     <Grid
                         item
-                        xs={4}
+                        xs={6}
+                        sm={4}
                         md={3}
                         sx={{
                             display: 'flex',
                             flexDirection: 'column',
-                            alignItems: { xs: 'center', md: 'flex-start' }
+                            alignItems: 'flex-start'
                         }}
                     >
-                        <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, fontSize: { xs: '12px', sm: '14px', md: '15.5px' }, color: isDark ? '#E0F2F1' : '#111717', mb: { xs: 2, md: 3 } }}>
+                        <Typography
+                            sx={{
+                                fontFamily: "'Outfit', sans-serif",
+                                fontWeight: 700,
+                                fontSize: { xs: '11.5px', md: '13px' },
+                                textTransform: 'uppercase',
+                                letterSpacing: '0.08em',
+                                color: isDark ? '#E0F2F1' : '#006A6A',
+                                mb: { xs: 2, md: 3 }
+                            }}
+                        >
                             Legal
                         </Typography>
-                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1.25, md: 1.75 }, alignItems: { xs: 'center', md: 'flex-start' } }}>
+                        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 1, md: 1.5 }, alignItems: 'flex-start' }}>
                             {complianceLinks.map((item) => (
                                 <Link
                                     key={item.name}
                                     {...(item.isRouter ? { component: RouterLink, to: item.to } : { href: item.href })}
                                     sx={{
                                         fontFamily: "'DM Sans', sans-serif",
-                                        fontSize: { xs: '11.5px', sm: '13px', md: '13.8px' },
-                                        color: isDark ? '#8A9F9F' : '#687878',
+                                        fontSize: { xs: '13px', sm: '13.5px', md: '14px' },
+                                        color: isDark ? '#8A9F9F' : '#4E5D5D',
                                         textDecoration: 'none',
-                                        transition: 'all 0.2s ease',
+                                        transition: 'all 0.2s cubic-bezier(0.4, 0, 0.2, 1)',
+                                        display: 'inline-flex',
+                                        alignItems: 'center',
+                                        py: 0.5,
                                         '&:hover': {
                                             color: isDark ? '#4DB6AC' : '#006A6A',
-                                            transform: 'translateX(2px)'
+                                            transform: 'translateX(3px)'
                                         }
                                     }}
                                 >
@@ -257,16 +299,16 @@ export const Footer = () => {
                         pt: 4,
                         display: 'flex',
                         flexDirection: { xs: 'column', sm: 'row' },
-                        alignItems: 'center',
+                        alignItems: { xs: 'flex-start', sm: 'center' },
                         justifyContent: 'space-between',
-                        gap: 1.5,
-                        textAlign: { xs: 'center', sm: 'left' }
+                        gap: 2,
+                        textAlign: 'left'
                     }}
                 >
-                    <Typography sx={{ fontFamily: "'DM Sans', sans-serif", fontSize: { xs: '12.5px', md: '13.5px' }, color: isDark ? '#7A9292' : '#8C9E9E' }}>
+                    <Typography sx={{ fontFamily: "'DM Sans', sans-serif", fontSize: { xs: '13px', md: '13.5px' }, color: isDark ? '#7A9292' : '#687878' }}>
                         &copy; {new Date().getFullYear()} Al Shifaa Health Systems. All rights reserved.
                     </Typography>
-                    <Typography sx={{ fontFamily: "'DM Sans', sans-serif", fontSize: { xs: '12.5px', md: '13.5px' }, color: isDark ? '#7A9292' : '#8C9E9E', display: 'flex', alignItems: 'center', gap: 0.5 }}>
+                    <Typography sx={{ fontFamily: "'DM Sans', sans-serif", fontSize: { xs: '13px', md: '13.5px' }, color: isDark ? '#7A9292' : '#687878', display: 'flex', alignItems: 'center', gap: 0.5 }}>
                         Made in Pakistan 🇵🇰
                     </Typography>
                 </Box>

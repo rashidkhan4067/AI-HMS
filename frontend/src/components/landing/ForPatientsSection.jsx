@@ -30,6 +30,7 @@ export const ForPatientsSection = () => {
         <Box
             id="patients"
             sx={{
+                scrollMarginTop: '80px',
                 py: { xs: 6, sm: 8, md: 12 },
                 px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: isDark ? 'rgba(0, 106, 106, 0.03)' : 'rgba(0, 106, 106, 0.01)',
@@ -61,8 +62,8 @@ export const ForPatientsSection = () => {
                     {/* Outer Phone Frame */}
                     <Box
                         sx={{
-                            width: { xs: 230, sm: 250, md: 260 },
-                            height: { xs: 410, sm: 440, md: 470 },
+                            width: { xs: 240, sm: 250, md: 260 },
+                            height: { xs: 450, sm: 460, md: 480 },
                             borderRadius: '32px',
                             border: '8px solid #1e292b',
                             backgroundColor: isDark ? '#141A1A' : '#FFFFFF',
@@ -76,16 +77,15 @@ export const ForPatientsSection = () => {
                             transition: 'all 0.3s ease',
                         }}
                     >
-                        {/* Speaker/Camera Notch */}
+                        {/* Dynamic Island Notch */}
                         <Box
                             sx={{
-                                width: 90,
-                                height: 16,
+                                width: 70,
+                                height: 12,
                                 backgroundColor: '#1e292b',
-                                borderBottomLeftRadius: '10px',
-                                borderBottomRightRadius: '10px',
+                                borderRadius: '10px',
                                 position: 'absolute',
-                                top: 0,
+                                top: 5,
                                 left: '50%',
                                 transform: 'translateX(-50%)',
                                 zIndex: 12,
@@ -93,29 +93,29 @@ export const ForPatientsSection = () => {
                         />
 
                         {/* Mobile Status Bar */}
-                        <Box sx={{ height: 26, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2.5, pt: 1, zIndex: 10 }}>
-                            <Typography sx={{ fontSize: '9px', fontWeight: 600, color: isDark ? '#7A9292' : '#687878', fontFamily: 'sans-serif' }}>9:41</Typography>
-                            <Box sx={{ display: 'flex', gap: 0.5 }}>
+                        <Box sx={{ height: 32, display: 'flex', justifyContent: 'space-between', alignItems: 'center', px: 2.5, pt: 1, zIndex: 10 }}>
+                            <Typography sx={{ fontSize: '8.5px', fontWeight: 600, color: isDark ? '#7A9292' : '#687878', fontFamily: 'sans-serif' }}>9:41</Typography>
+                            <Box sx={{ display: 'flex', gap: 0.5, alignItems: 'center' }}>
                                 <Box sx={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: isDark ? '#7A9292' : '#687878', opacity: 0.8 }} />
                                 <Box sx={{ width: 12, height: 7, borderRadius: '1.5px', border: '1px solid', borderColor: isDark ? '#7A9292' : '#687878', opacity: 0.8 }} />
                             </Box>
                         </Box>
 
                         {/* App Header (Welcome) */}
-                        <Box sx={{ px: 2, pb: 1.5, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Box sx={{ px: 2, pb: 1.5, pt: 0.5, borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)'}`, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                             <Box>
-                                <Typography sx={{ fontSize: '10px', color: isDark ? '#A2B8B8' : '#8C9E9E', fontWeight: 500 }}>My Portal</Typography>
-                                <Typography sx={{ fontSize: '12.5px', fontWeight: 700, fontFamily: "'Outfit', sans-serif", color: isDark ? '#E0F2F1' : '#1A2E2E' }}>Hello, Sarah</Typography>
+                                <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>My Portal</Typography>
+                                <Typography sx={{ fontSize: '13px', fontWeight: 700, fontFamily: "'Outfit', sans-serif", color: isDark ? '#E0F2F1' : '#1A2E2E' }}>Sarah Khan</Typography>
                             </Box>
                             <Avatar 
                                 sx={{ 
-                                    width: 24, 
-                                    height: 24, 
-                                    fontSize: '9px', 
+                                    width: 26, 
+                                    height: 26, 
+                                    fontSize: '10px', 
                                     fontWeight: 700,
-                                    backgroundColor: 'rgba(0, 106, 106, 0.1)', 
-                                    color: '#006A6A',
-                                    border: '1px solid rgba(0, 106, 106, 0.2)'
+                                    backgroundColor: isDark ? 'rgba(77, 182, 172, 0.15)' : 'rgba(0, 106, 106, 0.08)', 
+                                    color: isDark ? '#4DB6AC' : '#006A6A',
+                                    border: `1px solid ${isDark ? 'rgba(77, 182, 172, 0.3)' : 'rgba(0, 106, 106, 0.15)'}`
                                 }}
                             >
                                 SK
@@ -123,7 +123,7 @@ export const ForPatientsSection = () => {
                         </Box>
 
                         {/* App Navigation Tabs */}
-                        <Box sx={{ display: 'flex', p: 0.8, gap: 0.5, backgroundColor: isDark ? 'rgba(0,0,0,0.15)' : '#F0F6F6' }}>
+                        <Box sx={{ display: 'flex', p: 0.5, gap: 0.5, backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F0F6F6', borderRadius: '0 0 12px 12px' }}>
                             {[
                                 { id: 'vitals', label: 'Vitals', icon: <Heart size={10} /> },
                                 { id: 'records', label: 'Records', icon: <FileText size={10} /> },
@@ -136,24 +136,25 @@ export const ForPatientsSection = () => {
                                         onClick={() => setActiveTab(tab.id)}
                                         sx={{
                                             flex: 1,
-                                            py: 0.6,
-                                            borderRadius: '6px',
+                                            py: 0.8,
+                                            borderRadius: '8px',
                                             textTransform: 'none',
                                             fontFamily: "'Outfit', sans-serif",
-                                            fontWeight: 600,
-                                            fontSize: '10px',
+                                            fontWeight: 700,
+                                            fontSize: '10.5px',
                                             minWidth: 0,
                                             gap: 0.5,
                                             color: isSelected 
                                                 ? (isDark ? '#E0F2F1' : '#006A6A') 
-                                                : (isDark ? '#7A9292' : '#687878'),
+                                                : (isDark ? '#8A9F9F' : '#687878'),
                                             backgroundColor: isSelected 
-                                                ? (isDark ? 'rgba(0, 106, 106, 0.25)' : '#FFFFFF') 
+                                                ? (isDark ? 'rgba(0, 106, 106, 0.3)' : '#FFFFFF') 
                                                 : 'transparent',
-                                            border: isSelected && !isDark ? '1px solid rgba(0, 106, 106, 0.08)' : '1px solid transparent',
+                                            boxShadow: isSelected && !isDark ? '0 1px 3px rgba(0,0,0,0.05)' : 'none',
+                                            transition: 'all 0.2s ease',
                                             '&:hover': {
                                                 backgroundColor: isSelected 
-                                                    ? (isDark ? 'rgba(0, 106, 106, 0.25)' : '#FFFFFF') 
+                                                    ? (isDark ? 'rgba(0, 106, 106, 0.3)' : '#FFFFFF') 
                                                     : (isDark ? 'rgba(255,255,255,0.02)' : 'rgba(0,106,106,0.03)'),
                                             },
                                         }}
@@ -166,7 +167,7 @@ export const ForPatientsSection = () => {
                         </Box>
 
                         {/* App Screen Content Box */}
-                        <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflow: 'hidden' }}>
+                        <Box sx={{ p: 2, flex: 1, display: 'flex', flexDirection: 'column', position: 'relative', overflowY: 'auto', '&::-webkit-scrollbar': { display: 'none' }, scrollbarWidth: 'none' }}>
                             <AnimatePresence mode="wait">
                                 <motion.div
                                     key={activeTab}
@@ -179,26 +180,59 @@ export const ForPatientsSection = () => {
                                     {activeTab === 'vitals' && (
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.8, width: '100%' }}>
                                             {/* Pulse Rate Monitor */}
-                                            <Box sx={{ p: 1.2, borderRadius: '10px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F5FAFA', border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}` }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                                                    <Typography sx={{ fontSize: '10px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>Heart Rate</Typography>
+                                            <Box sx={{ 
+                                                p: 1.5, 
+                                                borderRadius: '12px', 
+                                                backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD', 
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}`,
+                                                boxShadow: isDark ? 'none' : '0 2px 8px rgba(0, 106, 106, 0.02)'
+                                            }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                                    <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Heart Rate</Typography>
                                                     <HeartPulse size={12} color="#D32F2F" />
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                                                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>72</Typography>
-                                                    <Typography sx={{ fontSize: '9px', color: 'text.secondary', fontWeight: 600 }}>BPM</Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, mb: 1 }}>
+                                                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#004D40' }}>72</Typography>
+                                                    <Typography sx={{ fontSize: '9.5px', color: 'text.secondary', fontWeight: 600 }}>BPM</Typography>
+                                                </Box>
+                                                {/* Mini ECG trace */}
+                                                <Box sx={{ position: 'relative', height: 16, width: '100%', overflow: 'hidden' }}>
+                                                    <svg width="100%" height="16" viewBox="0 0 100 16" preserveAspectRatio="none">
+                                                        <path
+                                                            d="M 0 8 L 25 8 L 28 2 L 31 14 L 34 8 L 45 8 L 48 1 L 51 15 L 54 8 L 100 8"
+                                                            fill="none"
+                                                            stroke={isDark ? '#4DB6AC' : '#006A6A'}
+                                                            strokeWidth="1.2"
+                                                            strokeDasharray="400"
+                                                            strokeDashoffset="400"
+                                                            style={{
+                                                                animation: 'ecg-draw 4s linear infinite',
+                                                                filter: isDark ? 'drop-shadow(0 0 3px rgba(77, 182, 172, 0.5))' : 'none'
+                                                            }}
+                                                        />
+                                                    </svg>
                                                 </Box>
                                             </Box>
 
                                             {/* Blood Pressure Monitor */}
-                                            <Box sx={{ p: 1.2, borderRadius: '10px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F5FAFA', border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}` }}>
-                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.8 }}>
-                                                    <Typography sx={{ fontSize: '10px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 500 }}>Blood Pressure</Typography>
+                                            <Box sx={{ 
+                                                p: 1.5, 
+                                                borderRadius: '12px', 
+                                                backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD', 
+                                                border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}`,
+                                                boxShadow: isDark ? 'none' : '0 2px 8px rgba(0, 106, 106, 0.02)'
+                                            }}>
+                                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 0.5 }}>
+                                                    <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>Blood Pressure</Typography>
                                                     <Activity size={12} color="#006A6A" />
                                                 </Box>
-                                                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5 }}>
-                                                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '20px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#111717' }}>118/76</Typography>
-                                                    <Typography sx={{ fontSize: '9px', color: 'text.secondary', fontWeight: 600 }}>mmHg</Typography>
+                                                <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 0.5, mb: 1 }}>
+                                                    <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '22px', fontWeight: 700, color: isDark ? '#E0F2F1' : '#004D40' }}>118/76</Typography>
+                                                    <Typography sx={{ fontSize: '9.5px', color: 'text.secondary', fontWeight: 600 }}>mmHg</Typography>
+                                                </Box>
+                                                {/* Mini BP Level bar */}
+                                                <Box sx={{ width: '100%', height: 4, borderRadius: 2, backgroundColor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)', overflow: 'hidden' }}>
+                                                    <Box sx={{ width: '70%', height: '100%', backgroundColor: '#006A6A', borderRadius: 2 }} />
                                                 </Box>
                                             </Box>
                                         </Box>
@@ -207,18 +241,18 @@ export const ForPatientsSection = () => {
                                     {activeTab === 'records' && (
                                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1.5, width: '100%' }}>
                                             {/* Lab Report Card */}
-                                            <Box sx={{ p: 1.2, borderRadius: '10px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F5FAFA', border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}` }}>
-                                                <Typography sx={{ fontSize: '10.5px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Lipid Profile Test</Typography>
+                                            <Box sx={{ p: 1.5, borderRadius: '12px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD', border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}` }}>
+                                                <Typography sx={{ fontSize: '11px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Lipid Profile Test</Typography>
                                                 <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878', mb: 1 }}>Published Yesterday</Typography>
-                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.8, py: 0.3, borderRadius: '4px', backgroundColor: 'rgba(46, 125, 50, 0.1)', color: '#2E7D32' }}>
+                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.8, py: 0.3, borderRadius: '4px', backgroundColor: 'rgba(16, 185, 129, 0.12)', color: '#10B981', border: '1px solid rgba(16, 185, 129, 0.2)' }}>
                                                     <Check size={9} strokeWidth={3} />
-                                                    <Typography sx={{ fontSize: '8.5px', fontWeight: 700 }}>ALL NORMAL</Typography>
+                                                    <Typography sx={{ fontSize: '8.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>ALL NORMAL</Typography>
                                                 </Box>
                                             </Box>
 
                                             {/* Summary Card */}
-                                            <Box sx={{ p: 1.2, borderRadius: '10px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F5FAFA', border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}` }}>
-                                                <Typography sx={{ fontSize: '10.5px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Clinical Summary</Typography>
+                                            <Box sx={{ p: 1.5, borderRadius: '12px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD', border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}` }}>
+                                                <Typography sx={{ fontSize: '11px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Clinical Summary</Typography>
                                                 <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878' }}>Dr. Rachel Carter • Cardiology</Typography>
                                             </Box>
                                         </Box>
@@ -226,11 +260,11 @@ export const ForPatientsSection = () => {
 
                                     {activeTab === 'meds' && (
                                         <Box sx={{ display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%', width: '100%', flex: 1 }}>
-                                            <Box sx={{ p: 1.2, borderRadius: '10px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#F5FAFA', border: `1px solid ${isDark ? 'rgba(255,255,255,0.03)' : 'rgba(0,106,106,0.06)'}` }}>
-                                                <Typography sx={{ fontSize: '10.5px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Lisinopril 10mg</Typography>
+                                            <Box sx={{ p: 1.5, borderRadius: '12px', backgroundColor: isDark ? 'rgba(0,0,0,0.2)' : '#FAFDFD', border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0,106,106,0.06)'}` }}>
+                                                <Typography sx={{ fontSize: '11px', fontWeight: 600, color: isDark ? '#E0F2F1' : '#1A2E2E', mb: 0.3 }}>Lisinopril 10mg</Typography>
                                                 <Typography sx={{ fontSize: '9px', color: isDark ? '#A2B8B8' : '#687878', mb: 1 }}>1 Tablet Daily • 12 Refills Left</Typography>
-                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.8, py: 0.3, borderRadius: '4px', backgroundColor: 'rgba(0, 106, 106, 0.1)', color: '#006A6A' }}>
-                                                    <Typography sx={{ fontSize: '8.5px', fontWeight: 700 }}>REFILL READY</Typography>
+                                                <Box sx={{ display: 'inline-flex', alignItems: 'center', gap: 0.5, px: 0.8, py: 0.3, borderRadius: '4px', backgroundColor: 'rgba(0, 106, 106, 0.12)', color: isDark ? '#4DB6AC' : '#006A6A', border: `1px solid ${isDark ? 'rgba(77, 182, 172, 0.2)' : 'rgba(0,106,106,0.1)'}` }}>
+                                                    <Typography sx={{ fontSize: '8.5px', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.03em' }}>REFILL READY</Typography>
                                                 </Box>
                                             </Box>
 
@@ -241,13 +275,13 @@ export const ForPatientsSection = () => {
                                                 onClick={handleRefillClick}
                                                 sx={{
                                                     mt: 'auto',
-                                                    p: 1.1,
-                                                    borderRadius: '8px',
+                                                    p: 1.2,
+                                                    borderRadius: '10px',
                                                     background: refillSent 
                                                         ? 'linear-gradient(135deg, #2D7D46 0%, #1B5E20 100%)'
                                                         : 'linear-gradient(135deg, #006A6A 0%, #004F4F 100%)',
                                                     color: '#FFFFFF',
-                                                    fontSize: '10px',
+                                                    fontSize: '11px',
                                                     fontWeight: 600,
                                                     textAlign: 'center',
                                                     cursor: 'pointer',
@@ -255,19 +289,19 @@ export const ForPatientsSection = () => {
                                                     alignItems: 'center',
                                                     justifyContent: 'center',
                                                     gap: 0.5,
-                                                    boxShadow: '0 2px 6px rgba(0, 106, 106, 0.15)',
-                                                    transition: 'background 0.3s ease'
+                                                    boxShadow: '0 2px 8px rgba(0, 106, 106, 0.2)',
+                                                    transition: 'all 0.3s ease'
                                                 }}
                                             >
                                                 {refillSent ? (
                                                     <>
-                                                        <Check size={10} strokeWidth={3} />
+                                                        <Check size={11} strokeWidth={3} />
                                                         <span>Refill Requested ✓</span>
                                                     </>
                                                 ) : (
                                                     <>
-                                                        <span>Quick Refill Request</span>
-                                                        <ArrowRight size={10} />
+                                                        <span>Request Quick Refill</span>
+                                                        <ArrowRight size={11} />
                                                     </>
                                                 )}
                                             </Box>
@@ -280,7 +314,7 @@ export const ForPatientsSection = () => {
                         {/* HIPAA Footer */}
                         <Box
                             sx={{
-                                borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,106,106,0.08)'}`,
+                                borderTop: `1px solid ${isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0, 106, 106, 0.08)'}`,
                                 py: 1.2,
                                 display: 'flex',
                                 alignItems: 'center',
@@ -331,7 +365,7 @@ export const ForPatientsSection = () => {
                         variant="h2"
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
-                            fontSize: { xs: '26px', sm: '34px', md: '42px' },
+                            fontSize: { xs: '24px', sm: '34px', md: '42px' },
                             fontWeight: 700,
                             lineHeight: 1.2,
                             color: isDark ? '#E0F2F1' : '#111717',

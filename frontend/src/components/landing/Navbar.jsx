@@ -57,7 +57,7 @@ export const Navbar = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'space-between',
-                px: { xs: 3, md: 6 },
+                px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: scrolled 
                     ? (isDark ? 'rgba(22, 29, 29, 0.95)' : 'rgba(255, 255, 255, 0.95)')
                     : 'transparent',
@@ -179,7 +179,7 @@ export const Navbar = () => {
                             backgroundColor: isDark ? '#161D1D' : '#FFFFFF',
                             borderBottom: `1px solid ${isDark ? 'rgba(255,255,255,0.08)' : 'rgba(0,106,106,0.08)'}`,
                             boxShadow: '0 10px 15px -3px rgba(0,0,0,0.1)',
-                            px: 3,
+                            px: { xs: 2.5, sm: 4 },
                             py: 3,
                             display: 'flex',
                             flexDirection: 'column',

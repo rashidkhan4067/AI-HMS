@@ -60,7 +60,7 @@ const EMRWidget = ({ isDark }) => {
 
             {/* Vitals monitoring panel */}
             <Grid container spacing={1.5}>
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <Box sx={{
                         p: 1.5,
                         borderRadius: '12px',
@@ -103,7 +103,7 @@ const EMRWidget = ({ isDark }) => {
                         </Box>
                     </Box>
                 </Grid>
-                <Grid item xs={6}>
+                <Grid item xs={12} sm={6}>
                     <Box sx={{
                         p: 1.5,
                         borderRadius: '12px',
@@ -426,8 +426,9 @@ export const FeaturesSection = () => {
         <Box
             id="features"
             sx={{
-                py: { xs: 10, md: 16 },
-                px: { xs: 3, md: 6 },
+                scrollMarginTop: '80px',
+                py: { xs: 6, sm: 10, md: 16 },
+                px: { xs: 2.5, sm: 4, md: 6 },
                 backgroundColor: isDark ? '#0F1515' : '#FAFDFD',
                 position: 'relative',
                 overflow: 'hidden',
@@ -471,7 +472,7 @@ export const FeaturesSection = () => {
                     whileInView={{ opacity: 1, y: 0 }}
                     viewport={{ once: true, margin: '-80px' }}
                     transition={{ duration: 0.6 }}
-                    sx={{ textAlign: 'center', mb: { xs: 6, md: 10 } }}
+                    sx={{ textAlign: 'center', mb: { xs: 4, md: 10 } }}
                 >
                     <Typography
                         sx={{
@@ -496,7 +497,7 @@ export const FeaturesSection = () => {
                         sx={{
                             fontFamily: "'Outfit', sans-serif",
                             fontWeight: 700,
-                            fontSize: { xs: '30px', sm: '38px', md: '44px' },
+                            fontSize: { xs: '24px', sm: '34px', md: '44px' },
                             color: isDark ? '#E0F2F1' : '#1A2E2E',
                             mb: 2,
                             lineHeight: 1.2,
@@ -528,7 +529,7 @@ export const FeaturesSection = () => {
                                     key={idx}
                                     onClick={() => setActiveTab(isOpen ? -1 : idx)}
                                     sx={{
-                                        p: 3,
+                                        p: { xs: 2.2, sm: 3 },
                                         borderRadius: '16px',
                                         backgroundColor: isOpen 
                                             ? (isDark ? 'rgba(22, 29, 29, 0.7)' : '#FFFFFF') 
@@ -582,7 +583,7 @@ export const FeaturesSection = () => {
                                             </Typography>
                                             {/* Nested Simulated Widget preview */}
                                             <Box sx={{
-                                                p: 2.5,
+                                                p: { xs: 1.8, sm: 2.5 },
                                                 borderRadius: '14px',
                                                 backgroundColor: isDark ? 'rgba(0, 0, 0, 0.2)' : 'rgba(0, 106, 106, 0.02)',
                                                 border: `1px solid ${isDark ? 'rgba(255,255,255,0.04)' : 'rgba(0, 106, 106, 0.05)'}`,
