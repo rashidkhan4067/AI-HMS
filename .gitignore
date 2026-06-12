@@ -227,3 +227,7 @@ __pycache__/
 
 # Allow frontend source lib folder
 !frontend/src/lib/
+
+# Media uploads
+doctor_applications/
+backend/doctor_applications/

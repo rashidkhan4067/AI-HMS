@@ -2,6 +2,7 @@ import { Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Button } from '@mui/material';
 import { ArrowRight } from 'lucide-react';
 import { motion } from 'framer-motion';
+import { ScrollReveal } from '../../shared/components/ui';
 
 export const CtaSection = () => {
     return (
@@ -22,6 +23,9 @@ export const CtaSection = () => {
             }}
         >
             <Box
+                component={ScrollReveal}
+                direction="up"
+                scale
                 sx={{
                     width: '100%',
                     maxWidth: 800,

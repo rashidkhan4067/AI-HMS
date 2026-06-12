@@ -3,6 +3,7 @@ import { Box, Typography } from '@mui/material';
 import { Star } from 'lucide-react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '../../app/theme/ThemeModeContext';
+import { ScrollReveal } from '../../shared/components/ui';
 
 export const TestimonialsSection = () => {
     const { mode } = useThemeMode();
@@ -46,7 +47,11 @@ export const TestimonialsSection = () => {
         >
             <Box sx={{ width: '100%', maxWidth: 1280 }}>
                 {/* Section Header */}
-                <Box sx={{ textAlign: 'center', mb: { xs: 4, md: 8 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
+                <Box 
+                    component={ScrollReveal}
+                    direction="up"
+                    sx={{ textAlign: 'center', mb: { xs: 4, md: 8 }, display: 'flex', flexDirection: 'column', alignItems: 'center' }}
+                >
                     <Typography
                         variant="h2"
                         sx={{
@@ -81,6 +86,8 @@ export const TestimonialsSection = () => {
 
                 {/* Grid (Desktop only) */}
                 <Box
+                    component={ScrollReveal}
+                    stagger
                     sx={{
                         display: { xs: 'none', md: 'grid' },
                         gridTemplateColumns: '1fr 1fr 1fr',
@@ -90,6 +97,9 @@ export const TestimonialsSection = () => {
                     {testimonials.map((test, idx) => (
                         <Box
                             key={idx}
+                            component={ScrollReveal}
+                            staggerChild
+                            direction="up"
                             sx={{
                                 backgroundColor: isDark ? '#161D1D' : '#FFFFFF',
                                 borderRadius: '20px',
@@ -179,6 +189,9 @@ export const TestimonialsSection = () => {
 
                 {/* Swiper / Carousel Pager (Mobile/Tablet only) */}
                 <Box 
+                    component={ScrollReveal}
+                    direction="up"
+                    delay={0.15}
                     sx={{ 
                         display: { xs: 'flex', md: 'none' }, 
                         flexDirection: 'column', 

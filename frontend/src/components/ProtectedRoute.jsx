@@ -8,7 +8,18 @@ export const ProtectedRoute = ({ allowedRoles }) => {
     const location = useLocation();
 
     if (isLoading) {
-        return <GlobalLoader message="Authenticating session..." />;
+        let loaderMessage = "Authenticating secure session...";
+        const path = location.pathname;
+        if (path.startsWith('/admin')) {
+            loaderMessage = "Verifying Administrative Console Session...";
+        } else if (path.startsWith('/doctor')) {
+            loaderMessage = "Verifying Doctor Console Session...";
+        } else if (path.startsWith('/nurse')) {
+            loaderMessage = "Verifying Nurse Console Session...";
+        } else if (path.startsWith('/patient')) {
+            loaderMessage = "Accessing Patient Portal Session...";
+        }
+        return <GlobalLoader message={loaderMessage} />;
     }
 
     if (!isAuthenticated) {

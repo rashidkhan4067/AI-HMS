@@ -90,6 +90,7 @@ export const AuthProvider = ({ children }) => {
         } catch (err) {
             console.error("Logout request failed:", err);
         } finally {
+            localStorage.removeItem('alshifaa_admin_cache');
             accessTokenRef.current = null;
             setAccessToken(null);
             setUser(null);

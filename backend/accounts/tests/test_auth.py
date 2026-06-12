@@ -49,7 +49,7 @@ class AuthenticationAPITests(APITestCase):
         response = self.client.post(self.login_url, login_data)
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('access', response.data)
-        self.assertIn('refresh', response.data)
+        self.assertIn('refresh_token', response.cookies)
         self.assertEqual(response.data['role'], 'DOCTOR')
 
     def test_login_inactive_user_fails(self):
@@ -105,8 +105,16 @@ class AuthenticationAPITests(APITestCase):
     def test_logout_blacklists_token(self):
         login_data = {'email': 'existing@test.com', 'password': 'password123'}
         login_response = self.client.post(self.login_url, login_data)
-        refresh_token = login_response.data['refresh']
+        self.assertIn('refresh_token', login_response.cookies)
+        refresh_token = login_response.cookies['refresh_token'].value
 
-        self.client.force_authenticate(user=self.user)
-        logout_response = self.client.post(self.logout_url, {'refresh': refresh_token})
+        self.client.cookies['refresh_token'] = refresh_token
+        logout_response = self.client.post(self.logout_url)
         self.assertEqual(logout_response.status_code, status.HTTP_200_OK)
+        
+        # Verify the token is blacklisted
+        from rest_framework_simplejwt.token_blacklist.models import BlacklistedToken
+        import jwt
+        decoded = jwt.decode(refresh_token, options={"verify_signature": False})
+        jti = decoded['jti']
+        self.assertTrue(BlacklistedToken.objects.filter(token__jti=jti).exists())

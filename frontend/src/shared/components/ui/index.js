@@ -5,3 +5,5 @@ export { PageHeader }   from './PageHeader';
 export { RoleChip }     from './RoleChip';
 export { BrandLogo }     from './BrandLogo';
 export { GlobalLoader }  from './GlobalLoader';
+export { ScrollReveal }  from './ScrollReveal';
+

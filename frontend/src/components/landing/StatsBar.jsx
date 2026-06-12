@@ -2,12 +2,17 @@ import React, { useEffect, useState } from 'react';
 import { Box, Typography } from '@mui/material';
 import { useInView } from 'react-intersection-observer';
 import { animate } from 'framer-motion';
+import { ScrollReveal } from '../../shared/components/ui';
 
 const StatCounter = ({ value, inView }) => {
     const [displayVal, setDisplayVal] = useState('0');
 
     useEffect(() => {
-        if (!inView) return;
+        if (!inView) {
+            // Reset count if it goes out of view, so it animates again next time
+            setDisplayVal('0');
+            return;
+        }
 
         const match = value.match(/^([\d,.]+)(.*)$/);
         if (!match) {
@@ -48,7 +53,7 @@ const StatCounter = ({ value, inView }) => {
 
 export const StatsBar = () => {
     const { ref, inView } = useInView({
-        triggerOnce: true,
+        triggerOnce: false, // Set to false to support scrolling up and down
         threshold: 0.2,
     });
 
@@ -72,6 +77,8 @@ export const StatsBar = () => {
             }}
         >
             <Box
+                component={ScrollReveal}
+                stagger
                 sx={{
                     maxWidth: 1280,
                     mx: 'auto',
@@ -96,7 +103,12 @@ export const StatsBar = () => {
                                 }}
                             />
                         )}
-                        <Box sx={{ flex: 1, minWidth: 0 }}>
+                        <Box 
+                            component={ScrollReveal}
+                            staggerChild
+                            direction="up"
+                            sx={{ flex: 1, minWidth: 0 }}
+                        >
                             <Typography
                                 sx={{
                                     fontFamily: "'Outfit', sans-serif",
@@ -130,3 +142,4 @@ export const StatsBar = () => {
         </Box>
     );
 };
+

@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Box, Typography, Grid, useTheme, useMediaQuery } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
 import { useThemeMode } from '../../app/theme/ThemeModeContext';
+import { ScrollReveal } from '../../shared/components/ui';
 import { 
     Check, 
     ClipboardList, 
@@ -304,11 +305,8 @@ export const HowItWorksSection = () => {
             <Box sx={{ width: '100%', maxWidth: 1000, position: 'relative', zIndex: 1 }}>
                 {/* Section Header */}
                 <Box
-                    component={motion.div}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.6 }}
+                    component={ScrollReveal}
+                    direction="up"
                     sx={{ textAlign: 'center', mb: { xs: 4, md: 8 } }}
                 >
                     <Typography
@@ -362,25 +360,32 @@ export const HowItWorksSection = () => {
                 </Box>
 
                 {/* Stepper Pills navigation bar */}
-                <Box sx={{
-                    display: 'flex',
-                    justifyContent: { xs: 'flex-start', md: 'center' },
-                    alignItems: 'center',
-                    gap: 1.5,
-                    mb: { xs: 3.5, md: 7 },
-                    mx: { xs: -2.5, sm: 0 },
-                    px: { xs: 2.5, sm: 0 },
-                    overflowX: { xs: 'auto', md: 'visible' },
-                    pb: { xs: 1.5, md: 0 },
-                    width: { xs: 'calc(100% + 40px)', sm: '100%' },
-                    '&::-webkit-scrollbar': { display: 'none' }, // hide visual scroll bars
-                    scrollbarWidth: 'none',
-                }}>
+                <Box 
+                    component={ScrollReveal}
+                    stagger
+                    sx={{
+                        display: 'flex',
+                        justifyContent: { xs: 'flex-start', md: 'center' },
+                        alignItems: 'center',
+                        gap: 1.5,
+                        mb: { xs: 3.5, md: 7 },
+                        mx: { xs: -2.5, sm: 0 },
+                        px: { xs: 2.5, sm: 0 },
+                        overflowX: { xs: 'auto', md: 'visible' },
+                        pb: { xs: 1.5, md: 0 },
+                        width: { xs: 'calc(100% + 40px)', sm: '100%' },
+                        '&::-webkit-scrollbar': { display: 'none' }, // hide visual scroll bars
+                        scrollbarWidth: 'none',
+                    }}
+                >
                     {steps.map((step, idx) => {
                         const isActive = activeStep === idx;
                         return (
                             <Box
                                 key={idx}
+                                component={ScrollReveal}
+                                staggerChild
+                                direction="up"
                                 onClick={() => setActiveStep(idx)}
                                 sx={{
                                     display: 'inline-flex',
@@ -438,16 +443,21 @@ export const HowItWorksSection = () => {
                 </Box>
 
                 {/* Step Content Showcase Grid */}
-                <Box sx={{
-                    borderRadius: '20px',
-                    border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0, 106, 106, 0.08)'}`,
-                    backgroundColor: isDark ? 'rgba(22, 29, 29, 0.4)' : '#FFFFFF',
-                    boxShadow: isDark 
-                        ? '0 20px 50px rgba(0, 0, 0, 0.35)'
-                        : '0 20px 50px rgba(0, 106, 106, 0.03)',
-                    backdropFilter: 'blur(10px)',
-                    p: { xs: 2, sm: 3.5, md: 5 },
-                }}>
+                <Box 
+                    component={ScrollReveal}
+                    direction="up"
+                    delay={0.15}
+                    sx={{
+                        borderRadius: '20px',
+                        border: `1px solid ${isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0, 106, 106, 0.08)'}`,
+                        backgroundColor: isDark ? 'rgba(22, 29, 29, 0.4)' : '#FFFFFF',
+                        boxShadow: isDark 
+                            ? '0 20px 50px rgba(0, 0, 0, 0.35)'
+                            : '0 20px 50px rgba(0, 106, 106, 0.03)',
+                        backdropFilter: 'blur(10px)',
+                        p: { xs: 2, sm: 3.5, md: 5 },
+                    }}
+                >
                     <AnimatePresence mode="wait">
                         <motion.div
                             key={activeStep}

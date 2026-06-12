@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Button, Avatar } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ScrollReveal } from '../../shared/components/ui';
 import { 
     ArrowRight, 
     Heart, 
@@ -41,6 +42,8 @@ export const ForPatientsSection = () => {
             }}
         >
             <Box
+                component={ScrollReveal}
+                stagger
                 sx={{
                     width: '100%',
                     maxWidth: 1280,
@@ -52,6 +55,9 @@ export const ForPatientsSection = () => {
             >
                 {/* Left Side: Phone Mockup */}
                 <Box
+                    component={ScrollReveal}
+                    staggerChild
+                    direction="left"
                     sx={{
                         display: 'flex',
                         justifyContent: 'center',
@@ -332,7 +338,12 @@ export const ForPatientsSection = () => {
                 </Box>
 
                 {/* Right Side: Text Content */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', order: { xs: 1, lg: 2 } }}>
+                <Box 
+                    component={ScrollReveal}
+                    staggerChild
+                    direction="right"
+                    sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%', order: { xs: 1, lg: 2 } }}
+                >
                     <Box 
                         sx={{ 
                             display: 'inline-flex', 

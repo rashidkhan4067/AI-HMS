@@ -1,7 +1,8 @@
 from rest_framework import serializers
 from django.contrib.auth import get_user_model
 from rest_framework_simplejwt.serializers import TokenObtainPairSerializer
-from .models import PasswordResetOTP, Department, DoctorApplication, StaffInvite
+from .models import PasswordResetOTP, Department, DoctorApplication, StaffInvite, LoginAuditLog
+from django.utils import timezone
 
 User = get_user_model()
 
@@ -12,9 +13,9 @@ class DoctorApplicationSerializer(serializers.ModelSerializer):
         fields = (
             'id', 'full_name', 'email', 'phone', 'dob', 'gender', 'city',
             'specialization', 'pmdc_number', 'experience_years', 'current_hospital',
-            'pmdc_certificate', 'cnic_document', 'status', 'created_at'
+            'pmdc_certificate', 'cnic_document', 'status', 'rejection_reason', 'created_at'
         )
-        read_only_fields = ('id', 'status', 'created_at')
+        read_only_fields = ('id', 'status', 'rejection_reason', 'created_at')
 
     def validate_pmdc_certificate(self, value):
         if value.size > 5 * 1024 * 1024:
@@ -46,9 +47,9 @@ class UserSerializer(serializers.ModelSerializer):
         model = User
         fields = (
             'id', 'email', 'full_name', 'role', 'department', 'department_name',
-            'employee_id', 'phone', 'must_complete_profile', 'created_at',
+            'employee_id', 'phone', 'is_active', 'must_complete_profile', 'created_at',
         )
-        read_only_fields = ('id', 'created_at', 'must_complete_profile')
+        read_only_fields = ('id', 'is_active', 'created_at', 'must_complete_profile')
 
     def get_department_name(self, obj):
         return obj.department.name if obj.department else None
@@ -377,4 +378,43 @@ class RegisterPatientSerializer(serializers.ModelSerializer):
         except Exception:
             pass
         return user
+
+
+class StaffInviteSerializer(serializers.ModelSerializer):
+    department_name = serializers.SerializerMethodField(read_only=True)
+    is_expired = serializers.SerializerMethodField(read_only=True)
+
+    class Meta:
+        model = StaffInvite
+        fields = (
+            'id', 'email', 'role', 'department', 'department_name',
+            'is_used', 'created_at', 'expires_at', 'is_expired'
+        )
+        read_only_fields = ('id', 'is_used', 'created_at', 'expires_at', 'is_expired')
+
+    def get_department_name(self, obj):
+        return obj.department.name if obj.department else None
+
+    def get_is_expired(self, obj):
+        return timezone.now() > obj.expires_at
+
+    def validate_email(self, value):
+        val = value.lower().strip()
+        # Check if active user already exists with this email
+        if User.objects.filter(email=val, is_active=True).exists():
+            raise serializers.ValidationError("An active user with this email address already exists.")
+        # Check if an active invitation already exists with this email
+        if StaffInvite.objects.filter(email=val, is_used=False, expires_at__gt=timezone.now()).exists():
+            raise serializers.ValidationError("An active pending invitation for this email already exists.")
+        return val
+
+
+class LoginAuditLogSerializer(serializers.ModelSerializer):
+    class Meta:
+        model = LoginAuditLog
+        fields = (
+            'id', 'email_attempted', 'ip_address', 'login_method',
+            'success', 'failure_reason', 'timestamp'
+        )
+        read_only_fields = ('id', 'email_attempted', 'ip_address', 'login_method', 'success', 'failure_reason', 'timestamp')
 

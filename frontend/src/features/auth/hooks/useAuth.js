@@ -114,9 +114,11 @@ export const useAuth = () => {
         }
     };
 
-    const logout = () => {
+    const logout = (redirectPath = '/login') => {
         contextLogout();
-        navigate('/login');
+        if (redirectPath) {
+            navigate(redirectPath);
+        }
     };
 
     return {

@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Box, Typography, Grid, useTheme, useMediaQuery, Collapse } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ScrollReveal } from '../../shared/components/ui';
 import { 
     FileText, 
     Calendar, 
@@ -467,11 +468,8 @@ export const FeaturesSection = () => {
             <Box sx={{ width: '100%', maxWidth: 1200, position: 'relative', zIndex: 1 }}>
                 {/* Header text */}
                 <Box
-                    component={motion.div}
-                    initial={{ opacity: 0, y: 20 }}
-                    whileInView={{ opacity: 1, y: 0 }}
-                    viewport={{ once: true, margin: '-80px' }}
-                    transition={{ duration: 0.6 }}
+                    component={ScrollReveal}
+                    direction="up"
                     sx={{ textAlign: 'center', mb: { xs: 4, md: 10 } }}
                 >
                     <Typography
@@ -521,12 +519,19 @@ export const FeaturesSection = () => {
 
                 {isMobile ? (
                     // --- Mobile Layout: Interactive Accordion Stack ---
-                    <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                    <Box 
+                        component={ScrollReveal}
+                        stagger
+                        sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}
+                    >
                         {features.map((feature, idx) => {
                             const isOpen = activeTab === idx;
                             return (
                                 <Box
                                     key={idx}
+                                    component={ScrollReveal}
+                                    staggerChild
+                                    direction="up"
                                     onClick={() => setActiveTab(isOpen ? -1 : idx)}
                                     sx={{
                                         p: { xs: 2.2, sm: 3 },
@@ -598,9 +603,23 @@ export const FeaturesSection = () => {
                     </Box>
                 ) : (
                     // --- Desktop Layout: Tab split view with side panel mockup ---
-                    <Grid container spacing={5} alignItems="stretch">
+                    <Grid 
+                        container 
+                        component={ScrollReveal}
+                        stagger
+                        spacing={5} 
+                        alignItems="stretch"
+                    >
                         {/* Left Column: Interactive tabs stack */}
-                        <Grid item xs={12} md={5} sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+                        <Grid 
+                            item 
+                            xs={12} 
+                            md={5} 
+                            component={ScrollReveal}
+                            staggerChild
+                            direction="left"
+                            sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}
+                        >
                             {features.map((feature, idx) => {
                                 const isActive = activeTab === idx;
                                 return (
@@ -671,7 +690,15 @@ export const FeaturesSection = () => {
                         </Grid>
 
                         {/* Right Column: Premium Dashboard Preview Mockup */}
-                        <Grid item xs={12} md={7} sx={{ display: 'flex' }}>
+                        <Grid 
+                            item 
+                            xs={12} 
+                            md={7} 
+                            component={ScrollReveal}
+                            staggerChild
+                            direction="right"
+                            sx={{ display: 'flex' }}
+                        >
                             <Box sx={{
                                 width: '100%',
                                 display: 'flex',

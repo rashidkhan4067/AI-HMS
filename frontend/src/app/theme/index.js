@@ -23,12 +23,12 @@ export const getThemeConfig = (mode) => {
         typography: {
             ...typography,
             fontFamily: "'DM Sans', system-ui, -apple-system, sans-serif",
-            h1: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600, letterSpacing: '-0.5px' },
-            h2: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
-            h3: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
-            h4: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
-            h5: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
-            h6: { fontFamily: "'DM Sans', sans-serif", fontWeight: 600 },
+            h1: { fontFamily: "'Outfit', sans-serif", fontWeight: 700, letterSpacing: '-0.5px' },
+            h2: { fontFamily: "'Outfit', sans-serif", fontWeight: 700 },
+            h3: { fontFamily: "'Outfit', sans-serif", fontWeight: 700 },
+            h4: { fontFamily: "'Outfit', sans-serif", fontWeight: 700 },
+            h5: { fontFamily: "'Outfit', sans-serif", fontWeight: 600 },
+            h6: { fontFamily: "'Outfit', sans-serif", fontWeight: 600 },
             body1: { fontFamily: "'DM Sans', sans-serif" },
             body2: { fontFamily: "'DM Sans', sans-serif" },
             caption: { fontFamily: "'DM Sans', sans-serif" },
@@ -144,18 +144,19 @@ export const getThemeConfig = (mode) => {
                 },
             },
 
-            /* ── Card — MD3 tonal surface ── */
+            /* ── Card — Google & MD3 style elevation ── */
             MuiCard: {
                 styleOverrides: {
                     root: {
                         borderRadius: 16,           // MD3 shape.lg
-                        boxShadow: 'none',
-                        border: isDark
-                            ? '1px solid rgba(156,241,240,0.08)'
-                            : '1px solid rgba(0,106,106,0.08)',
+                        boxShadow: isDark 
+                            ? '0 1px 3px rgba(0,0,0,0.35), 0 4px 12px rgba(0,0,0,0.5)' 
+                            : '0 1px 2px 0 rgba(60,64,67,0.3), 0 1px 3px 1px rgba(60,64,67,0.15)',
+                        border: 'none',
                         backgroundColor: isDark
-                            ? 'rgba(24, 31, 31, 0.9)'
-                            : 'rgba(255, 255, 255, 0.95)',
+                            ? 'rgba(24, 31, 31, 0.95)'
+                            : '#FFFFFF',
+                        backgroundImage: 'none',
                         backdropFilter: 'blur(20px)',
                     },
                 },

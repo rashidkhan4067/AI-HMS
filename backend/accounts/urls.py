@@ -1,4 +1,5 @@
-from django.urls import path
+from django.urls import path, include
+from rest_framework.routers import DefaultRouter
 from .views import (
     RegisterView,
     CustomTokenObtainPairView,
@@ -18,6 +19,19 @@ from .views import (
     RegisterInvitedView,
     RegisterPatientView,
 )
+from .admin_views import (
+    AdminOverviewView,
+    AdminInviteViewSet,
+    AdminDoctorApplicationViewSet,
+    AdminUserViewSet,
+    AdminAuditLogListView,
+    AdminDashboardDataView,
+)
+
+router = DefaultRouter()
+router.register(r'admin/invites', AdminInviteViewSet, basename='admin_invite')
+router.register(r'admin/applications', AdminDoctorApplicationViewSet, basename='admin_application')
+router.register(r'admin/users', AdminUserViewSet, basename='admin_user')
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -38,4 +52,10 @@ urlpatterns = [
     path('check-email/', CheckEmailView.as_view(), name='check_email'),
     path('validate-invite/', ValidateInviteView.as_view(), name='validate_invite'),
     path('apply-doctor/', ApplyDoctorView.as_view(), name='apply_doctor'),
+    
+    # Admin Specific Views
+    path('admin/dashboard-data/', AdminDashboardDataView.as_view(), name='admin_dashboard_data'),
+    path('admin/overview/', AdminOverviewView.as_view(), name='admin_overview'),
+    path('admin/audits/', AdminAuditLogListView.as_view(), name='admin_audits'),
+    path('', include(router.urls)),
 ]

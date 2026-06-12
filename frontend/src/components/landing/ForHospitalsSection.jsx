@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link as RouterLink } from 'react-router-dom';
 import { Box, Typography, Button, Avatar } from '@mui/material';
 import { motion, AnimatePresence } from 'framer-motion';
+import { ScrollReveal } from '../../shared/components/ui';
 import { 
     ShieldCheck, 
     Clock, 
@@ -89,6 +90,8 @@ export const ForHospitalsSection = () => {
             }}
         >
             <Box
+                component={ScrollReveal}
+                stagger
                 sx={{
                     width: '100%',
                     maxWidth: 1280,
@@ -99,7 +102,12 @@ export const ForHospitalsSection = () => {
                 }}
             >
                 {/* Left Side: Context Info */}
-                <Box sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}>
+                <Box 
+                    component={ScrollReveal}
+                    staggerChild
+                    direction="left"
+                    sx={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', width: '100%' }}
+                >
                     <Box 
                         sx={{ 
                             display: 'inline-flex', 
@@ -225,6 +233,9 @@ export const ForHospitalsSection = () => {
 
                 {/* Right Side: Command Station Interactive Mockup */}
                 <Box
+                    component={ScrollReveal}
+                    staggerChild
+                    direction="right"
                     sx={{
                         position: 'relative',
                         width: '100%',

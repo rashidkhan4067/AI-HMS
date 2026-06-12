@@ -9,10 +9,12 @@ export const GuestRoute = ({ children }) => {
 
     if (isLoading) {
         console.log("GuestRoute: still loading, rendering GlobalLoader");
-        return <GlobalLoader message="Verifying session..." />;
+        return <GlobalLoader message="Verifying secure credentials..." />;
     }
 
-    if (isAuthenticated) {
+    const inviteToken = new URLSearchParams(window.location.search).get('invite');
+    
+    if (isAuthenticated && !inviteToken) {
         if (user?.must_complete_profile) {
             console.log("GuestRoute: redirecting to complete-profile");
             return <Navigate to="/auth/complete-profile" replace />;
