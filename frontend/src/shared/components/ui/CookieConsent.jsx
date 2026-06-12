@@ -18,16 +18,25 @@ export const CookieConsent = () => {
     useEffect(() => {
         const consent = localStorage.getItem('cookie_consent');
         const allowedPaths = ['/', '/login', '/auth/login'];
+        let active = true;
         
         if (!consent && allowedPaths.includes(location.pathname)) {
             // Show after a brief delay for a premium entrance effect
             const timer = setTimeout(() => {
-                setIsVisible(true);
+                if (active) setIsVisible(true);
             }, 1500);
-            return () => clearTimeout(timer);
+            return () => {
+                active = false;
+                clearTimeout(timer);
+            };
         } else {
-            setIsVisible(false);
+            Promise.resolve().then(() => {
+                if (active) setIsVisible(false);
+            });
         }
+        return () => {
+            active = false;
+        };
     }, [location.pathname]);
 
     const handleAcceptAll = () => {

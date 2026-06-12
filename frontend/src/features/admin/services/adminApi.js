@@ -76,4 +76,14 @@ export const adminApi = {
         const response = await axiosInstance.get('auth/admin/audits/');
         return response.data;
     },
+
+    unlockUser: async (id) => {
+        const response = await axiosInstance.post(`auth/admin/users/${id}/unlock/`);
+        return response.data;
+    },
+
+    getSystemHealth: async () => {
+        const response = await axiosInstance.get('auth/admin/health-check/');
+        return response.data;
+    },
 };

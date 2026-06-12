@@ -1,6 +1,7 @@
-import React from 'react';
-import { Dialog, DialogTitle, DialogContent, DialogActions, Box, Grid, Typography, Chip, Button, Divider, Avatar } from '@mui/material';
+import { useState } from 'react';
+import { Dialog, DialogContent, DialogActions, Box, Grid, Typography, Chip, Button, Divider, Avatar, Alert } from '@mui/material';
 import { api as axiosInstance } from '../../../lib/api';
+import { adminApi } from '../services/adminApi';
 
 const getMediaUrl = (path) => {
     if (!path) return '#';
@@ -39,9 +40,30 @@ export const UserDetailsDialog = ({
     applications = [], 
     invites = [], 
     onOpenDelete, 
-    onOpenEdit 
+    onOpenEdit,
+    onUserUpdate
 }) => {
+    const [unlocking, setUnlocking] = useState(false);
+    const [unlockError, setUnlockError] = useState(null);
+
     if (!selectedUser) return null;
+
+    const isLocked = selectedUser.locked_until && new Date(selectedUser.locked_until) > new Date();
+
+    const handleUnlock = async () => {
+        setUnlocking(true);
+        setUnlockError(null);
+        try {
+            await adminApi.unlockUser(selectedUser.id);
+            if (onUserUpdate) {
+                await onUserUpdate({ locked_until: null, failed_attempts: 0 });
+            }
+        } catch (err) {
+            setUnlockError(err.response?.data?.detail || 'Failed to unlock user.');
+        } finally {
+            setUnlocking(false);
+        }
+    };
 
     // Look up matching doctor application
     const doctorApp = selectedUser.role === 'DOCTOR' 
@@ -93,6 +115,16 @@ export const UserDetailsDialog = ({
             </Box>
             
             <DialogContent sx={{ display: 'flex', flexDirection: 'column', gap: 3, p: 0, overflowY: 'auto', maxHeight: '60vh' }}>
+                {isLocked && (
+                    <Alert severity="warning" sx={{ borderRadius: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+                        This user account is currently locked out until {new Date(selectedUser.locked_until).toLocaleString()} due to failed login attempts.
+                    </Alert>
+                )}
+                {unlockError && (
+                    <Alert severity="error" sx={{ borderRadius: '12px', fontFamily: "'DM Sans', sans-serif" }}>
+                        {unlockError}
+                    </Alert>
+                )}
                 {/* Account ID / UUID */}
                 <Box>
                     <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', mb: 0.75, textTransform: 'uppercase', letterSpacing: '0.5px', fontWeight: 600, fontSize: '10px' }}>
@@ -245,6 +277,15 @@ export const UserDetailsDialog = ({
                         sx={{ borderRadius: '100px', textTransform: 'none', fontWeight: 600, px: 3, py: 1.1, fontSize: '14px' }}
                     >
                         Delete Account
+                    </Button>
+                    <Button 
+                        onClick={handleUnlock}
+                        variant="outlined" 
+                        color="warning" 
+                        disabled={!isLocked || unlocking}
+                        sx={{ borderRadius: '100px', textTransform: 'none', fontWeight: 600, px: 3, py: 1.1, fontSize: '14px' }}
+                    >
+                        {unlocking ? 'Unlocking...' : 'Unlock Account'}
                     </Button>
                     <Button 
                         onClick={() => onOpenEdit(selectedUser)} 

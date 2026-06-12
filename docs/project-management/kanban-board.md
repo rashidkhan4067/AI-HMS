@@ -2,30 +2,25 @@
 
 ---
 **Metadata**
-- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Document Version:** 1.1 (Milestone 2 Completed)
 - **Status:** ACTIVE
-- **Last Updated:** June 6, 2026
+- **Last Updated:** June 12, 2026
 ---
 
 ## 📝 Backlog (Future Milestones)
-- Create Patient Django model and auto-generated MRN field (Milestone 3)
-- Create Doctor Django model with specialty and availability fields (Milestone 3)
-- Create Patient and Doctor list/detail serializers and viewsets (Milestone 3)
-- Build frontend Patient and Doctor directory listing tables (Milestone 3)
-- Build Appointment booking logic (Milestone 4)
-- Implement Medical Records and Prescriptions (Milestone 5)
-- AI patient history summarization (Milestone 6)
-- Complete Admin dashboard backend integrations & security actions (Milestone 7)
+- Build Appointment booking logic (Milestone 3 scheduling)
+- Implement Medical Records and Prescriptions (Milestone 4 EHR)
+- AI patient history summarization (Milestone 5 AI)
+- Complete Admin dashboard backend integrations & security actions (Milestone 6)
 
 ---
 
-## 📋 To Do (Milestone 2)
-- Create `AdminLayout.jsx` with a collapsible sidebar and dynamic breadcrumb header.
-- Implement notifications dropdown panel and user avatar menu in Admin header.
-- Add `adminNavigation` configuration mapping in `navigation.jsx`.
-- Mount admin layout and tab sub-routes in `routes.jsx`.
-- Implement `AdminDashboardOverview.jsx` stub page with KPI layout grid mockups.
-- Create stub pages and tables for `AdminInvitations`, `AdminApplications`, `AdminUsers`, and `AdminAudits`.
+## 📋 To Do (Milestone 3: Scheduling & Directories)
+- Create Patient Django model and auto-generated MRN field.
+- Create Doctor Django model with specialty and availability fields.
+- Create Patient and Doctor list/detail serializers and viewsets.
+- Build frontend Patient and Doctor directory listing tables.
+- Build interactive appointment booking and doctor slot availability calendars.
 
 ---
 
@@ -40,6 +35,15 @@
 ---
 
 ## ✅ Done
+- Create `AdminLayout.jsx` with a collapsible sidebar and dynamic breadcrumb header.
+- Implement notifications dropdown panel and user avatar menu in Admin header.
+- Add `adminNavigation` configuration mapping in `navigation.jsx`.
+- Mount admin layout and tab sub-routes in `routes.jsx`.
+- Implement `AdminDashboardOverview.jsx` stub page with KPI layout grid mockups.
+- Create stubs and listing feeds for `AdminInvitations`, `AdminApplications`, `AdminUsers`, and `AdminAudits`.
+- Extract and modularize admin dialog components into `src/features/admin/dialogs/` to clean up view files.
+- Redesign Profile page, Edit Profile form, and Change Password component into Google Account style.
+- Set up background asynchronous email delivery engine with auto-retry and banner redirects.
 - Scaffolded public Landing Page layout sections (`Navbar`, `HeroSection`, `StatsBar`, `FeaturesSection`, etc.).
 - Integrated slide-up `CookieConsent` analytic cookie preferences toggling banner.
 - Created `GlobalLoader` double-pulse heartbeat animation overlay.

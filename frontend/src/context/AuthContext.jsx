@@ -53,35 +53,47 @@ export const AuthProvider = ({ children }) => {
     const [success, setSuccess] = useState(false);
     const accessTokenRef = useRef(null);
 
+    const refreshPromiseRef = useRef(null);
+
     const refreshAccessToken = useCallback(async () => {
-        try {
-            const response = await api.post('v1/auth/token/refresh/');
-            const newAccessToken = response.data.access;
-            
-            accessTokenRef.current = newAccessToken;
-            setAccessToken(newAccessToken);
-
-            const decoded = jwtDecode(newAccessToken);
-            const loggedInUser = {
-                email: decoded.email,
-                role: decoded.role,
-                id: decoded.user_id,
-                full_name: decoded.full_name || '',
-                must_complete_profile: decoded.must_complete_profile ?? false,
-            };
-
-            setUser(loggedInUser);
-            setIsAuthenticated(true);
-            return newAccessToken;
-        } catch (err) {
-            accessTokenRef.current = null;
-            setAccessToken(null);
-            setUser(null);
-            setIsAuthenticated(false);
-            throw err;
-        } finally {
-            setIsLoading(false);
+        if (refreshPromiseRef.current) {
+            return refreshPromiseRef.current;
         }
+
+        const runRefresh = async () => {
+            try {
+                const response = await api.post('v1/auth/token/refresh/');
+                const newAccessToken = response.data.access;
+                
+                accessTokenRef.current = newAccessToken;
+                setAccessToken(newAccessToken);
+
+                const decoded = jwtDecode(newAccessToken);
+                const loggedInUser = {
+                    email: decoded.email,
+                    role: decoded.role,
+                    id: decoded.user_id,
+                    full_name: decoded.full_name || '',
+                    must_complete_profile: decoded.must_complete_profile ?? false,
+                };
+
+                setUser(loggedInUser);
+                setIsAuthenticated(true);
+                return newAccessToken;
+            } catch (err) {
+                accessTokenRef.current = null;
+                setAccessToken(null);
+                setUser(null);
+                setIsAuthenticated(false);
+                throw err;
+            } finally {
+                setIsLoading(false);
+                refreshPromiseRef.current = null;
+            }
+        };
+
+        refreshPromiseRef.current = runRefresh();
+        return refreshPromiseRef.current;
     }, []);
 
     const logout = useCallback(async () => {

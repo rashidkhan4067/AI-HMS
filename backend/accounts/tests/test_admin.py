@@ -184,3 +184,28 @@ class AdminAPITests(APITestCase):
 
         self.admin_user.refresh_from_db()
         self.assertTrue(self.admin_user.is_active)
+
+    def test_unlock_user(self):
+        self.client.force_authenticate(user=self.admin_user)
+        
+        # Lock user
+        self.doctor_user.failed_attempts = 5
+        self.doctor_user.locked_until = timezone.now() + timedelta(minutes=15)
+        self.doctor_user.save()
+
+        # Unlock user
+        unlock_url = reverse('admin_user-unlock-user', kwargs={'pk': self.doctor_user.id})
+        response = self.client.post(unlock_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        
+        self.doctor_user.refresh_from_db()
+        self.assertEqual(self.doctor_user.failed_attempts, 0)
+        self.assertIsNone(self.doctor_user.locked_until)
+
+    def test_system_health_check(self):
+        self.client.force_authenticate(user=self.admin_user)
+        health_url = reverse('admin_health_check')
+        response = self.client.get(health_url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.assertIn('diagnostics', response.data)
+        self.assertIn('message', response.data)

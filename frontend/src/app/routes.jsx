@@ -18,7 +18,8 @@ import { AdminApplications } from '../features/admin/pages/AdminApplications';
 import { AdminUsers } from '../features/admin/pages/AdminUsers';
 import { AdminAudits } from '../features/admin/pages/AdminAudits';
 import { ProfilePage } from '../features/auth/pages/ProfilePage';
-import { useState } from 'react';
+import { PatientDashboard } from '../features/patient/pages/PatientDashboard';
+import { DoctorDashboard } from '../features/doctor/pages/DoctorDashboard';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -38,38 +39,11 @@ const Dashboard = () => {
     const target = roleRedirectMap[user.role] || '/unauthorized';
     return <Navigate to={target} replace />;
 };
-const DoctorDashboard       = () => <Typography variant="h4">Doctor Dashboard Workspace</Typography>;
 const NurseDashboard        = () => <Typography variant="h4">Nurse Dashboard Workspace</Typography>;
 const ReceptionistDashboard = () => <Typography variant="h4">Receptionist Dashboard Workspace</Typography>;
 const PharmacistDashboard   = () => <Typography variant="h4">Pharmacist Dashboard Workspace</Typography>;
 const LabDashboard          = () => <Typography variant="h4">Lab Dashboard Workspace</Typography>;
 const RadiologyDashboard     = () => <Typography variant="h4">Radiology Dashboard Workspace</Typography>;
-
-const PatientDashboard = () => {
-    const location = useLocation();
-    const [toastMessage, setToastMessage] = useState(location.state?.successMessage || '');
-
-    return (
-        <Box sx={{ p: 4 }}>
-            <Typography variant="h4" sx={{ fontFamily: "'DM Sans', sans-serif", fontWeight: 600, color: '#006A6A', mb: 2 }}>
-                Patient Dashboard Workspace
-            </Typography>
-            <Typography variant="body1" sx={{ fontFamily: "'DM Sans', sans-serif", color: 'text.secondary' }}>
-                Welcome to your Al Shifaa health portal.
-            </Typography>
-            <Snackbar
-                open={!!toastMessage}
-                autoHideDuration={6000}
-                onClose={() => setToastMessage('')}
-                anchorOrigin={{ vertical: 'bottom', horizontal: 'right' }}
-            >
-                <Alert severity="success" onClose={() => setToastMessage('')} sx={{ width: '100%', borderRadius: '12px', fontFamily: "'DM Sans', sans-serif" }}>
-                    {toastMessage}
-                </Alert>
-            </Snackbar>
-        </Box>
-    );
-};
 
 // All valid backend roles
 const CLINICAL_ROLES = ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST', 'PATIENT'];

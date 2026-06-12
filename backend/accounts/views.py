@@ -878,11 +878,203 @@ class CustomLogoutView(APIView):
                 pass
                 
         response = Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
-        # Clear the cookie from paths
         response.delete_cookie("refresh_token", path="/api/v1/auth/")
         response.delete_cookie("refresh_token", path="/api/auth/")
         response.delete_cookie("refresh_token", path="/")
         return response
+
+
+# ── Milestone 3 ViewSets (Scheduling & Directories) ───────────────────────────
+
+from rest_framework import viewsets
+from rest_framework.exceptions import PermissionDenied
+from .models import Patient, Doctor, DoctorAvailability, Appointment
+from .serializers import PatientProfileSerializer, DoctorProfileSerializer, DoctorAvailabilitySerializer, AppointmentSerializer
+from .permissions import IsClinicalStaff, IsAdminUser, IsDoctorUser
+
+class PatientViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    ReadOnlyViewSet for Patient profiles. Only accessible by clinical staff (Admins, Doctors, Receptionists, Nurses, etc.).
+    """
+    queryset = Patient.objects.all().select_related('user', 'user__department')
+    serializer_class = PatientProfileSerializer
+    permission_classes = [IsAuthenticated, IsClinicalStaff]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        mrn = self.request.query_params.get('mrn')
+        name = self.request.query_params.get('name')
+        if mrn:
+            qs = qs.filter(mrn__iexact=mrn)
+        if name:
+            qs = qs.filter(user__full_name__icontains=name)
+        return qs
+
+
+class DoctorViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewSet for Doctor profiles.
+    - List/Retrieve is available to all authenticated users (so patients can browse doctors).
+    - Create/Update/Delete is restricted to Admin.
+    """
+    queryset = Doctor.objects.all().select_related('user', 'user__department')
+    serializer_class = DoctorProfileSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_permissions(self):
+        if self.action in ['create', 'update', 'partial_update', 'destroy']:
+            return [IsAdminUser()]
+        return [IsAuthenticated()]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        specialization = self.request.query_params.get('specialization')
+        department_name = self.request.query_params.get('department')
+        if specialization:
+            qs = qs.filter(specialization__icontains=specialization)
+        if department_name:
+            qs = qs.filter(user__department__name__icontains=department_name)
+        return qs
+
+
+class DoctorAvailabilityViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewSet for Doctor published shifts/availabilities.
+    - List/Retrieve is available to all authenticated users.
+    - Create/Update/Delete is restricted to the Doctor owner themselves or Admins.
+    """
+    queryset = DoctorAvailability.objects.all().select_related('doctor', 'doctor__user')
+    serializer_class = DoctorAvailabilitySerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        qs = super().get_queryset()
+        doctor_id = self.request.query_params.get('doctor_id')
+        day_of_week = self.request.query_params.get('day_of_week')
+        if doctor_id:
+            qs = qs.filter(doctor_id=doctor_id)
+        if day_of_week is not None:
+            qs = qs.filter(day_of_week=day_of_week)
+        return qs
+
+    def perform_create(self, serializer):
+        doctor = serializer.validated_data.get('doctor')
+        if self.request.user.role == 'DOCTOR':
+            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != doctor:
+                raise PermissionDenied("You can only configure shift availabilities for your own doctor profile.")
+        elif self.request.user.role != 'ADMIN':
+            raise PermissionDenied("You do not have permission to configure doctor availability.")
+        serializer.save()
+
+    def perform_update(self, serializer):
+        av = self.get_object()
+        if self.request.user.role == 'DOCTOR':
+            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != av.doctor:
+                raise PermissionDenied("You can only modify your own shift availabilities.")
+        elif self.request.user.role != 'ADMIN':
+            raise PermissionDenied("You do not have permission to modify doctor availability.")
+        serializer.save()
+
+    def perform_destroy(self, instance):
+        if self.request.user.role == 'DOCTOR':
+            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != instance.doctor:
+                raise PermissionDenied("You can only delete your own shift availabilities.")
+        elif self.request.user.role != 'ADMIN':
+            raise PermissionDenied("You do not have permission to delete doctor availability.")
+        instance.delete()
+
+
+class AppointmentViewSet(viewsets.ModelViewSet):
+    """
+    ModelViewSet for Appointment booking slots.
+    RBAC Row-Level Security:
+    - Patients can only see/book/cancel their own appointments.
+    - Doctors can only see/edit their own appointments.
+    - Admins and Receptionists have full administrative CRUD access.
+    """
+    queryset = Appointment.objects.all().select_related('patient', 'patient__user', 'doctor', 'doctor__user')
+    serializer_class = AppointmentSerializer
+    permission_classes = [IsAuthenticated]
+
+    def get_queryset(self):
+        user = self.request.user
+        qs = super().get_queryset()
+
+        if user.role == 'PATIENT':
+            qs = qs.filter(patient__user=user)
+        elif user.role == 'DOCTOR':
+            qs = qs.filter(doctor__user=user)
+        elif user.role not in ('ADMIN', 'RECEPTIONIST'):
+            if user.role not in ('NURSE', 'LAB_TECHNICIAN', 'RADIOLOGIST'):
+                return qs.none()
+
+        doctor_id = self.request.query_params.get('doctor_id')
+        patient_id = self.request.query_params.get('patient_id')
+        date = self.request.query_params.get('date')
+        status = self.request.query_params.get('status')
+
+        if doctor_id:
+            qs = qs.filter(doctor_id=doctor_id)
+        if patient_id:
+            qs = qs.filter(patient_id=patient_id)
+        if date:
+            qs = qs.filter(date=date)
+        if status:
+            qs = qs.filter(status=status)
+
+        return qs
+
+    def perform_create(self, serializer):
+        user = self.request.user
+
+        if user.role == 'PATIENT':
+            if not hasattr(user, 'patient_profile'):
+                patient = Patient.objects.create(user=user)
+            else:
+                patient = user.patient_profile
+            serializer.save(patient=patient)
+        elif user.role in ('ADMIN', 'RECEPTIONIST'):
+            serializer.save()
+        else:
+            raise PermissionDenied("You do not have permission to book appointments.")
+
+    def perform_update(self, serializer):
+        user = self.request.user
+        appt = self.get_object()
+
+        if user.role == 'PATIENT':
+            if appt.patient.user != user:
+                raise PermissionDenied("You can only modify your own appointments.")
+            new_status = serializer.validated_data.get('status')
+            if new_status and new_status != 'CANCELLED':
+                raise PermissionDenied("Patients can only cancel appointments.")
+            serializer.save(
+                patient=appt.patient,
+                doctor=appt.doctor,
+                date=appt.date,
+                start_time=appt.start_time,
+                end_time=appt.end_time
+            )
+        elif user.role == 'DOCTOR':
+            if appt.doctor.user != user:
+                raise PermissionDenied("You can only modify appointments assigned to you.")
+            serializer.save(
+                patient=appt.patient,
+                doctor=appt.doctor,
+                date=appt.date,
+                start_time=appt.start_time,
+                end_time=appt.end_time
+            )
+        elif user.role in ('ADMIN', 'RECEPTIONIST'):
+            serializer.save()
+        else:
+            raise PermissionDenied("You do not have permission to update appointments.")
+
+    def perform_destroy(self, instance):
+        if self.request.user.role not in ('ADMIN', 'RECEPTIONIST'):
+            raise PermissionDenied("Only administrators and receptionists can delete appointment entries.")
+        instance.delete()
+
 
 
 

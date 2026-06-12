@@ -11,6 +11,7 @@ import {
     Activity, Server, RefreshCw
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
+import { adminApi } from '../services/adminApi';
 
 export const AdminDashboardOverview = () => {
     const theme = useTheme();
@@ -18,6 +19,7 @@ export const AdminDashboardOverview = () => {
     
     const { 
         overview: stats, 
+        users,
         loadingStates, 
         errorStates, 
         refreshOverview: fetchOverview 
@@ -36,21 +38,18 @@ export const AdminDashboardOverview = () => {
     ]);
     const [diagnosticsMessage, setDiagnosticsMessage] = useState('All systems reporting nominal status.');
 
-    const runDiagnostics = useCallback(() => {
+    const runDiagnostics = useCallback(async () => {
         setDiagnosticsLoading(true);
         setDiagnosticsMessage('Initiating system-wide handshake diagnostics...');
-        
-        setTimeout(() => {
-            const randomLatency = (min, max) => `${Math.floor(Math.random() * (max - min + 1) + min)}ms`;
-            setDiagnosticsOutput([
-                { label: 'PostgreSQL Database Connection', status: 'Optimal', latency: randomLatency(8, 25), color: '#1D6B35' },
-                { label: 'SMTP Email Dispatch Service', status: 'Connected', latency: randomLatency(30, 60), color: '#1D6B35' },
-                { label: 'Google OAuth API Gateway', status: 'Online', latency: randomLatency(15, 40), color: '#1D6B35' },
-                { label: 'JWT Signature Token Issuance', status: 'Secured', latency: randomLatency(1, 3), color: '#1D6B35' }
-            ]);
+        try {
+            const res = await adminApi.getSystemHealth();
+            setDiagnosticsOutput(res.diagnostics);
+            setDiagnosticsMessage(`Diagnostics complete. ${res.message}`);
+        } catch (err) {
+            setDiagnosticsMessage('Failed to connect to backend diagnostics endpoint.');
+        } finally {
             setDiagnosticsLoading(false);
-            setDiagnosticsMessage('Diagnostics complete. All systems online and secured.');
-        }, 1500);
+        }
     }, []);
 
     const kpis = useMemo(() => [
@@ -62,13 +61,58 @@ export const AdminDashboardOverview = () => {
 
     // Staff proportions helper - Memoized for clean performance
     const staffDistribution = useMemo(() => {
-        const activeStaff = stats.total_active_staff || 0;
+        const activeStaffList = users.filter(u => u.is_active && u.role !== 'PATIENT');
+        
+        if (activeStaffList.length === 0) {
+            const activeStaff = stats.total_active_staff || 0;
+            return [
+                { role: 'Doctors / Clinicians', count: Math.ceil(activeStaff * 0.45), percentage: 45, color: '#006A6A' },
+                { role: 'Nursing Lead & Care Staff', count: Math.ceil(activeStaff * 0.35), percentage: 35, color: '#005858' },
+                { role: 'Operations / Admins', count: Math.max(0, activeStaff - Math.ceil(activeStaff * 0.45) - Math.ceil(activeStaff * 0.35)), percentage: 20, color: '#4DB6AC' }
+            ];
+        }
+
+        const totalCount = activeStaffList.length;
+        const doctors = activeStaffList.filter(u => u.role === 'DOCTOR').length;
+        const nurses = activeStaffList.filter(u => u.role === 'NURSE').length;
+        const operations = activeStaffList.filter(u => u.role !== 'DOCTOR' && u.role !== 'NURSE').length;
+
+        const docPercent = Math.round((doctors / totalCount) * 100);
+        const nursePercent = Math.round((nurses / totalCount) * 100);
+        const opPercent = 100 - docPercent - nursePercent;
+
         return [
-            { role: 'Doctors / Clinicians', count: Math.ceil(activeStaff * 0.45), percentage: 45, color: '#006A6A' },
-            { role: 'Nursing Lead & Care Staff', count: Math.ceil(activeStaff * 0.35), percentage: 35, color: '#005858' },
-            { role: 'Operations / Admins', count: Math.max(0, activeStaff - Math.ceil(activeStaff * 0.45) - Math.ceil(activeStaff * 0.35)), percentage: 20, color: '#4DB6AC' }
+            { role: 'Doctors / Clinicians', count: doctors, percentage: docPercent, color: '#006A6A' },
+            { role: 'Nursing Lead & Care Staff', count: nurses, percentage: nursePercent, color: '#005858' },
+            { role: 'Operations / Admins', count: operations, percentage: opPercent, color: '#4DB6AC' }
         ];
-    }, [stats.total_active_staff]);
+    }, [users, stats.total_active_staff]);
+
+    const donutSegments = useMemo(() => {
+        const p1 = staffDistribution[0].percentage;
+        const p2 = staffDistribution[1].percentage;
+        const p3 = staffDistribution[2].percentage;
+
+        const len1 = ((p1 / 100) * 251.3).toFixed(1);
+        const len2 = ((p2 / 100) * 251.3).toFixed(1);
+        const len3 = ((p3 / 100) * 251.3).toFixed(1);
+
+        const off2 = (-parseFloat(len1)).toFixed(1);
+        const off3 = (-(parseFloat(len1) + parseFloat(len2))).toFixed(1);
+
+        return {
+            docArray: `${len1} 251.3`,
+            nurseArray: `${len2} 251.3`,
+            nurseOffset: off2,
+            opArray: `${len3} 251.3`,
+            opOffset: off3
+        };
+    }, [staffDistribution]);
+
+    const activeStaffCount = useMemo(() => {
+        const count = users.filter(u => u.is_active && u.role !== 'PATIENT').length;
+        return count || stats.total_active_staff || 0;
+    }, [users, stats.total_active_staff]);
 
     const containerVariants = {
         hidden: {},
@@ -437,7 +481,7 @@ export const AdminDashboardOverview = () => {
                                                 stroke={theme.palette.mode === 'dark' ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)'}
                                                 strokeWidth="10"
                                             />
-                                            {/* Segment 1: Doctors (45%) */}
+                                            {/* Segment 1: Doctors */}
                                             <circle
                                                 cx="50"
                                                 cy="50"
@@ -445,12 +489,12 @@ export const AdminDashboardOverview = () => {
                                                 fill="transparent"
                                                 stroke="#006A6A"
                                                 strokeWidth="10"
-                                                strokeDasharray="113.1 251.3"
+                                                strokeDasharray={donutSegments.docArray}
                                                 strokeDashoffset="0"
                                                 transform="rotate(-90 50 50)"
                                                 style={{ transition: 'stroke-dasharray 0.5s ease' }}
                                             />
-                                            {/* Segment 2: Nurses (35%) */}
+                                            {/* Segment 2: Nurses */}
                                             <circle
                                                 cx="50"
                                                 cy="50"
@@ -458,12 +502,12 @@ export const AdminDashboardOverview = () => {
                                                 fill="transparent"
                                                 stroke="#005858"
                                                 strokeWidth="10"
-                                                strokeDasharray="88 251.3"
-                                                strokeDashoffset="-113.1"
+                                                strokeDasharray={donutSegments.nurseArray}
+                                                strokeDashoffset={donutSegments.nurseOffset}
                                                 transform="rotate(-90 50 50)"
                                                 style={{ transition: 'stroke-dasharray 0.5s ease' }}
                                             />
-                                            {/* Segment 3: Operations (20%) */}
+                                            {/* Segment 3: Operations */}
                                             <circle
                                                 cx="50"
                                                 cy="50"
@@ -471,8 +515,8 @@ export const AdminDashboardOverview = () => {
                                                 fill="transparent"
                                                 stroke="#4DB6AC"
                                                 strokeWidth="10"
-                                                strokeDasharray="50.2 251.3"
-                                                strokeDashoffset="-201.1"
+                                                strokeDasharray={donutSegments.opArray}
+                                                strokeDashoffset={donutSegments.opOffset}
                                                 transform="rotate(-90 50 50)"
                                                 style={{ transition: 'stroke-dasharray 0.5s ease' }}
                                             />
@@ -486,7 +530,7 @@ export const AdminDashboardOverview = () => {
                                             textAlign: 'center'
                                         }}>
                                             <Typography variant="h5" sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif", color: 'text.primary', lineHeight: 1 }}>
-                                                {stats.total_active_staff || 0}
+                                                {activeStaffCount}
                                             </Typography>
                                             <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '10px', fontWeight: 600, display: 'block', mt: 0.25 }}>
                                                 Active Staff

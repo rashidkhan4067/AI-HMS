@@ -1,11 +1,11 @@
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useMemo } from 'react';
 import { 
     Box, Typography, Card, CardContent, Table, TableBody, 
     TableCell, TableContainer, TableHead, TableRow, Paper, Chip,
     Alert, Skeleton, TablePagination, TableSortLabel, Button,
     useMediaQuery, useTheme, Divider
 } from '@mui/material';
-import { AlertCircle, CheckCircle, RefreshCw } from 'lucide-react';
+import { AlertCircle, CheckCircle, RefreshCw, Download } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { AdminFilterBar } from '../components/AdminFilterBar';
 import { AuditDetailsDialog } from '../dialogs/AuditDetailsDialog';
@@ -38,9 +38,7 @@ export const AdminAudits = () => {
     // Details Modal State
     const [selectedAudit, setSelectedAudit] = useState(null);
 
-    const showToast = useCallback((msg, severity = 'error') => {
-        // Handled via errorStates in context
-    }, []);
+
 
 
 
@@ -57,6 +55,42 @@ export const AdminAudits = () => {
         });
     };
 
+    const handleExportCSV = () => {
+        const escapeCSV = (val) => {
+            if (val === null || val === undefined) return '';
+            const str = String(val);
+            if (str.includes(',') || str.includes('"') || str.includes('\n') || str.includes('\r')) {
+                return `"${str.replace(/"/g, '""')}"`;
+            }
+            return str;
+        };
+
+        const headers = ['Status', 'Target Email', 'IP Address', 'Auth Method', 'Security Notes', 'Timestamp'];
+        const rows = sortedAudits.map(log => [
+            log.success ? 'Success' : 'Failure',
+            log.email_attempted,
+            log.ip_address || '127.0.0.1',
+            log.login_method,
+            log.success ? '' : (log.failure_reason || ''),
+            log.timestamp
+        ]);
+
+        const csvContent = [
+            headers.join(','),
+            ...rows.map(row => row.map(escapeCSV).join(','))
+        ].join('\n');
+
+        const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.setAttribute('href', url);
+        link.setAttribute('download', `security_audits_${new Date().toISOString().split('T')[0]}.csv`);
+        link.style.visibility = 'hidden';
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+    };
+
     // Sorting columns logic
     const handleRequestSort = (property) => {
         const isAsc = orderBy === property && order === 'asc';
@@ -65,6 +99,7 @@ export const AdminAudits = () => {
     };
 
     // Client-side filtering, searching, and sorting memoized for performance
+    // eslint-disable-next-line react-hooks/preserve-manual-memoization
     const sortedAudits = useMemo(() => {
         const filtered = audits.filter((log) => {
             // Search filter
@@ -318,25 +353,49 @@ export const AdminAudits = () => {
                                 />
                             )}
                         </Box>
-                        <Button
-                            size="small"
-                            startIcon={<RefreshCw size={14} />}
-                            onClick={fetchAudits}
-                            sx={{ 
-                                textTransform: 'none', 
-                                fontWeight: 600, 
-                                borderRadius: '100px',
-                                borderColor: 'divider',
-                                color: 'text.primary',
-                                fontSize: '12.5px',
-                                px: 2,
-                                '&:hover': {
-                                    bgcolor: 'action.hover'
-                                }
-                            }}
-                        >
-                            Reload Logs
-                        </Button>
+                        <Box sx={{ display: 'flex', gap: 1.5 }}>
+                            <Button
+                                size="small"
+                                variant="outlined"
+                                startIcon={<Download size={14} />}
+                                onClick={handleExportCSV}
+                                disabled={sortedAudits.length === 0}
+                                sx={{ 
+                                    textTransform: 'none', 
+                                    fontWeight: 600, 
+                                    borderRadius: '100px',
+                                    borderColor: 'divider',
+                                    color: 'text.primary',
+                                    fontSize: '12.5px',
+                                    px: 2,
+                                    '&:hover': {
+                                        bgcolor: 'action.hover',
+                                        borderColor: 'divider'
+                                    }
+                                }}
+                            >
+                                Export to CSV
+                            </Button>
+                            <Button
+                                size="small"
+                                startIcon={<RefreshCw size={14} />}
+                                onClick={fetchAudits}
+                                sx={{ 
+                                    textTransform: 'none', 
+                                    fontWeight: 600, 
+                                    borderRadius: '100px',
+                                    borderColor: 'divider',
+                                    color: 'text.primary',
+                                    fontSize: '12.5px',
+                                    px: 2,
+                                    '&:hover': {
+                                        bgcolor: 'action.hover'
+                                    }
+                                }}
+                            >
+                                Reload Logs
+                            </Button>
+                        </Box>
                     </Box>
 
                     {/* Search & Filter Controls */}

@@ -2,9 +2,9 @@
 
 ---
 **Metadata**
-- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Document Version:** 1.1 (Milestone 2 Completed)
 - **Status:** ACTIVE
-- **Last Updated:** June 6, 2026
+- **Last Updated:** June 12, 2026
 ---
 
 ## 🟢 Milestone 0: Public Landing Page & Design System (Completed)
@@ -82,33 +82,33 @@
 
 ---
 
-## 📅 Milestone 2: Professional Admin Layout & Workspace Routing (Next Milestone)
+## 🟢 Milestone 2: Professional Admin Layout & Workspace Routing (Completed)
 
 ### 6. Collapsible Left Navigation Drawer (AdminDrawer)
 * **Priority:** High
-* **Status:** TO DO
+* **Status:** COMPLETED
 * **Story Points:** 5
 * **User Story:** As an administrator, I want to toggle a collapsible navigation sidebar so that I can maximize my workspace screen estate while navigating between administrative modules.
 
 ### 7. Custom Admin Breadcrumbs & Notifications Header
 * **Priority:** High
-* **Status:** TO DO
+* **Status:** COMPLETED
 * **Story Points:** 5
 * **User Story:** As an administrator, I want to view a dynamic breadcrumb trail, access a notifications center, and view my profile details in the layout header.
 
 ### 7b. Admin Workspace Sub-Routing & Visual Mock-ups
 * **Priority:** High
-* **Status:** TO DO
+* **Status:** COMPLETED
 * **Story Points:** 5
 * **User Story:** As an administrator, I want to switch between different workspace tabs (Overview, Invites, Applications, Users, Audits) with smooth page transition animations.
 
 ---
 
-## 📅 Milestone 3: Operational Scheduling
+## 📅 Milestone 3: Operational Scheduling (Next Milestone)
 
 ### 8. Appointment Booking Workflow
 * **Priority:** High
-* **Status:** BACKLOG
+* **Status:** TO DO
 * **Story Points:** 8
 * **User Story:** As a patient, I want to book an appointment slot checking clinician availability, preventing overlapping sessions.
 

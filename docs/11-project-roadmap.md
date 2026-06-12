@@ -2,7 +2,7 @@
 
 ---
 **Metadata**
-- **Document Version:** 1.0 (Milestone 1 Completed)
+- **Document Version:** 1.1 (Milestone 2 Completed)
 - **Target Audience:** Project Managers, Developers, Client Stakeholders
 - **Status:** APPROVED
 ---
@@ -17,8 +17,8 @@
                                                      │
                                                      ▼
 ┌─────────────────────────────────────────────────────────────────────────┐
-│  Phase 3: Actor Directories (M2)  |  Phase 4: Scheduling & EHR (M3/M4)  │
-│  [2026-06-07 to 2026-06-15]       |  [2026-06-16 to 2026-06-30]         │
+│  Phase 3: Admin Console (M2 Completed) |  Phase 4: Scheduling & EHR (M3) │
+│  [2026-06-07 to 2026-06-12]            |  [2026-06-12 to 2026-06-25]    │
 └────────────────────────────────────────────────────┬────────────────────┘
                                                      │
                                                      ▼
@@ -62,7 +62,19 @@
 
 ---
 
-### 📅 Milestone 2: Professional Admin Layout & Workspace Routing
+### 🟢 Milestone 2: Professional Admin Layout & Workspace Routing (Completed)
+- **Deliverables:**
+  - Collapsible left sidebar navigation (`Drawer` component) and custom active layout configurations.
+  - AppBar header featuring breadcrumbs, toggle icons, dynamic theme switches, and user avatar profile menu.
+  - Decoupled onboarding invites, application directories, users controls, and IP security audit listing feeds.
+  - Extracted and modularized dialogs directory (`src/features/admin/dialogs`) featuring:
+    - Onboarding: `InviteDetailsDialog`, `RevokeInviteDialog`
+    - Doctor Auditing: `ApplicationDetailsDialog`, `ApproveApplicationDialog`, `RejectApplicationDialog`
+    - Users Management: `ToggleAccessDialog`, `UserDetailsDialog`, `EditUserDialog`, `DeleteUserDialog`
+    - System Logs: `AuditDetailsDialog`
+  - Upgraded Profile & Edit Profile page following professional Google Account / Material Design 3 templates.
+  - Fixed floating text notch outline clipping through separate typography labels.
+  - Background asynchronous email delivery engine with auto-retries and fallback redirects.
 - **Objective:** Design and implement a premium, high-fidelity workspace shell for the Admin portal, featuring collapsible sidebar layouts, notification centers, dynamic headers, and sub-routing transitions.
 - **Tasks:**
   - Build a collapsible left sidebar navigation (using MUI `Drawer`) with custom active/inactive styling.

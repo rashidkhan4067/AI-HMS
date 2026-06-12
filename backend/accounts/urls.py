@@ -18,6 +18,10 @@ from .views import (
     ApplyDoctorView,
     RegisterInvitedView,
     RegisterPatientView,
+    PatientViewSet,
+    DoctorViewSet,
+    DoctorAvailabilityViewSet,
+    AppointmentViewSet,
 )
 from .admin_views import (
     AdminOverviewView,
@@ -26,12 +30,17 @@ from .admin_views import (
     AdminUserViewSet,
     AdminAuditLogListView,
     AdminDashboardDataView,
+    AdminSystemHealthView,
 )
 
 router = DefaultRouter()
 router.register(r'admin/invites', AdminInviteViewSet, basename='admin_invite')
 router.register(r'admin/applications', AdminDoctorApplicationViewSet, basename='admin_application')
 router.register(r'admin/users', AdminUserViewSet, basename='admin_user')
+router.register(r'patients', PatientViewSet, basename='patient')
+router.register(r'doctors', DoctorViewSet, basename='doctor')
+router.register(r'doctor-availabilities', DoctorAvailabilityViewSet, basename='doctor_availability')
+router.register(r'appointments', AppointmentViewSet, basename='appointment')
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -57,5 +66,6 @@ urlpatterns = [
     path('admin/dashboard-data/', AdminDashboardDataView.as_view(), name='admin_dashboard_data'),
     path('admin/overview/', AdminOverviewView.as_view(), name='admin_overview'),
     path('admin/audits/', AdminAuditLogListView.as_view(), name='admin_audits'),
+    path('admin/health-check/', AdminSystemHealthView.as_view(), name='admin_health_check'),
     path('', include(router.urls)),
 ]

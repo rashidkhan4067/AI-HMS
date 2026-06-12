@@ -3,7 +3,7 @@ import {
     Box, Typography, Card, CardContent, Table, TableBody, 
     TableCell, TableContainer, TableHead, TableRow, Paper, Chip, Switch,
     Snackbar, Alert, Skeleton, TablePagination, TableSortLabel,
-    Button, Grid, Avatar, Divider, useMediaQuery, useTheme
+    Button, Avatar, Divider, useMediaQuery, useTheme
 } from '@mui/material';
 import { RefreshCw } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
@@ -62,7 +62,6 @@ export const AdminUsers = () => {
     const [loadingDepartments, setLoadingDepartments] = useState(true);
 
     const fetchDepartments = useCallback(async () => {
-        setLoadingDepartments(true);
         try {
             const deptsRes = await axiosInstance.get('auth/departments/');
             setDepartments(deptsRes.data || []);
@@ -74,6 +73,7 @@ export const AdminUsers = () => {
     }, []);
 
     useEffect(() => {
+        // eslint-disable-next-line react-hooks/set-state-in-effect
         fetchDepartments();
     }, [fetchDepartments]);
 
@@ -162,7 +162,7 @@ export const AdminUsers = () => {
 
     const showToast = useCallback((message, severity = 'success') => {
         setToast({ open: true, message, severity });
-    }, []);
+    }, [setToast]);
 
     const handleSwitchChange = useCallback((user) => {
         setToggleDialog({ open: true, user });
@@ -192,19 +192,6 @@ export const AdminUsers = () => {
         } finally {
             closeToggleDialog();
         }
-    };
-
-    const getMediaUrl = (path) => {
-        if (!path) return '#';
-        if (path.startsWith('http://') || path.startsWith('https://')) return path;
-        const base = axiosInstance.defaults.baseURL || 'http://localhost:8000/api/';
-        const domain = base.replace(/\/api\/?.*$/, '');
-        return `${domain}${path}`;
-    };
-
-    const getFilename = (url) => {
-        if (!url) return 'document.pdf';
-        return url.split('/').pop();
     };
 
     const formatDate = (dateString) => {
@@ -573,6 +560,10 @@ export const AdminUsers = () => {
                 invites={invites}
                 onOpenDelete={handleOpenDelete}
                 onOpenEdit={handleOpenEdit}
+                onUserUpdate={async (updatedFields) => {
+                    setSelectedUser(prev => prev ? { ...prev, ...updatedFields } : null);
+                    await fetchUsers();
+                }}
             />
 
             {/* Edit User Account Dialog */}
