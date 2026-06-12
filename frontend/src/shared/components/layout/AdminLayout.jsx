@@ -3,9 +3,9 @@ import { Outlet, useNavigate, useLocation, Link as RouterLink } from 'react-rout
 import { 
     Box, CssBaseline, IconButton, List, ListItem, 
     ListItemButton, ListItemIcon, ListItemText, Toolbar, Typography, 
-    Divider, Badge, Menu, Avatar, Popover,
+    Divider, Badge, Avatar, Popover,
     Breadcrumbs, Link, Chip, Tooltip, useMediaQuery, Button,
-    LinearProgress, SpeedDial, SpeedDialIcon, SpeedDialAction
+    LinearProgress, SpeedDial, SpeedDialAction
 } from '@mui/material';
 import { styled, useTheme } from '@mui/material/styles';
 import MuiDrawer from '@mui/material/Drawer';
@@ -23,7 +23,7 @@ import AlertTriangleIcon from '@mui/icons-material/ReportProblem';
 import SearchIcon from '@mui/icons-material/Search';
 import MailIcon from '@mui/icons-material/Mail';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
-import { HelpCircle, RefreshCw, Plus, Eye } from 'lucide-react';
+import { HelpCircle, RefreshCw, Plus } from 'lucide-react';
 
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
