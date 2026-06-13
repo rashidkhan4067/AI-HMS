@@ -1,6 +1,6 @@
 from django.urls import path, include
 from rest_framework.routers import DefaultRouter
-from .views import (
+from accounts.views import (
     RegisterView,
     CustomTokenObtainPairView,
     UserProfileView,
@@ -12,35 +12,72 @@ from .views import (
     CustomTokenRefreshView,
     CustomLogoutView,
     CompleteProfileView,
-    DepartmentListView,
     CheckEmailView,
-    ValidateInviteView,
-    ApplyDoctorView,
     RegisterInvitedView,
+)
+from patients.views import (
     RegisterPatientView,
     PatientViewSet,
+)
+from invitations.views import (
+    ValidateInviteView,
+    AdminInviteViewSet,
+)
+from applications.views import (
+    ApplyDoctorView,
+    AdminDoctorApplicationViewSet,
+)
+from departments.views import (
+    DepartmentListView,
+    AdminDepartmentViewSet,
+)
+from doctors.views import (
     DoctorViewSet,
+)
+from appointments.views import (
     DoctorAvailabilityViewSet,
     AppointmentViewSet,
 )
-from .admin_views import (
+from clinical.views import (
+    MedicalRecordViewSet,
+    VitalsViewSet,
+    DiagnosticOrderViewSet,
+)
+from accounts.admin_views import (
     AdminOverviewView,
-    AdminInviteViewSet,
-    AdminDoctorApplicationViewSet,
     AdminUserViewSet,
     AdminAuditLogListView,
     AdminDashboardDataView,
     AdminSystemHealthView,
+    AdminPMDCComplianceListView,
 )
+from billing.views import (
+    InvoiceViewSet,
+    AdminRevenueReconciliationView,
+    AdminBillingOversightView,
+)
+from pharmacy.views import PrescriptionDispenseViewSet
+from ipd.views import WardViewSet, BedViewSet, AdmissionRecordViewSet
+from roster.views import DutyRosterViewSet
 
 router = DefaultRouter()
 router.register(r'admin/invites', AdminInviteViewSet, basename='admin_invite')
 router.register(r'admin/applications', AdminDoctorApplicationViewSet, basename='admin_application')
 router.register(r'admin/users', AdminUserViewSet, basename='admin_user')
+router.register(r'admin/departments', AdminDepartmentViewSet, basename='admin_department')
 router.register(r'patients', PatientViewSet, basename='patient')
 router.register(r'doctors', DoctorViewSet, basename='doctor')
 router.register(r'doctor-availabilities', DoctorAvailabilityViewSet, basename='doctor_availability')
 router.register(r'appointments', AppointmentViewSet, basename='appointment')
+router.register(r'medical-records', MedicalRecordViewSet, basename='medical_record')
+router.register(r'invoices', InvoiceViewSet, basename='invoice')
+router.register(r'vitals', VitalsViewSet, basename='vitals')
+router.register(r'dispenses', PrescriptionDispenseViewSet, basename='dispense')
+router.register(r'diagnostics/orders', DiagnosticOrderViewSet, basename='diagnostic_order')
+router.register(r'ipd/wards', WardViewSet, basename='ward')
+router.register(r'ipd/beds', BedViewSet, basename='bed')
+router.register(r'ipd/admissions', AdmissionRecordViewSet, basename='admission')
+router.register(r'rosters', DutyRosterViewSet, basename='roster')
 
 urlpatterns = [
     path('register/', RegisterView.as_view(), name='register'),
@@ -67,5 +104,8 @@ urlpatterns = [
     path('admin/overview/', AdminOverviewView.as_view(), name='admin_overview'),
     path('admin/audits/', AdminAuditLogListView.as_view(), name='admin_audits'),
     path('admin/health-check/', AdminSystemHealthView.as_view(), name='admin_health_check'),
+    path('admin/compliance/pmdc/', AdminPMDCComplianceListView.as_view(), name='admin_pmdc_compliance'),
+    path('admin/billing/reconcile/', AdminRevenueReconciliationView.as_view(), name='admin_revenue_reconcile'),
+    path('admin/billing/oversight/', AdminBillingOversightView.as_view(), name='admin_billing_oversight'),
     path('', include(router.urls)),
 ]

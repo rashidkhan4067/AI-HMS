@@ -17,6 +17,7 @@ import { AuthContext } from '../../../context/AuthContext';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 import { ROLE_REDIRECTS } from '../constants/roles';
 import { api } from '../../../lib/api';
+import { departmentApi } from '../../departments/services/departmentApi';
 
 /* ── Input shared styles ── */
 const inputSx = {
@@ -115,8 +116,8 @@ export const CompleteProfilePage = () => {
     useEffect(() => {
         const fetchDepartments = async () => {
             try {
-                const res = await api.get('v1/auth/departments/');
-                setDepartments(res.data);
+                const data = await departmentApi.getPublicList();
+                setDepartments(data || []);
             } catch {
                 // Fallback static list if API fails
                 setDepartments([

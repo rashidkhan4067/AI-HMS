@@ -16,41 +16,7 @@ export const adminApi = {
         return response.data;
     },
 
-    getInvites: async () => {
-        const response = await axiosInstance.get('auth/admin/invites/');
-        return response.data;
-    },
 
-    createInvite: async (inviteData) => {
-        // inviteData should have: { email, role, department }
-        const response = await axiosInstance.post('auth/admin/invites/', inviteData);
-        return response.data;
-    },
-
-    revokeInvite: async (id) => {
-        const response = await axiosInstance.delete(`auth/admin/invites/${id}/`);
-        return response.data;
-    },
-
-    resendInvite: async (id) => {
-        const response = await axiosInstance.post(`auth/admin/invites/${id}/resend/`);
-        return response.data;
-    },
-
-    getApplications: async () => {
-        const response = await axiosInstance.get('auth/admin/applications/');
-        return response.data;
-    },
-
-    approveApplication: async (id) => {
-        const response = await axiosInstance.post(`auth/admin/applications/${id}/approve/`);
-        return response.data;
-    },
-
-    rejectApplication: async (id, message) => {
-        const response = await axiosInstance.post(`auth/admin/applications/${id}/reject/`, { message });
-        return response.data;
-    },
 
     getUsers: async () => {
         const response = await axiosInstance.get('auth/admin/users/');
@@ -84,6 +50,120 @@ export const adminApi = {
 
     getSystemHealth: async () => {
         const response = await axiosInstance.get('auth/admin/health-check/');
+        return response.data;
+    },
+
+    // PMDC Compliance & Billing Reconciliation
+    getPMDCCompliance: async () => {
+        const response = await axiosInstance.get('auth/admin/compliance/pmdc/');
+        return response.data;
+    },
+
+    getRevenueReconciliation: async () => {
+        const response = await axiosInstance.get('auth/admin/billing/reconcile/');
+        return response.data;
+    },
+
+    getBillingOversight: async () => {
+        const response = await axiosInstance.get('auth/admin/billing/oversight/');
+        return response.data;
+    },
+
+    updateDoctorProfile: async (id, data) => {
+        const response = await axiosInstance.patch(`auth/doctors/${id}/`, data);
+        return response.data;
+    },
+
+    // IPD Wards, Beds & Admissions
+    getWards: async () => {
+        const response = await axiosInstance.get('auth/ipd/wards/');
+        return response.data;
+    },
+
+    createWard: async (wardData) => {
+        const response = await axiosInstance.post('auth/ipd/wards/', wardData);
+        return response.data;
+    },
+
+    updateWard: async (id, wardData) => {
+        const response = await axiosInstance.patch(`auth/ipd/wards/${id}/`, wardData);
+        return response.data;
+    },
+
+    deleteWard: async (id) => {
+        const response = await axiosInstance.delete(`auth/ipd/wards/${id}/`);
+        return response.data;
+    },
+
+    getBeds: async () => {
+        const response = await axiosInstance.get('auth/ipd/beds/');
+        return response.data;
+    },
+
+    createBed: async (bedData) => {
+        const response = await axiosInstance.post('auth/ipd/beds/', bedData);
+        return response.data;
+    },
+
+    updateBed: async (id, bedData) => {
+        const response = await axiosInstance.patch(`auth/ipd/beds/${id}/`, bedData);
+        return response.data;
+    },
+
+    deleteBed: async (id) => {
+        const response = await axiosInstance.delete(`auth/ipd/beds/${id}/`);
+        return response.data;
+    },
+
+    getAdmissions: async () => {
+        const response = await axiosInstance.get('auth/ipd/admissions/');
+        return response.data;
+    },
+
+    createAdmission: async (admissionData) => {
+        const response = await axiosInstance.post('auth/ipd/admissions/', admissionData);
+        return response.data;
+    },
+
+    dischargeAdmission: async (id) => {
+        const response = await axiosInstance.post(`auth/ipd/admissions/${id}/discharge/`);
+        return response.data;
+    },
+
+    // Duty Rostering
+    getRosters: async () => {
+        const response = await axiosInstance.get('auth/rosters/');
+        return response.data;
+    },
+
+    createRoster: async (rosterData) => {
+        const response = await axiosInstance.post('auth/rosters/', rosterData);
+        return response.data;
+    },
+
+    updateRoster: async (id, rosterData) => {
+        const response = await axiosInstance.patch(`auth/rosters/${id}/`, rosterData);
+        return response.data;
+    },
+
+    deleteRoster: async (id) => {
+        const response = await axiosInstance.delete(`auth/rosters/${id}/`);
+        return response.data;
+    },
+
+    // Appointment Overview
+    getAppointments: async (params = {}) => {
+        const response = await axiosInstance.get('auth/appointments/', { params });
+        return response.data;
+    },
+
+    updateAppointment: async (id, data) => {
+        const response = await axiosInstance.patch(`auth/appointments/${id}/`, data);
+        return response.data;
+    },
+
+    deleteAppointment: async (id) => {
+        const response = await axiosInstance.delete(`auth/appointments/${id}/`);
         return response.data;
     },
 };

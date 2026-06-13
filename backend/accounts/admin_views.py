@@ -6,8 +6,18 @@ from rest_framework.permissions import IsAuthenticated
 from django.contrib.auth import get_user_model
 from django.utils import timezone
 from datetime import timedelta
-from .models import StaffInvite, DoctorApplication, LoginAuditLog, Department
-from .serializers import StaffInviteSerializer, LoginAuditLogSerializer, DoctorApplicationSerializer, UserSerializer
+from invitations.models import StaffInvite
+from applications.models import DoctorApplication
+from accounts.models import LoginAuditLog
+from departments.models import Department
+from patients.models import Patient
+from appointments.models import Appointment
+from clinical.models import Vitals
+from accounts.serializers import LoginAuditLogSerializer, UserSerializer
+from invitations.serializers import StaffInviteSerializer
+from applications.serializers import DoctorApplicationSerializer
+from departments.serializers import AdminDepartmentSerializer
+from django.db.models import Count
 from .permissions import IsAdminUser
 from .utils import send_staff_invite_email, send_doctor_application_update_email
 
@@ -35,126 +45,26 @@ class AdminOverviewView(APIView):
         cutoff = timezone.now() - timedelta(hours=24)
         security_warnings_count = LoginAuditLog.objects.filter(success=False, timestamp__gt=cutoff).count()
 
+        # 5. Operational metrics
+        today = timezone.now().date()
+        total_patients = Patient.objects.count()
+        appointments_today = Appointment.objects.filter(date=today).count()
+        check_ins_today = Appointment.objects.filter(date=today, status__in=['CONFIRMED', 'COMPLETED']).count()
+        vitals_logged_today = Vitals.objects.filter(created_at__date=today).count()
+        consults_completed_today = Appointment.objects.filter(date=today, status='COMPLETED').count()
+
         return Response({
             'total_active_staff': active_staff_count,
             'pending_applications': pending_apps_count,
             'active_invite_tokens': active_invites_count,
             'security_warnings': security_warnings_count,
+            'total_patients': total_patients,
+            'appointments_today': appointments_today,
+            'check_ins_today': check_ins_today,
+            'vitals_logged_today': vitals_logged_today,
+            'consults_completed_today': consults_completed_today,
         }, status=status.HTTP_200_OK)
 
-
-class AdminInviteViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet for managing staff onboarding invitations. Restricted to Admin.
-    """
-    permission_classes = (IsAuthenticated, IsAdminUser)
-    serializer_class = StaffInviteSerializer
-    queryset = StaffInvite.objects.select_related('department').all().order_by('-created_at')
-
-    def perform_create(self, serializer):
-        invite = serializer.save()
-        dept_name = invite.department.name if invite.department else None
-        # Dispatch the invitation email
-        send_staff_invite_email(invite.email, invite.role, dept_name, str(invite.id))
-
-    @action(detail=True, methods=['post'], url_path='resend')
-    def resend_invite(self, request, pk=None):
-        invite = self.get_object()
-        if invite.is_used:
-            return Response({'detail': 'This invitation token has already been consumed.'}, status=status.HTTP_400_BAD_REQUEST)
-        
-        # Extend the expiry date to 7 days from now
-        invite.expires_at = timezone.now() + timedelta(days=7)
-        invite.save(update_fields=['expires_at'])
-
-        dept_name = invite.department.name if invite.department else None
-        # Re-send the email
-        try:
-            send_staff_invite_email(invite.email, invite.role, dept_name, str(invite.id))
-            return Response({'detail': 'Invitation link resent successfully.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'detail': f'SMTP Email Error: {str(e)}'}, status=status.HTTP_500_INTERNAL_SERVER_ERROR)
-
-
-class AdminDoctorApplicationViewSet(viewsets.ModelViewSet):
-    """
-    ViewSet to manage submitted Doctor Onboarding Applications. Restricted to Admin.
-    """
-    permission_classes = (IsAuthenticated, IsAdminUser)
-    serializer_class = DoctorApplicationSerializer
-    queryset = DoctorApplication.objects.all().order_by('-created_at')
-
-    @action(detail=True, methods=['post'], url_path='approve')
-    def approve_application(self, request, pk=None):
-        application = self.get_object()
-        if application.status != 'PENDING':
-            return Response({'detail': f'Application has already been {application.status.lower()}.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        # 1. Update status
-        application.status = 'APPROVED'
-        application.save(update_fields=['status'])
-
-        # 2. Check/Get department for Cardiology/etc or fallback
-        # Let's map doctor specialization to department if exists, otherwise try Outpatient or first dept
-        spec = application.specialization or ''
-        dept = Department.objects.filter(name__icontains=spec).first()
-        if not dept:
-            dept = Department.objects.filter(name__icontains='Outpatient').first()
-        if not dept:
-            dept = Department.objects.first()
-
-        # 3. Generate a StaffInvite automatically
-        invite, created = StaffInvite.objects.get_or_create(
-            email=application.email,
-            defaults={
-                'role': 'DOCTOR',
-                'department': dept,
-                'is_used': False
-            }
-        )
-        if not created:
-            invite.expires_at = timezone.now() + timedelta(days=7)
-            invite.is_used = False
-            invite.department = dept
-            invite.role = 'DOCTOR'
-            invite.save(update_fields=['expires_at', 'is_used', 'department', 'role'])
-
-        # 4. Email the status update and invitation link
-        try:
-            send_doctor_application_update_email(
-                email=application.email,
-                full_name=application.full_name,
-                status='APPROVED',
-                invite_token=str(invite.id)
-            )
-            return Response({'detail': 'Application approved and onboarding invitation sent.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'detail': f'Status updated but email dispatch failed: {str(e)}'}, status=status.HTTP_200_OK)
-
-    @action(detail=True, methods=['post'], url_path='reject')
-    def reject_application(self, request, pk=None):
-        application = self.get_object()
-        if application.status != 'PENDING':
-            return Response({'detail': f'Application has already been {application.status.lower()}.'}, status=status.HTTP_400_BAD_REQUEST)
-
-        message = request.data.get('message', 'Credentials verification could not be validated.').strip()
-
-        # Update status
-        application.status = 'REJECTED'
-        application.rejection_reason = message
-        application.save(update_fields=['status', 'rejection_reason'])
-
-        # Email applicant
-        try:
-            send_doctor_application_update_email(
-                email=application.email,
-                full_name=application.full_name,
-                status='REJECTED',
-                message=message
-            )
-            return Response({'detail': 'Application rejected and applicant notified.'}, status=status.HTTP_200_OK)
-        except Exception as e:
-            return Response({'detail': f'Status updated but email dispatch failed: {str(e)}'}, status=status.HTTP_200_OK)
 
 
 class AdminUserViewSet(viewsets.ModelViewSet):
@@ -201,6 +111,7 @@ class AdminUserViewSet(viewsets.ModelViewSet):
         }, status=status.HTTP_200_OK)
 
 
+
 class AdminAuditLogListView(generics.ListAPIView):
     """
     GET /api/auth/admin/audits/
@@ -227,11 +138,23 @@ class AdminDashboardDataView(APIView):
         cutoff = timezone.now() - timezone.timedelta(hours=24)
         security_warnings_count = LoginAuditLog.objects.filter(success=False, timestamp__gt=cutoff).count()
 
+        today = timezone.now().date()
+        total_patients = Patient.objects.count()
+        appointments_today = Appointment.objects.filter(date=today).count()
+        check_ins_today = Appointment.objects.filter(date=today, status__in=['CONFIRMED', 'COMPLETED']).count()
+        vitals_logged_today = Vitals.objects.filter(created_at__date=today).count()
+        consults_completed_today = Appointment.objects.filter(date=today, status='COMPLETED').count()
+
         overview_data = {
             'total_active_staff': active_staff_count,
             'pending_applications': pending_apps_count,
             'active_invite_tokens': active_invites_count,
             'security_warnings': security_warnings_count,
+            'total_patients': total_patients,
+            'appointments_today': appointments_today,
+            'check_ins_today': check_ins_today,
+            'vitals_logged_today': vitals_logged_today,
+            'consults_completed_today': consults_completed_today,
         }
 
         # 2. Active User Directories
@@ -250,12 +173,17 @@ class AdminDashboardDataView(APIView):
         audits_qs = LoginAuditLog.objects.all().order_by('-timestamp')[:100]
         audits_data = LoginAuditLogSerializer(audits_qs, many=True).data
 
+        # 6. Departments with staff counts
+        departments_qs = Department.objects.annotate(staff_count=Count('users')).order_by('name')
+        departments_data = AdminDepartmentSerializer(departments_qs, many=True).data
+
         return Response({
             'overview': overview_data,
             'users': users_data,
             'invites': invites_data,
             'applications': apps_data,
             'audits': audits_data,
+            'departments': departments_data,
         }, status=status.HTTP_200_OK)
 
 
@@ -318,3 +246,14 @@ class AdminSystemHealthView(APIView):
             ],
             'message': 'All backend systems online and connected.' if db_status == "Optimal" else 'Critical services are degraded.'
         }, status=status.HTTP_200_OK)
+
+
+class AdminPMDCComplianceListView(APIView):
+    permission_classes = (IsAuthenticated, IsAdminUser)
+
+    def get(self, request):
+        from doctors.models import Doctor
+        from accounts.serializers import PMDCComplianceSerializer
+        doctors = Doctor.objects.select_related('user').filter(pmdc_expiry_date__isnull=False).order_by('pmdc_expiry_date')
+        serializer = PMDCComplianceSerializer(doctors, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)

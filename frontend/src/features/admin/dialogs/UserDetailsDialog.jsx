@@ -1,29 +1,10 @@
 import { useState } from 'react';
 import { Dialog, DialogContent, DialogActions, Box, Grid, Typography, Chip, Button, Divider, Avatar, Alert } from '@mui/material';
-import { api as axiosInstance } from '../../../lib/api';
+import { formatDate } from '../../../shared/utils/dateUtils';
+import { getMediaUrl, getFilename } from '../../../shared/utils/mediaUtils';
 import { adminApi } from '../services/adminApi';
 
-const getMediaUrl = (path) => {
-    if (!path) return '#';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    const base = axiosInstance.defaults.baseURL || 'http://localhost:8000/api/';
-    const domain = base.replace(/\/api\/?.*$/, '');
-    return `${domain}${path}`;
-};
 
-const getFilename = (url) => {
-    if (!url) return 'document.pdf';
-    return url.split('/').pop();
-};
-
-const formatDate = (dateString) => {
-    if (!dateString) return '-';
-    return new Date(dateString).toLocaleDateString('en-US', {
-        year: 'numeric',
-        month: 'short',
-        day: 'numeric'
-    });
-};
 
 const getInitials = (name) => {
     if (!name) return 'U';

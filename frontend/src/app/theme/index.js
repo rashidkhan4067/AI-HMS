@@ -88,6 +88,12 @@ export const getThemeConfig = (mode) => {
                         transition: 'all 0.2s ease-in-out',
                         backgroundColor: isDark ? 'rgba(255,255,255,0.03)' : '#FFFFFF',
                         
+                        // Fix for multiline text fields to allow height to auto-adjust
+                        '&.MuiInputBase-multiline': {
+                            height: 'auto',
+                            padding: 0,
+                        },
+                        
                         // Default border (resting state)
                         '& .MuiOutlinedInput-notchedOutline': {
                             borderColor: isDark ? 'rgba(255, 255, 255, 0.2)' : '#D1D5DB', // border-gray-300
@@ -131,6 +137,11 @@ export const getThemeConfig = (mode) => {
                         '&::placeholder': {
                             color: '#9CA3AF', // text-gray-400
                             opacity: 1,
+                        },
+                        // Fix for textareas inside multiline textfields to avoid height constraints
+                        '&.MuiInputBase-inputMultiline, textarea&': {
+                            height: 'auto',
+                            padding: '12px 16px',
                         },
                     },
                 },

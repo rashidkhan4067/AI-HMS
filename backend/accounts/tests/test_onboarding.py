@@ -6,7 +6,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.core.cache import cache
 from django.core.files.uploadedfile import SimpleUploadedFile
-from accounts.models import StaffInvite, DoctorApplication, Department
+from invitations.models import StaffInvite
+from applications.models import DoctorApplication
+from departments.models import Department
 
 User = get_user_model()
 

@@ -17,9 +17,20 @@ import { AdminInvitations } from '../features/admin/pages/AdminInvitations';
 import { AdminApplications } from '../features/admin/pages/AdminApplications';
 import { AdminUsers } from '../features/admin/pages/AdminUsers';
 import { AdminAudits } from '../features/admin/pages/AdminAudits';
+import { AdminDepartments } from '../features/admin/pages/AdminDepartments';
+import { AdminCompliance } from '../features/admin/pages/AdminCompliance';
+import { AdminRevenue } from '../features/admin/pages/AdminRevenue';
+import { AdminIPD } from '../features/admin/pages/AdminIPD';
+import { AdminRoster } from '../features/admin/pages/AdminRoster';
+import { AdminAppointments } from '../features/admin/pages/AdminAppointments';
 import { ProfilePage } from '../features/auth/pages/ProfilePage';
 import { PatientDashboard } from '../features/patient/pages/PatientDashboard';
 import { DoctorDashboard } from '../features/doctor/pages/DoctorDashboard';
+import { PharmacistDashboard } from '../features/pharmacy/pages/PharmacistDashboard';
+import { ReceptionistDashboard } from '../features/receptionist/pages/ReceptionistDashboard';
+import { NurseDashboard } from '../features/nurse/pages/NurseDashboard';
+import { LabDashboard } from '../features/lab/pages/LabDashboard';
+import { RadiologyDashboard } from '../features/radiology/pages/RadiologyDashboard';
 
 const Dashboard = () => {
     const { user } = useAuth();
@@ -39,11 +50,6 @@ const Dashboard = () => {
     const target = roleRedirectMap[user.role] || '/unauthorized';
     return <Navigate to={target} replace />;
 };
-const NurseDashboard        = () => <Typography variant="h4">Nurse Dashboard Workspace</Typography>;
-const ReceptionistDashboard = () => <Typography variant="h4">Receptionist Dashboard Workspace</Typography>;
-const PharmacistDashboard   = () => <Typography variant="h4">Pharmacist Dashboard Workspace</Typography>;
-const LabDashboard          = () => <Typography variant="h4">Lab Dashboard Workspace</Typography>;
-const RadiologyDashboard     = () => <Typography variant="h4">Radiology Dashboard Workspace</Typography>;
 
 // All valid backend roles
 const CLINICAL_ROLES = ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST', 'PATIENT'];
@@ -76,9 +82,15 @@ export const AppRoutes = () => {
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route element={<AdminLayout />}>
                     <Route path="/admin/dashboard" element={<AdminDashboardOverview />} />
+                    <Route path="/admin/revenue"   element={<AdminRevenue />} />
+                    <Route path="/admin/compliance" element={<AdminCompliance />} />
+                    <Route path="/admin/ipd"       element={<AdminIPD />} />
+                    <Route path="/admin/roster"    element={<AdminRoster />} />
+                    <Route path="/admin/appointments" element={<AdminAppointments />} />
                     <Route path="/admin/invites"   element={<AdminInvitations />} />
                     <Route path="/admin/applications" element={<AdminApplications />} />
                     <Route path="/admin/users"       element={<AdminUsers />} />
+                    <Route path="/admin/departments" element={<AdminDepartments />} />
                     <Route path="/admin/audits"      element={<AdminAudits />} />
                     <Route path="/admin/profile"     element={<ProfilePage />} />
                     {/* Fallback to System Overview */}

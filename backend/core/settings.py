@@ -69,6 +69,17 @@ INSTALLED_APPS = [
 
     # Local apps
     'accounts',
+    'departments',
+    'invitations',
+    'applications',
+    'patients',
+    'doctors',
+    'appointments',
+    'clinical',
+    'pharmacy',
+    'billing',
+    'ipd',
+    'roster',
 ]
 
 MIDDLEWARE = [
@@ -197,6 +208,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_simplejwt.authentication.JWTAuthentication',
     ),
+    'EXCEPTION_HANDLER': 'core.exceptions.custom_exception_handler',
     'DEFAULT_THROTTLE_CLASSES': [
         'rest_framework.throttling.AnonRateThrottle',
         'rest_framework.throttling.UserRateThrottle'
@@ -266,3 +278,10 @@ LOGGING = {
         },
     },
 }
+
+# ── Testing Configuration ─────────────────────────────────────────────────────
+import sys
+if 'test' in sys.argv:
+    # Disable migrations during testing to prevent conflicts with refactored models
+    MIGRATION_MODULES = {app_name: None for app_name in INSTALLED_APPS}
+

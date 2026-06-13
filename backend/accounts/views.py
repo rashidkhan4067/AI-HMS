@@ -1,101 +1,36 @@
+import logging
 from rest_framework import generics, status
 from rest_framework.response import Response
 from rest_framework.views import APIView
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework_simplejwt.views import TokenObtainPairView
 from rest_framework_simplejwt.tokens import RefreshToken
+from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
 from django.contrib.auth import get_user_model
-import logging
-from django.core.mail import send_mail
 from django.conf import settings
-from .serializers import (
-    RegisterSerializer,
-    UserSerializer,
-    CustomTokenObtainPairSerializer,
-    ChangePasswordSerializer,
-    ForgotPasswordSerializer,
-    VerifyOtpSerializer,
-    ResetPasswordSerializer,
-    CompleteProfileSerializer,
-    DepartmentSerializer,
-    DoctorApplicationSerializer,
-    RegisterInvitedSerializer,
-    RegisterPatientSerializer,
-)
-from .models import PasswordResetOTP, Department, LoginAuditLog, StaffInvite, DoctorApplication
-
 from django.utils import timezone
 from django.utils.decorators import method_decorator
 from django_ratelimit.decorators import ratelimit
+from google.oauth2 import id_token as google_id_token
+from google.auth.transport import requests as google_requests
+
+from accounts.models import PasswordResetOTP
+from accounts.serializers import (
+    RegisterSerializer, UserSerializer, CustomTokenObtainPairSerializer,
+    ChangePasswordSerializer, ForgotPasswordSerializer, VerifyOtpSerializer,
+    ResetPasswordSerializer, CompleteProfileSerializer, RegisterInvitedSerializer
+)
+from accounts.services import generate_auth_tokens, log_login_attempt, handle_failed_login, set_jwt_cookies
+from accounts.utils import send_otp_email, send_password_changed_email
 
 User = get_user_model()
+logger = logging.getLogger(__name__)
 
-
-class ValidateInviteView(APIView):
-    permission_classes = (AllowAny,)
-
-    def post(self, request, *args, **kwargs):
-        token = request.data.get('token', '').strip()
-        if not token:
-            return Response(
-                {'valid': False, 'detail': 'Token parameter is required.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-        try:
-            invite = StaffInvite.objects.get(id=token)
-        except (StaffInvite.DoesNotExist, ValueError):
-            return Response(
-                {'valid': False, 'detail': 'Invalid or expired invitation token.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        if not invite.is_valid():
-            return Response(
-                {'valid': False, 'detail': 'This invitation has expired or has already been used.'},
-                status=status.HTTP_400_BAD_REQUEST
-            )
-
-        role_labels = {
-            'ADMIN': 'Administrator',
-            'DOCTOR': 'Doctor / Clinician',
-            'NURSE': 'Clinical Nurse',
-            'RECEPTIONIST': 'Receptionist',
-            'PHARMACIST': 'Pharmacist',
-            'LAB_TECHNICIAN': 'Lab Technician',
-            'RADIOLOGIST': 'Radiologist',
-            'PATIENT': 'Patient',
-        }
-
-        return Response({
-            'valid': True,
-            'email': invite.email,
-            'role': invite.role,
-            'role_label': role_labels.get(invite.role, invite.role),
-            'department_id': str(invite.department.id) if invite.department else None,
-            'department_name': invite.department.name if invite.department else None,
-        }, status=status.HTTP_200_OK)
-
-
-from rest_framework.parsers import MultiPartParser, FormParser
-
-class ApplyDoctorView(generics.CreateAPIView):
-    queryset = DoctorApplication.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = DoctorApplicationSerializer
-    parser_classes = (MultiPartParser, FormParser)
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Application submitted successfully.'},
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-# ── Existing Views ────────────────────────────────────────────────────────────
+def _safe_department_name(user):
+    """Safely get department name, returning None if the FK is dangling."""
+    if not user.department_id: return None
+    try: return user.department.name
+    except Exception: return None
 
 class RegisterView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -104,31 +39,19 @@ class RegisterView(generics.CreateAPIView):
 
     def perform_create(self, serializer):
         user = serializer.save()
-        # Notify all active ADMIN users about the pending registration
-        admin_emails = list(
-            User.objects.filter(role='ADMIN', is_active=True)
-            .values_list('email', flat=True)
-        )
+        admin_emails = list(User.objects.filter(role='ADMIN', is_active=True).values_list('email', flat=True))
         if admin_emails:
             try:
                 from django.core.mail import send_mail
-                from django.conf import settings as dj_settings
                 send_mail(
                     subject='[AI-HMS] New Registration Pending Approval',
-                    message=(
-                        f"A new user has registered and is awaiting activation.\n\n"
-                        f"Name: {user.full_name}\n"
-                        f"Email: {user.email}\n"
-                        f"Role: {user.role}\n\n"
-                        f"Please log in to the admin panel to review and activate this account."
-                    ),
-                    from_email=dj_settings.DEFAULT_FROM_EMAIL,
+                    message=f"A new user has registered and is awaiting activation.\n\nName: {user.full_name}\nEmail: {user.email}\nRole: {user.role}\n\nPlease log in to the admin panel to review and activate this account.",
+                    from_email=settings.DEFAULT_FROM_EMAIL,
                     recipient_list=admin_emails,
                     fail_silently=True,
                 )
             except Exception:
                 pass
-
 
 class RegisterInvitedView(generics.CreateAPIView):
     queryset = User.objects.all()
@@ -137,63 +60,9 @@ class RegisterInvitedView(generics.CreateAPIView):
 
     def post(self, request, *args, **kwargs):
         serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            serializer.save()
-            return Response(
-                {'message': 'Account created successfully.'},
-                status=status.HTTP_201_CREATED
-            )
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class RegisterPatientView(generics.CreateAPIView):
-    queryset = User.objects.all()
-    permission_classes = (AllowAny,)
-    serializer_class = RegisterPatientSerializer
-
-    def post(self, request, *args, **kwargs):
-        serializer = self.get_serializer(data=request.data)
-        if serializer.is_valid():
-            user = serializer.save()
-            
-            # Write a successful LoginAuditLog entry
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=user.email,
-                ip_address=request.META.get('REMOTE_ADDR'),
-                login_method="PASSWORD",
-                success=True
-            )
-
-            # Generate tokens
-            refresh = RefreshToken.for_user(user)
-            refresh['role'] = user.role
-            refresh['full_name'] = user.full_name
-            refresh['department'] = None
-            refresh['must_complete_profile'] = False
-
-            access_token = str(refresh.access_token)
-            refresh_token = str(refresh)
-
-            response = Response({
-                "access": access_token,
-                "must_complete_profile": False,
-                "redirect_to": "/patient/dashboard",
-                "user": UserSerializer(user, context={'request': request}).data
-            }, status=status.HTTP_201_CREATED)
-
-            response.set_cookie(
-                key='refresh_token',
-                value=refresh_token,
-                httponly=True,
-                samesite='Strict',
-                secure=not settings.DEBUG,
-                max_age=7 * 24 * 60 * 60
-            )
-            return response
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
+        serializer.is_valid(raise_exception=True)
+        serializer.save()
+        return Response({'message': 'Account created successfully.'}, status=status.HTTP_201_CREATED)
 
 @method_decorator(ratelimit(key='ip', rate='5/m', method='POST', block=False), name='post')
 class CustomTokenObtainPairView(TokenObtainPairView):
@@ -201,100 +70,37 @@ class CustomTokenObtainPairView(TokenObtainPairView):
 
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            return x_forwarded_for.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR')
+        return x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR')
 
     def post(self, request, *args, **kwargs):
-        import logging
-        logger = logging.getLogger(__name__)
-
         ip = self.get_client_ip(request)
         email = request.data.get('email', '').lower().strip()
 
-        # ── 1. Rate limit check ──────────────────────────────────────────────
         if getattr(request, 'limited', False):
-            LoginAuditLog.objects.create(
-                user=None,
-                email_attempted=email,
-                ip_address=ip,
-                login_method='PASSWORD',
-                success=False,
-                failure_reason='Rate limit exceeded (5 requests per minute)',
-            )
-            return Response(
-                {'error': 'rate_limit_exceeded', 'detail': 'Too many login attempts. Please wait a minute.'},
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
-            )
+            log_login_attempt(email, ip, 'PASSWORD', False, failure_reason='Rate limit exceeded')
+            return Response({'error': 'rate_limit_exceeded', 'detail': 'Too many login attempts. Please wait a minute.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
-        # ── 2. Lookup user & check server-side lockout ───────────────────────
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            user = None
+        user = User.objects.filter(email=email).first()
 
         if user and user.locked_until and user.locked_until > timezone.now():
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method='PASSWORD',
-                success=False,
-                failure_reason='Account is locked due to too many failed attempts',
-            )
-            return Response(
-                {
-                    'error': 'account_locked',
-                    'detail': 'Account is temporarily locked due to too many failed attempts.',
-                    'locked_until': user.locked_until.isoformat(),
-                },
-                status=status.HTTP_423_LOCKED,
-            )
+            log_login_attempt(email, ip, 'PASSWORD', False, user, 'Account is locked due to too many failed attempts')
+            return Response({
+                'error': 'account_locked',
+                'detail': 'Account is temporarily locked due to too many failed attempts.',
+                'locked_until': user.locked_until.isoformat(),
+            }, status=status.HTTP_423_LOCKED)
 
-        # ── 3. Attempt authentication via SimpleJWT ──────────────────────────
         try:
             response = super().post(request, *args, **kwargs)
         except Exception as e:
-            # Failure — increment counter, lock if threshold hit
-            MAX_ATTEMPTS = 5
-            LOCKOUT_MINUTES = 15
-            if user:
-                user.failed_attempts += 1
-                if user.failed_attempts >= MAX_ATTEMPTS:
-                    from datetime import timedelta
-                    user.locked_until = timezone.now() + timedelta(minutes=LOCKOUT_MINUTES)
-                    failure_reason = f'Account locked after {MAX_ATTEMPTS} failed attempts'
-                else:
-                    failure_reason = f'Invalid credentials (attempt {user.failed_attempts}/{MAX_ATTEMPTS})'
-                user.save(update_fields=['failed_attempts', 'locked_until'])
-            else:
-                failure_reason = 'No account found with this email'
-
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method='PASSWORD',
-                success=False,
-                failure_reason=failure_reason,
-            )
-            logger.warning(f'Failed password login for {email} from {ip}: {failure_reason}')
+            handle_failed_login(user, email, ip, "PASSWORD")
             raise e
 
         if response.status_code == 200:
-            # Set the refresh token as an httpOnly SameSite=Strict cookie and remove it from JSON body
             refresh_token = response.data.pop('refresh', None)
             if refresh_token:
-                response.set_cookie(
-                    key='refresh_token',
-                    value=refresh_token,
-                    httponly=True,
-                    samesite='Strict',
-                    secure=not settings.DEBUG,
-                    max_age=7 * 24 * 60 * 60 # 7 days
-                )
+                response = set_jwt_cookies(response, refresh_token)
 
-            # Success — reset counters, update audit fields
             if user:
                 user.failed_attempts = 0
                 user.locked_until = None
@@ -303,176 +109,75 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 user.save(update_fields=['failed_attempts', 'locked_until', 'last_login_ip', 'last_login_at'])
 
                 role_redirect_map = {
-                    'ADMIN': '/admin/dashboard',
-                    'DOCTOR': '/doctor/dashboard',
-                    'NURSE': '/nurse/dashboard',
-                    'RECEPTIONIST': '/reception/dashboard',
-                    'PHARMACIST': '/pharmacy/dashboard',
-                    'LAB_TECHNICIAN': '/lab/dashboard',
-                    'RADIOLOGIST': '/radiology/dashboard',
+                    'ADMIN': '/admin/dashboard', 'DOCTOR': '/doctor/dashboard', 'NURSE': '/nurse/dashboard',
+                    'RECEPTIONIST': '/reception/dashboard', 'PHARMACIST': '/pharmacy/dashboard',
+                    'LAB_TECHNICIAN': '/lab/dashboard', 'RADIOLOGIST': '/radiology/dashboard',
                 }
                 response.data['redirect_to'] = role_redirect_map.get(user.role, '/dashboard')
                 response.data['user'] = UserSerializer(user, context={'request': request}).data
 
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method='PASSWORD',
-                success=True,
-            )
+            log_login_attempt(email, ip, 'PASSWORD', True, user)
             logger.info(f'Successful password login for {email} from {ip}')
         else:
-            # Failure — increment counter, lock if threshold hit
-            MAX_ATTEMPTS = 5
-            LOCKOUT_MINUTES = 15
-            if user:
-                user.failed_attempts += 1
-                if user.failed_attempts >= MAX_ATTEMPTS:
-                    from datetime import timedelta
-                    user.locked_until = timezone.now() + timedelta(minutes=LOCKOUT_MINUTES)
-                    failure_reason = f'Account locked after {MAX_ATTEMPTS} failed attempts'
-                else:
-                    failure_reason = f'Invalid credentials (attempt {user.failed_attempts}/{MAX_ATTEMPTS})'
-                user.save(update_fields=['failed_attempts', 'locked_until'])
-            else:
-                failure_reason = 'No account found with this email'
-
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method='PASSWORD',
-                success=False,
-                failure_reason=failure_reason,
-            )
-            logger.warning(f'Failed password login for {email} from {ip}: {failure_reason}')
+            handle_failed_login(user, email, ip, "PASSWORD")
 
         return response
 
-
-# ── Check Email ───────────────────────────────────────────────────────────────
-
 @method_decorator(ratelimit(key='ip', rate='20/m', method='POST', block=False), name='post')
 class CheckEmailView(generics.GenericAPIView):
-    """
-    POST /api/auth/check-email/
-    Accepts {"email": "..."} and returns whether an active account exists.
-
-    Security rules:
-    - Non-existent accounts → {"exists": false}
-    - Inactive (pending approval) accounts → {"exists": false}
-      (do NOT reveal that an inactive account exists — prevents enumeration)
-    - Active accounts → {"exists": true, "first_name": ..., "role_label": ..., "department": ...}
-    - Rate limited to 20 requests/minute per IP.
-    """
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        # ── Rate limit guard ────────────────────────────────────────────────
         if getattr(request, 'limited', False):
-            return Response(
-                {'error': 'rate_limit_exceeded', 'detail': 'Too many requests. Please slow down.'},
-                status=status.HTTP_429_TOO_MANY_REQUESTS,
-            )
+            return Response({'error': 'rate_limit_exceeded', 'detail': 'Too many requests. Please slow down.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
         email = request.data.get('email', '').lower().strip()
         if not email:
             return Response({'exists': False})
 
-        # ── Lookup — only reveal active accounts ────────────────────────────
         user = User.objects.filter(email=email, is_active=True).first()
-
         if not user:
-            # Covers both "no account" and "account pending approval" —
-            # client gets the same response in both cases.
             return Response({'exists': False})
 
         return Response({
-            'exists':     True,
+            'exists': True,
             'first_name': user.full_name.split()[0] if user.full_name else '',
             'role_label': user.get_role_display(),
-            'role':       user.role,
-            'department': user.department.name if user.department else None,
+            'role': user.role,
+            'department': _safe_department_name(user),
         })
-
-
-# ── User Profile ──────────────────────────────────────────────────────────────
 
 class UserProfileView(generics.RetrieveUpdateAPIView):
     permission_classes = (IsAuthenticated,)
     serializer_class = UserSerializer
 
     def get_object(self):
-        # Always return the currently authenticated user
         return self.request.user
-
 
 class ChangePasswordView(generics.UpdateAPIView):
     serializer_class = ChangePasswordSerializer
-    model = User
     permission_classes = (IsAuthenticated,)
 
-    def get_object(self, queryset=None):
+    def get_object(self):
         return self.request.user
 
     def update(self, request, *args, **kwargs):
         self.object = self.get_object()
         serializer = self.get_serializer(data=request.data)
 
-        if serializer.is_valid():
-            if not self.object.check_password(serializer.data.get("old_password")):
+        if serializer.is_valid(raise_exception=True):
+            if not self.object.check_password(serializer.validated_data.get("old_password")):
                 return Response({"old_password": ["Wrong password."]}, status=status.HTTP_400_BAD_REQUEST)
 
-            self.object.set_password(serializer.data.get("new_password"))
+            self.object.set_password(serializer.validated_data.get("new_password"))
             self.object.save()
 
-            # Send security notification email
-            try:
-                from .utils import send_password_changed_email
-                send_password_changed_email(self.object)
-            except Exception:
-                pass
+            try: send_password_changed_email(self.object)
+            except Exception: pass
 
             return Response({"detail": "Password updated successfully"}, status=status.HTTP_200_OK)
 
-
-        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
-
-
-class LogoutView(generics.GenericAPIView):
-    permission_classes = (IsAuthenticated,)
-
-    def post(self, request):
-        try:
-            refresh_token = request.data["refresh"]
-            token = RefreshToken(refresh_token)
-            token.blacklist()
-            return Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
-        except Exception:
-            return Response({"detail": "Invalid token or token is already blacklisted."}, status=status.HTTP_400_BAD_REQUEST)
-
-
-# ── Profile Completion ───────────────────────────────────────────────────────
-
-class DepartmentListView(generics.ListAPIView):
-    """
-    GET /auth/departments/
-    Returns all available departments for the profile completion dropdown.
-    """
-    permission_classes = (AllowAny,)
-    serializer_class = DepartmentSerializer
-    queryset = Department.objects.all().order_by('name')
-
-
 class CompleteProfileView(generics.GenericAPIView):
-    """
-    PATCH /auth/complete-profile/
-    Body: { "department": "<uuid>", "employee_id": "...", "phone": "..." }
-
-    Completes the profile for a Google SSO user, sets must_complete_profile = False,
-    and returns a fresh JWT pair.
-    """
     permission_classes = (IsAuthenticated,)
     serializer_class = CompleteProfileSerializer
 
@@ -482,53 +187,20 @@ class CompleteProfileView(generics.GenericAPIView):
 
         user = request.user
         user.department = serializer.validated_data['department']
-
-        employee_id = serializer.validated_data.get('employee_id')
-        phone = serializer.validated_data.get('phone')
-        if employee_id:
+        
+        if employee_id := serializer.validated_data.get('employee_id'):
             user.employee_id = employee_id
-        if phone:
+        if phone := serializer.validated_data.get('phone'):
             user.phone = phone
 
         user.must_complete_profile = False
         user.save(update_fields=['department', 'employee_id', 'phone', 'must_complete_profile'])
 
-        # Issue fresh tokens so must_complete_profile claim is updated
-        refresh = RefreshToken.for_user(user)
-        refresh['role'] = user.role
-        refresh['full_name'] = user.full_name
-        refresh['department'] = str(user.department.id) if user.department else None
-        refresh['must_complete_profile'] = False
-
-        new_access = str(refresh.access_token)
-        new_refresh = str(refresh)
-
-        response = Response({
-            'detail': 'Profile completed successfully.',
-            'access': new_access,
-        }, status=status.HTTP_200_OK)
-
-        response.set_cookie(
-            key='refresh_token',
-            value=new_refresh,
-            httponly=True,
-            samesite='Strict',
-            secure=not settings.DEBUG,
-            max_age=7 * 24 * 60 * 60
-        )
-        return response
-
-
-# ── Password Reset Flow ───────────────────────────────────────────────────────
+        tokens = generate_auth_tokens(user)
+        response = Response({'detail': 'Profile completed successfully.', 'access': tokens['access']}, status=status.HTTP_200_OK)
+        return set_jwt_cookies(response, tokens['refresh'])
 
 class ForgotPasswordView(generics.GenericAPIView):
-    """
-    POST /auth/forgot-password/
-    Body: { "email": "user@example.com" }
-
-    Generates a 6-digit OTP and emails it.
-    Always returns 200 even if the email is not registered (prevents user enumeration).
-    """
     permission_classes = (AllowAny,)
     serializer_class = ForgotPasswordSerializer
 
@@ -537,47 +209,21 @@ class ForgotPasswordView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         email = serializer.validated_data['email']
-
-        # Check if the user exists
         if not User.objects.filter(email=email).exists():
-            return Response(
-                {"detail": "No account is registered with this email address."},
-                status=status.HTTP_400_BAD_REQUEST
-            )
+            return Response({"detail": "No account is registered with this email address."}, status=status.HTTP_400_BAD_REQUEST)
 
-        # Invalidate any previous unused OTPs for this email
         PasswordResetOTP.objects.filter(email=email, is_used=False).update(is_used=True)
-
-        # Create a fresh OTP record (otp + expires_at auto-set in model.save)
         otp_record = PasswordResetOTP.objects.create(email=email)
 
-        # Send email — log errors
-        logger = logging.getLogger(__name__)
         try:
-            from .utils import send_otp_email
             send_otp_email(email, otp_record.otp)
             logger.info(f'OTP email dispatched to {email}')
         except Exception as exc:
             logger.exception(f'Failed to send OTP email to {email}: {exc}')
-            # OTP is still in the DB so staff can look it up in Admin if needed
 
-        return Response(
-            {
-                "message": "A password reset code has been sent to your email address.",
-                "email": email,
-            },
-            status=status.HTTP_200_OK,
-        )
-
+        return Response({"message": "A password reset code has been sent to your email address.", "email": email}, status=status.HTTP_200_OK)
 
 class VerifyOtpView(generics.GenericAPIView):
-    """
-    POST /auth/verify-otp/
-    Body: { "email": "user@example.com", "otp": "123456" }
-
-    Validates the OTP, marks it as used, and returns the OTP record ID
-    as a short-lived one-time token for the reset-password step.
-    """
     permission_classes = (AllowAny,)
     serializer_class = VerifyOtpSerializer
 
@@ -586,27 +232,12 @@ class VerifyOtpView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         otp_record = serializer.validated_data['otp_record']
-
-        # Mark the OTP as used (consumed, cannot be reused)
         otp_record.is_used = True
         otp_record.save(update_fields=['is_used'])
 
-        return Response(
-            {
-                "message": "OTP verified successfully.",
-                "token": otp_record.pk,   # Frontend sends this back in the reset step
-            },
-            status=status.HTTP_200_OK,
-        )
-
+        return Response({"message": "OTP verified successfully.", "token": otp_record.pk}, status=status.HTTP_200_OK)
 
 class ResetPasswordView(generics.GenericAPIView):
-    """
-    POST /auth/reset-password/
-    Body: { "otp_record_id": <int>, "password": "...", "confirm_password": "..." }
-
-    Sets a new password. The otp_record_id must correspond to a used (verified) OTP.
-    """
     permission_classes = (AllowAny,)
     serializer_class = ResetPasswordSerializer
 
@@ -615,33 +246,14 @@ class ResetPasswordView(generics.GenericAPIView):
         serializer.is_valid(raise_exception=True)
 
         user = serializer.validated_data['user']
-        new_password = serializer.validated_data['password']
-
-        user.set_password(new_password)
+        user.set_password(serializer.validated_data['password'])
         user.save(update_fields=['password'])
 
-        # Send security notification email
-        try:
-            from .utils import send_password_changed_email
-            send_password_changed_email(user)
-        except Exception:
-            pass
+        try: send_password_changed_email(user)
+        except Exception: pass
 
-        # Clean up all OTP records for this email (housekeeping)
         PasswordResetOTP.objects.filter(email=user.email).delete()
-
-        return Response(
-            {"message": "Password reset successfully. You can now sign in with your new credentials."},
-            status=status.HTTP_200_OK,
-        )
-
-
-from django.utils.decorators import method_decorator
-from django_ratelimit.decorators import ratelimit
-from rest_framework.views import APIView
-from google.oauth2 import id_token as google_id_token
-from google.auth.transport import requests as google_requests
-from .models import LoginAuditLog
+        return Response({"message": "Password reset successfully. You can now sign in with your new credentials."}, status=status.HTTP_200_OK)
 
 @method_decorator(ratelimit(key='ip', rate='10/m', method='POST', block=False), name='post')
 class GoogleLoginView(APIView):
@@ -649,179 +261,77 @@ class GoogleLoginView(APIView):
 
     def get_client_ip(self, request):
         x_forwarded_for = request.META.get('HTTP_X_FORWARDED_FOR')
-        if x_forwarded_for:
-            return x_forwarded_for.split(',')[0].strip()
-        return request.META.get('REMOTE_ADDR')
+        return x_forwarded_for.split(',')[0].strip() if x_forwarded_for else request.META.get('REMOTE_ADDR')
 
     def post(self, request, *args, **kwargs):
-        # 1. Rate Limiting Check
         ip = self.get_client_ip(request)
         if getattr(request, 'limited', False):
-            LoginAuditLog.objects.create(
-                user=None,
-                email_attempted="",
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason="Rate limit exceeded (10 requests per minute)"
-            )
+            log_login_attempt("", ip, "GOOGLE", False, failure_reason="Rate limit exceeded")
             return Response({"error": "rate_limit_exceeded"}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
-        # 2. Extract and verify Google token
         token = request.data.get('id_token') or request.data.get('access_token')
         if not token:
-            LoginAuditLog.objects.create(
-                user=None,
-                email_attempted="",
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason="Missing token (id_token or access_token required)"
-            )
+            log_login_attempt("", ip, "GOOGLE", False, failure_reason="Missing token")
             return Response({'error': 'id_token_required'}, status=status.HTTP_400_BAD_REQUEST)
 
         try:
             try:
-                # Verify via google-auth library (expects JWT ID Token)
-                idinfo = google_id_token.verify_oauth2_token(
-                    token,
-                    google_requests.Request(),
-                    settings.GOOGLE_CLIENT_ID
-                )
-
-                # Validate iss (issuer)
+                idinfo = google_id_token.verify_oauth2_token(token, google_requests.Request(), settings.GOOGLE_CLIENT_ID)
                 if idinfo['iss'] not in ['accounts.google.com', 'https://accounts.google.com']:
                     raise ValueError('Invalid token issuer.')
-
-                # Validate email_verified
                 if not idinfo.get('email_verified'):
                     raise ValueError('Email not verified by Google.')
-
-                email = idinfo.get('email')
-                sub = idinfo.get('sub')
+                email, sub = idinfo.get('email'), idinfo.get('sub')
             except ValueError as val_err:
-                # Fall back to verifying access_token via Google's tokeninfo API
                 import requests
                 resp = requests.get(f"https://oauth2.googleapis.com/tokeninfo?access_token={token}")
-                if resp.status_code != 200:
-                    raise ValueError(f"Invalid access token or token expired: {resp.text}") from val_err
+                if resp.status_code != 200: raise ValueError(f"Invalid access token: {resp.text}") from val_err
                 info = resp.json()
-                aud = info.get('aud') or info.get('audience')
-                if aud != settings.GOOGLE_CLIENT_ID and info.get('issued_to') != settings.GOOGLE_CLIENT_ID:
+                if (info.get('aud') or info.get('audience')) != settings.GOOGLE_CLIENT_ID and info.get('issued_to') != settings.GOOGLE_CLIENT_ID:
                     raise ValueError("Token client ID mismatch.") from val_err
-                email_verified = info.get('email_verified') or info.get('verified_email')
-                if str(email_verified).lower() != 'true':
+                if str(info.get('email_verified') or info.get('verified_email')).lower() != 'true':
                     raise ValueError("Email not verified by Google.") from val_err
-                email = info.get('email')
-                sub = info.get('sub') or info.get('user_id')
+                email, sub = info.get('email'), info.get('sub') or info.get('user_id')
         except Exception as e:
-            LoginAuditLog.objects.create(
-                user=None,
-                email_attempted="",
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason=f"Token verification failed: {str(e)}"
-            )
+            log_login_attempt("", ip, "GOOGLE", False, failure_reason=f"Token verification failed: {str(e)}")
             return Response({'error': 'invalid_token', 'detail': str(e)}, status=status.HTTP_400_BAD_REQUEST)
 
-        # 3. Check if email exists in HMSUser
-        try:
-            user = User.objects.get(email=email)
-        except User.DoesNotExist:
-            LoginAuditLog.objects.create(
-                user=None,
-                email_attempted=email,
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason="User not registered"
-            )
+        user = User.objects.filter(email=email).first()
+        if not user:
+            log_login_attempt(email, ip, "GOOGLE", False, failure_reason="User not registered")
             return Response({"error": "not_registered"}, status=status.HTTP_403_FORBIDDEN)
 
-        # 4. Check is_active and locked_until status
         if user.locked_until and user.locked_until > timezone.now():
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason="Account is locked"
-            )
-            return Response({
-                "error": "account_locked",
-                "locked_until": user.locked_until.isoformat()
-            }, status=status.HTTP_423_LOCKED)
+            log_login_attempt(email, ip, "GOOGLE", False, user, "Account is locked")
+            return Response({"error": "account_locked", "locked_until": user.locked_until.isoformat()}, status=status.HTTP_423_LOCKED)
 
         if not user.is_active:
-            LoginAuditLog.objects.create(
-                user=user,
-                email_attempted=email,
-                ip_address=ip,
-                login_method="GOOGLE",
-                success=False,
-                failure_reason="Account is inactive"
-            )
+            log_login_attempt(email, ip, "GOOGLE", False, user, "Account is inactive")
             return Response({"error": "inactive_account"}, status=status.HTTP_403_FORBIDDEN)
 
-        # 5. Link Google profile if google_sub is null
         if not user.google_sub:
             user.google_sub = sub
             user.is_google_user = True
             user.must_complete_profile = True
             user.save(update_fields=['google_sub', 'is_google_user', 'must_complete_profile'])
 
-        # 6. Issue custom SimpleJWT tokens
-        refresh = RefreshToken.for_user(user)
-        refresh['role'] = user.role
-        refresh['full_name'] = user.full_name
-        refresh['department'] = str(user.department.id) if user.department else None
-        refresh['must_complete_profile'] = user.must_complete_profile
-
-        access_token = str(refresh.access_token)
-        refresh_token = str(refresh)
-
-        # Write successful LoginAuditLog entry
-        LoginAuditLog.objects.create(
-            user=user,
-            email_attempted=email,
-            ip_address=ip,
-            login_method="GOOGLE",
-            success=True
-        )
+        tokens = generate_auth_tokens(user)
+        log_login_attempt(email, ip, "GOOGLE", True, user)
 
         role_redirect_map = {
-            'ADMIN': '/admin/dashboard',
-            'DOCTOR': '/doctor/dashboard',
-            'NURSE': '/nurse/dashboard',
-            'RECEPTIONIST': '/reception/dashboard',
-            'PHARMACIST': '/pharmacy/dashboard',
-            'LAB_TECHNICIAN': '/lab/dashboard',
-            'RADIOLOGIST': '/radiology/dashboard',
+            'ADMIN': '/admin/dashboard', 'DOCTOR': '/doctor/dashboard', 'NURSE': '/nurse/dashboard',
+            'RECEPTIONIST': '/reception/dashboard', 'PHARMACIST': '/pharmacy/dashboard',
+            'LAB_TECHNICIAN': '/lab/dashboard', 'RADIOLOGIST': '/radiology/dashboard',
         }
 
-        # 7. Return access token and set refresh token as httpOnly SameSite=Strict cookie
         response = Response({
-            "access": access_token,
+            "access": tokens['access'],
             "must_complete_profile": user.must_complete_profile,
             "redirect_to": role_redirect_map.get(user.role, '/dashboard'),
             "user": UserSerializer(user, context={'request': request}).data
         }, status=status.HTTP_200_OK)
 
-        response.set_cookie(
-            key='refresh_token',
-            value=refresh_token,
-            httponly=True,
-            samesite='Strict',
-            secure=not settings.DEBUG,
-            max_age=7 * 24 * 60 * 60 # 7 days
-        )
-
-        return response
-
-
-from rest_framework_simplejwt.exceptions import InvalidToken, TokenError
+        return set_jwt_cookies(response, tokens['refresh'])
 
 class CustomTokenRefreshView(APIView):
     permission_classes = (AllowAny,)
@@ -833,248 +343,25 @@ class CustomTokenRefreshView(APIView):
 
         try:
             token = RefreshToken(refresh_token)
-            user_id = token.payload.get('user_id')
-            user = User.objects.get(id=user_id)
-            
-            # Blacklist the old token
+            user = User.objects.get(id=token.payload.get('user_id'))
             token.blacklist()
             
-            # Rotate refresh token
-            new_refresh = RefreshToken.for_user(user)
-            new_refresh['role'] = user.role
-            new_refresh['full_name'] = user.full_name
-            new_refresh['department'] = str(user.department.id) if user.department else None
-            new_refresh['must_complete_profile'] = user.must_complete_profile
-            
-            new_access_token = str(new_refresh.access_token)
-            new_refresh_token = str(new_refresh)
+            tokens = generate_auth_tokens(user)
         except (TokenError, InvalidToken, User.DoesNotExist) as e:
             return Response({"error": "invalid_refresh_token", "detail": str(e)}, status=status.HTTP_401_UNAUTHORIZED)
 
-        response = Response({
-            "access": new_access_token
-        }, status=status.HTTP_200_OK)
-
-        response.set_cookie(
-            key='refresh_token',
-            value=new_refresh_token,
-            httponly=True,
-            samesite='Strict',
-            secure=not settings.DEBUG,
-            max_age=7 * 24 * 60 * 60 # 7 days
-        )
-        return response
+        response = Response({"access": tokens['access']}, status=status.HTTP_200_OK)
+        return set_jwt_cookies(response, tokens['refresh'])
 
 class CustomLogoutView(APIView):
     permission_classes = (AllowAny,)
 
     def post(self, request, *args, **kwargs):
-        refresh_token = request.COOKIES.get('refresh_token')
-        if refresh_token:
-            try:
-                token = RefreshToken(refresh_token)
-                token.blacklist()
-            except Exception:
-                pass
+        if refresh_token := request.COOKIES.get('refresh_token'):
+            try: RefreshToken(refresh_token).blacklist()
+            except Exception: pass
                 
         response = Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
-        response.delete_cookie("refresh_token", path="/api/v1/auth/")
-        response.delete_cookie("refresh_token", path="/api/auth/")
-        response.delete_cookie("refresh_token", path="/")
+        for path in ["/api/v1/auth/", "/api/auth/", "/"]:
+            response.delete_cookie("refresh_token", path=path)
         return response
-
-
-# ── Milestone 3 ViewSets (Scheduling & Directories) ───────────────────────────
-
-from rest_framework import viewsets
-from rest_framework.exceptions import PermissionDenied
-from .models import Patient, Doctor, DoctorAvailability, Appointment
-from .serializers import PatientProfileSerializer, DoctorProfileSerializer, DoctorAvailabilitySerializer, AppointmentSerializer
-from .permissions import IsClinicalStaff, IsAdminUser, IsDoctorUser
-
-class PatientViewSet(viewsets.ReadOnlyModelViewSet):
-    """
-    ReadOnlyViewSet for Patient profiles. Only accessible by clinical staff (Admins, Doctors, Receptionists, Nurses, etc.).
-    """
-    queryset = Patient.objects.all().select_related('user', 'user__department')
-    serializer_class = PatientProfileSerializer
-    permission_classes = [IsAuthenticated, IsClinicalStaff]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        mrn = self.request.query_params.get('mrn')
-        name = self.request.query_params.get('name')
-        if mrn:
-            qs = qs.filter(mrn__iexact=mrn)
-        if name:
-            qs = qs.filter(user__full_name__icontains=name)
-        return qs
-
-
-class DoctorViewSet(viewsets.ModelViewSet):
-    """
-    ModelViewSet for Doctor profiles.
-    - List/Retrieve is available to all authenticated users (so patients can browse doctors).
-    - Create/Update/Delete is restricted to Admin.
-    """
-    queryset = Doctor.objects.all().select_related('user', 'user__department')
-    serializer_class = DoctorProfileSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_permissions(self):
-        if self.action in ['create', 'update', 'partial_update', 'destroy']:
-            return [IsAdminUser()]
-        return [IsAuthenticated()]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        specialization = self.request.query_params.get('specialization')
-        department_name = self.request.query_params.get('department')
-        if specialization:
-            qs = qs.filter(specialization__icontains=specialization)
-        if department_name:
-            qs = qs.filter(user__department__name__icontains=department_name)
-        return qs
-
-
-class DoctorAvailabilityViewSet(viewsets.ModelViewSet):
-    """
-    ModelViewSet for Doctor published shifts/availabilities.
-    - List/Retrieve is available to all authenticated users.
-    - Create/Update/Delete is restricted to the Doctor owner themselves or Admins.
-    """
-    queryset = DoctorAvailability.objects.all().select_related('doctor', 'doctor__user')
-    serializer_class = DoctorAvailabilitySerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        qs = super().get_queryset()
-        doctor_id = self.request.query_params.get('doctor_id')
-        day_of_week = self.request.query_params.get('day_of_week')
-        if doctor_id:
-            qs = qs.filter(doctor_id=doctor_id)
-        if day_of_week is not None:
-            qs = qs.filter(day_of_week=day_of_week)
-        return qs
-
-    def perform_create(self, serializer):
-        doctor = serializer.validated_data.get('doctor')
-        if self.request.user.role == 'DOCTOR':
-            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != doctor:
-                raise PermissionDenied("You can only configure shift availabilities for your own doctor profile.")
-        elif self.request.user.role != 'ADMIN':
-            raise PermissionDenied("You do not have permission to configure doctor availability.")
-        serializer.save()
-
-    def perform_update(self, serializer):
-        av = self.get_object()
-        if self.request.user.role == 'DOCTOR':
-            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != av.doctor:
-                raise PermissionDenied("You can only modify your own shift availabilities.")
-        elif self.request.user.role != 'ADMIN':
-            raise PermissionDenied("You do not have permission to modify doctor availability.")
-        serializer.save()
-
-    def perform_destroy(self, instance):
-        if self.request.user.role == 'DOCTOR':
-            if not hasattr(self.request.user, 'doctor_profile') or self.request.user.doctor_profile != instance.doctor:
-                raise PermissionDenied("You can only delete your own shift availabilities.")
-        elif self.request.user.role != 'ADMIN':
-            raise PermissionDenied("You do not have permission to delete doctor availability.")
-        instance.delete()
-
-
-class AppointmentViewSet(viewsets.ModelViewSet):
-    """
-    ModelViewSet for Appointment booking slots.
-    RBAC Row-Level Security:
-    - Patients can only see/book/cancel their own appointments.
-    - Doctors can only see/edit their own appointments.
-    - Admins and Receptionists have full administrative CRUD access.
-    """
-    queryset = Appointment.objects.all().select_related('patient', 'patient__user', 'doctor', 'doctor__user')
-    serializer_class = AppointmentSerializer
-    permission_classes = [IsAuthenticated]
-
-    def get_queryset(self):
-        user = self.request.user
-        qs = super().get_queryset()
-
-        if user.role == 'PATIENT':
-            qs = qs.filter(patient__user=user)
-        elif user.role == 'DOCTOR':
-            qs = qs.filter(doctor__user=user)
-        elif user.role not in ('ADMIN', 'RECEPTIONIST'):
-            if user.role not in ('NURSE', 'LAB_TECHNICIAN', 'RADIOLOGIST'):
-                return qs.none()
-
-        doctor_id = self.request.query_params.get('doctor_id')
-        patient_id = self.request.query_params.get('patient_id')
-        date = self.request.query_params.get('date')
-        status = self.request.query_params.get('status')
-
-        if doctor_id:
-            qs = qs.filter(doctor_id=doctor_id)
-        if patient_id:
-            qs = qs.filter(patient_id=patient_id)
-        if date:
-            qs = qs.filter(date=date)
-        if status:
-            qs = qs.filter(status=status)
-
-        return qs
-
-    def perform_create(self, serializer):
-        user = self.request.user
-
-        if user.role == 'PATIENT':
-            if not hasattr(user, 'patient_profile'):
-                patient = Patient.objects.create(user=user)
-            else:
-                patient = user.patient_profile
-            serializer.save(patient=patient)
-        elif user.role in ('ADMIN', 'RECEPTIONIST'):
-            serializer.save()
-        else:
-            raise PermissionDenied("You do not have permission to book appointments.")
-
-    def perform_update(self, serializer):
-        user = self.request.user
-        appt = self.get_object()
-
-        if user.role == 'PATIENT':
-            if appt.patient.user != user:
-                raise PermissionDenied("You can only modify your own appointments.")
-            new_status = serializer.validated_data.get('status')
-            if new_status and new_status != 'CANCELLED':
-                raise PermissionDenied("Patients can only cancel appointments.")
-            serializer.save(
-                patient=appt.patient,
-                doctor=appt.doctor,
-                date=appt.date,
-                start_time=appt.start_time,
-                end_time=appt.end_time
-            )
-        elif user.role == 'DOCTOR':
-            if appt.doctor.user != user:
-                raise PermissionDenied("You can only modify appointments assigned to you.")
-            serializer.save(
-                patient=appt.patient,
-                doctor=appt.doctor,
-                date=appt.date,
-                start_time=appt.start_time,
-                end_time=appt.end_time
-            )
-        elif user.role in ('ADMIN', 'RECEPTIONIST'):
-            serializer.save()
-        else:
-            raise PermissionDenied("You do not have permission to update appointments.")
-
-    def perform_destroy(self, instance):
-        if self.request.user.role not in ('ADMIN', 'RECEPTIONIST'):
-            raise PermissionDenied("Only administrators and receptionists can delete appointment entries.")
-        instance.delete()
-
-
-
-

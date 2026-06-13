@@ -1,7 +1,8 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin as BaseUserAdmin
 from django.utils.html import format_html
-from .models import HMSUser, Department, LoginAuditLog, PasswordResetOTP
+from .models import HMSUser, LoginAuditLog, PasswordResetOTP
+from departments.models import Department
 
 
 # ── Department ────────────────────────────────────────────────────────────────

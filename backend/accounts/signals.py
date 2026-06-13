@@ -1,7 +1,11 @@
 from django.db.models.signals import post_save
 from django.dispatch import receiver
 from django.contrib.auth import get_user_model
-from .models import Patient, Doctor, DoctorApplication
+from patients.models import Patient
+from doctors.models import Doctor
+from applications.models import DoctorApplication
+from clinical.models import MedicalRecord
+from pharmacy.models import PrescriptionDispense
 
 User = get_user_model()
 
@@ -25,3 +29,19 @@ def create_user_profile(sender, instance, created, **kwargs):
                     'specialization': spec,
                 }
             )
+
+
+@receiver(post_save, sender=MedicalRecord)
+def create_prescription_dispense(sender, instance, created, **kwargs):
+    """
+    Post-save signal to automatically generate a PrescriptionDispense record
+    when a new MedicalRecord containing prescription text is finalized.
+    """
+    if created and instance.prescription and instance.prescription.strip():
+        PrescriptionDispense.objects.get_or_create(
+            medical_record=instance,
+            defaults={
+                'status': 'PENDING',
+                'amount': 0.00
+            }
+        )

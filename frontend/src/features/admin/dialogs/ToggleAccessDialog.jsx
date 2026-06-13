@@ -1,20 +1,9 @@
 import React from 'react';
 import { Dialog, DialogTitle, DialogContent, DialogContentText, DialogActions, Box, Grid, Typography, Chip, Button, Divider, Avatar } from '@mui/material';
 import { AlertTriangle } from 'lucide-react';
-import { api as axiosInstance } from '../../../lib/api';
+import { getMediaUrl, getFilename } from '../../../shared/utils/mediaUtils';
 
-const getMediaUrl = (path) => {
-    if (!path) return '#';
-    if (path.startsWith('http://') || path.startsWith('https://')) return path;
-    const base = axiosInstance.defaults.baseURL || 'http://localhost:8000/api/';
-    const domain = base.replace(/\/api\/?.*$/, '');
-    return `${domain}${path}`;
-};
 
-const getFilename = (url) => {
-    if (!url) return 'document.pdf';
-    return url.split('/').pop();
-};
 
 export const ToggleAccessDialog = ({ open, onClose, user, applications = [], onConfirm }) => {
     if (!user) return null;

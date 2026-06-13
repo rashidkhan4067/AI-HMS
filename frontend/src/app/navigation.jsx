@@ -4,6 +4,12 @@ import MailIcon from '@mui/icons-material/Mail';
 import AssignmentIndIcon from '@mui/icons-material/AssignmentInd';
 import PeopleIcon from '@mui/icons-material/People';
 import ShieldIcon from '@mui/icons-material/Shield';
+import BusinessIcon from '@mui/icons-material/Business';
+import AttachMoneyIcon from '@mui/icons-material/AttachMoney';
+import HotelIcon from '@mui/icons-material/Hotel';
+import CalendarMonthIcon from '@mui/icons-material/CalendarMonth';
+import CalendarTodayIcon from '@mui/icons-material/CalendarToday';
+import AssignmentTurnedInIcon from '@mui/icons-material/AssignmentTurnedIn';
 
 /**
  * Global Navigation Configuration
@@ -14,13 +20,13 @@ export const mainNavigation = [
         text: 'Dashboard', 
         icon: <DashboardIcon />, 
         path: '/dashboard',
-        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT']
+        roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST', 'PATIENT']
     },
     { 
         text: 'Profile', 
         icon: <PersonIcon />, 
         path: '/profile',
-        roles: ['ADMIN', 'DOCTOR', 'RECEPTIONIST', 'PATIENT']
+        roles: ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST', 'PATIENT']
     },
 ];
 
@@ -32,7 +38,37 @@ export const adminNavigation = [
         roles: ['ADMIN']
     },
     {
-        text: 'Staff Invitations',
+        text: 'Financials',
+        icon: <AttachMoneyIcon />,
+        path: '/admin/revenue',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'PMDC Compliance',
+        icon: <AssignmentTurnedInIcon />,
+        path: '/admin/compliance',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'IPD Bed Grid',
+        icon: <HotelIcon />,
+        path: '/admin/ipd',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'Duty Roster',
+        icon: <CalendarMonthIcon />,
+        path: '/admin/roster',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'Appointments',
+        icon: <CalendarTodayIcon />,
+        path: '/admin/appointments',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'Staff Onboarding',
         icon: <MailIcon />,
         path: '/admin/invites',
         roles: ['ADMIN']
@@ -41,6 +77,12 @@ export const adminNavigation = [
         text: 'Doctor Reviews',
         icon: <AssignmentIndIcon />,
         path: '/admin/applications',
+        roles: ['ADMIN']
+    },
+    {
+        text: 'Departments',
+        icon: <BusinessIcon />,
+        path: '/admin/departments',
         roles: ['ADMIN']
     },
     {

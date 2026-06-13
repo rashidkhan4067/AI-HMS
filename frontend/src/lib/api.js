@@ -17,7 +17,7 @@ const getBaseURL = () => {
         return 'https://ai-hms-production.up.railway.app/api';
     }
 
-    return 'http://localhost:8000/api';
+    return 'http://127.0.0.1:8000/api';
 };
 
 const envBaseURL = getBaseURL();

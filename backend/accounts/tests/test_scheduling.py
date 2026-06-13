@@ -4,7 +4,9 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.utils import timezone
 from datetime import date, time
-from accounts.models import Patient, Doctor, DoctorAvailability, Appointment
+from patients.models import Patient
+from doctors.models import Doctor
+from appointments.models import DoctorAvailability, Appointment
 
 User = get_user_model()
 

@@ -4,15 +4,23 @@ from rest_framework import status
 from rest_framework.test import APITestCase
 from django.utils import timezone
 from datetime import timedelta
-from accounts.models import Department, StaffInvite, DoctorApplication, LoginAuditLog
+from departments.models import Department
+from invitations.models import StaffInvite
+from applications.models import DoctorApplication
+from accounts.models import LoginAuditLog
 
 User = get_user_model()
 
 class AdminAPITests(APITestCase):
     def setUp(self):
         # Create or fetch departments (handles pre-existing data from migrations)
-        self.cardiology, _ = Department.objects.get_or_create(name='Cardiology', defaults={'description': 'Heart services'})
-        self.pediatrics, _ = Department.objects.get_or_create(name='Pediatrics', defaults={'description': 'Kids services'})
+        self.cardiology, _ = Department.objects.get_or_create(name='Cardiology', defaults={'description': 'Heart services', 'code': 'CARD'})
+        self.cardiology.code = 'CARD'
+        self.cardiology.save(update_fields=['code'])
+
+        self.pediatrics, _ = Department.objects.get_or_create(name='Pediatrics', defaults={'description': 'Kids services', 'code': 'PEDS'})
+        self.pediatrics.code = 'PEDS'
+        self.pediatrics.save(update_fields=['code'])
 
         # Create admin user
         self.admin_user = User.objects.create_user(
@@ -209,3 +217,93 @@ class AdminAPITests(APITestCase):
         self.assertEqual(response.status_code, status.HTTP_200_OK)
         self.assertIn('diagnostics', response.data)
         self.assertIn('message', response.data)
+
+    # ── Department CRUD Tests ─────────────────────────────────────────────
+
+    def test_list_departments(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin_department-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        # Should have at least the departments created in setUp
+        self.assertGreaterEqual(len(response.data), 2)
+        # Each entry should have staff_count
+        for dept in response.data:
+            self.assertIn('staff_count', dept)
+
+    def test_create_department(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin_department-list')
+        response = self.client.post(url, {
+            'name': 'Dermatology',
+            'code': 'DERM',
+            'description': 'Skin and dermal services',
+            'location': 'Building C, Room 10',
+            'contact_number': 'x1234',
+            'is_active': True
+        })
+        self.assertEqual(response.status_code, status.HTTP_201_CREATED)
+        self.assertEqual(response.data['name'], 'Dermatology')
+        self.assertEqual(response.data['code'], 'DERM')
+        self.assertEqual(response.data['location'], 'Building C, Room 10')
+        self.assertEqual(response.data['contact_number'], 'x1234')
+        self.assertTrue(Department.objects.filter(name='Dermatology').exists())
+
+    def test_create_duplicate_department(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin_department-list')
+        response = self.client.post(url, {
+            'name': 'Cardiology',
+            'code': 'CARD2',
+            'description': 'Duplicate name should fail'
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_create_duplicate_code(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin_department-list')
+        response = self.client.post(url, {
+            'name': 'Cardiology2',
+            'code': 'CARD',
+            'description': 'Duplicate code should fail'
+        })
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+
+    def test_update_department(self):
+        self.client.force_authenticate(user=self.admin_user)
+        url = reverse('admin_department-detail', kwargs={'pk': self.pediatrics.id})
+        response = self.client.patch(url, {
+            'description': 'Updated pediatrics description',
+            'is_active': False
+        })
+        self.assertEqual(response.status_code, status.HTTP_200_OK)
+        self.pediatrics.refresh_from_db()
+        self.assertEqual(self.pediatrics.description, 'Updated pediatrics description')
+        self.assertFalse(self.pediatrics.is_active)
+
+    def test_delete_empty_department(self):
+        self.client.force_authenticate(user=self.admin_user)
+        empty_dept = Department.objects.create(name='EmptyDept', code='EMPTY', description='To be deleted')
+        url = reverse('admin_department-detail', kwargs={'pk': empty_dept.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_204_NO_CONTENT)
+        self.assertFalse(Department.objects.filter(pk=empty_dept.id).exists())
+
+    def test_delete_department_with_staff_blocked(self):
+        self.client.force_authenticate(user=self.admin_user)
+        # Assign doctor to cardiology
+        self.doctor_user.department = self.cardiology
+        self.doctor_user.save(update_fields=['department'])
+        url = reverse('admin_department-detail', kwargs={'pk': self.cardiology.id})
+        response = self.client.delete(url)
+        self.assertEqual(response.status_code, status.HTTP_400_BAD_REQUEST)
+        self.assertIn('Cannot delete', response.data['detail'])
+        # Verify department still exists
+        self.assertTrue(Department.objects.filter(pk=self.cardiology.id).exists())
+
+    def test_non_admin_cannot_access_departments(self):
+        self.client.force_authenticate(user=self.doctor_user)
+        url = reverse('admin_department-list')
+        response = self.client.get(url)
+        self.assertEqual(response.status_code, status.HTTP_403_FORBIDDEN)
+
