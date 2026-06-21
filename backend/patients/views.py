@@ -1,15 +1,12 @@
 from rest_framework import generics, status, viewsets
 from rest_framework.response import Response
 from rest_framework.permissions import AllowAny, IsAuthenticated
-from rest_framework_simplejwt.tokens import RefreshToken
 from django.contrib.auth import get_user_model
-from django.conf import settings
 
 from patients.models import Patient
 from patients.serializers import PatientProfileSerializer, RegisterPatientSerializer
-from accounts.models import LoginAuditLog
 from accounts.serializers import UserSerializer
-from accounts.permissions import IsClinicalStaff
+from accounts.permissions import IsStaffUser
 
 User = get_user_model()
 
@@ -41,7 +38,7 @@ class RegisterPatientView(generics.CreateAPIView):
 class PatientViewSet(viewsets.ReadOnlyModelViewSet):
     queryset = Patient.objects.all().select_related('user', 'user__department')
     serializer_class = PatientProfileSerializer
-    permission_classes = [IsAuthenticated, IsClinicalStaff]
+    permission_classes = [IsAuthenticated, IsStaffUser]
 
     def get_queryset(self):
         qs = super().get_queryset()

@@ -1,13 +1,13 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
-    Box, Typography, Card, CardContent, Grid, 
-    TextField, MenuItem, Button, Chip, IconButton, Stack, CircularProgress
+    Box, Typography, TextField, MenuItem, Button, Chip, IconButton, Stack, CircularProgress
 } from '@mui/material';
-import { Plus, RefreshCw, Trash2, Copy, Check } from 'lucide-react';
+import { Plus, RefreshCw, Trash2, Copy, Check, Mail, UserCheck, Clock, ShieldAlert } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { invitationApi } from '../../invitations/services/invitationApi';
 import { departmentApi } from '../../departments/services/departmentApi';
-import { StatusChip, AdminPageHeader, DataTable, SectionCard, AsyncWrapper, ToastNotification } from '../../../shared/components/ui';
+import { StatusChip, AdminPageHeader, DataTable, DashboardCard, StatGrid, StatCard, AsyncWrapper, ToastNotification } from '../../../shared/components/ui';
 import { formatDate } from '../../../shared/utils/dateUtils';
 import { AdminFilterBar } from '../components/AdminFilterBar';
 import { RevokeInviteDialog } from '../../invitations/dialogs/RevokeInviteDialog';
@@ -16,16 +16,18 @@ import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
 import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
-import { FONTS } from '../../../shared/theme.constants';
+import { FONTS, COLORS } from '../../../shared/theme.constants';
 
 export const AdminInvitations = () => {
+    const [searchParams] = useSearchParams();
     const {
         invites,
         users,
         applications,
         loadingStates,
         errorStates,
-        refreshInvites: fetchInvites
+        refreshInvites: fetchInvites,
+        setInvites
     } = useAdmin();
 
     const [departments, setDepartments] = useState([]);
@@ -41,8 +43,8 @@ export const AdminInvitations = () => {
 
     // Search and filter state
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('ALL');
-    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'ALL');
+    const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || 'ALL');
 
     // Hooks
     const pagination = usePagination(10);
@@ -103,13 +105,22 @@ export const AdminInvitations = () => {
         const invite = revokeDialog.data;
         if (!invite) return;
 
+        const previousInvites = invites;
+
+        // Optimistically remove invite from UI
+        setInvites(prev => prev.filter(i => i.id !== invite.id));
+
+        // Close the dialog immediately for smooth UI
+        revokeDialog.closeDialog();
+
         try {
             await invitationApi.revokeInvite(invite.id);
             showToast('Invitation token successfully revoked.', 'success');
-            revokeDialog.closeDialog();
             fetchInvites();
         } catch (err) {
-            showToast('Failed to revoke invitation.', 'error');
+            // Rollback to previous state
+            setInvites(previousInvites);
+            showToast('Failed to revoke invitation. Rolled back.', 'error');
         }
     };
 
@@ -210,131 +221,169 @@ export const AdminInvitations = () => {
         }
     ];
 
+    const invitesList = invites || [];
+    const totalInvites = invitesList.length;
+    const registeredCount = useMemo(() => invitesList.filter(i => i.is_used).length, [invitesList]);
+    const pendingCount = useMemo(() => invitesList.filter(i => !i.is_used && !i.is_expired).length, [invitesList]);
+    const expiredCount = useMemo(() => invitesList.filter(i => !i.is_used && i.is_expired).length, [invitesList]);
+
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, md: 4 } }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AdminPageHeader
                 title="Staff Onboarding Invitations"
                 subtitle="Issue authorization tokens to onboarding medical staff. Invited users must match the assigned email and role."
             />
 
-            <Grid container spacing={3}>
+            {/* KPI Metrics Strip */}
+            <StatGrid cols={4}>
+                <StatCard 
+                    title="Total Invites" 
+                    value={totalInvites} 
+                    supportingText="Tokens generated" 
+                    icon={Mail} 
+                    color={COLORS.PRIMARY} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Pending Register" 
+                    value={pendingCount} 
+                    supportingText="Unused active tokens" 
+                    icon={Clock} 
+                    color={COLORS.WARNING} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Registered Staff" 
+                    value={registeredCount} 
+                    supportingText="Successfully boarded" 
+                    icon={UserCheck} 
+                    color={COLORS.SUCCESS} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Expired Tokens" 
+                    value={expiredCount} 
+                    supportingText="Invalidated invites" 
+                    icon={ShieldAlert} 
+                    color={COLORS.DANGER} 
+                    loading={loading}
+                />
+            </StatGrid>
+
+            <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', md: '340px 1fr' }, gap: 3, alignItems: 'start' }}>
                 {/* Generation Form */}
-                <Grid item xs={12} md={4}>
-                    <Card sx={{ position: { md: 'sticky' }, top: 24, borderRadius: '16px' }}>
-                        <CardContent sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, fontSize: '18px' }}>
-                                Generate Invite Token
-                            </Typography>
-                            <Box component="form" onSubmit={handleCreateInvite} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
-                                <TextField 
-                                    label="Email Address" 
-                                    placeholder="staff@alshifaa.com" 
-                                    type="email"
-                                    fullWidth
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    required
-                                    slotProps={{ input: { sx: { borderRadius: '12px' } } }}
-                                />
-                                <TextField 
-                                    select 
-                                    label="Role Assignment" 
-                                    value={role}
-                                    onChange={(e) => setRole(e.target.value)}
-                                    fullWidth
-                                    slotProps={{ select: { sx: { borderRadius: '12px' } } }}
-                                >
-                                    <MenuItem value="DOCTOR">Doctor / Clinician</MenuItem>
-                                    <MenuItem value="NURSE">Clinical Nurse</MenuItem>
-                                    <MenuItem value="RECEPTIONIST">Receptionist</MenuItem>
-                                    <MenuItem value="PHARMACIST">Pharmacist</MenuItem>
-                                    <MenuItem value="LAB_TECHNICIAN">Lab Technician</MenuItem>
-                                    <MenuItem value="RADIOLOGIST">Radiologist</MenuItem>
-                                </TextField>
-                                <TextField 
-                                    select 
-                                    label="Department" 
-                                    value={departmentId}
-                                    onChange={(e) => setDepartmentId(e.target.value)}
-                                    fullWidth
-                                    disabled={loadingDepartments || departments.length === 0}
-                                    slotProps={{ select: { sx: { borderRadius: '12px' } } }}
-                                >
-                                    {loadingDepartments ? (
-                                        <MenuItem value="" disabled>Loading departments...</MenuItem>
-                                    ) : (
-                                        departments.map((dept) => (
-                                            <MenuItem key={dept.id} value={dept.id}>
-                                                {dept.name}
-                                            </MenuItem>
-                                        ))
-                                    )}
-                                </TextField>
-                                <Button 
-                                    type="submit"
-                                    variant="contained" 
-                                    startIcon={formSubmitting ? <CircularProgress size={16} color="inherit" /> : <Plus size={16} />}
-                                    sx={{ py: 1.25, borderRadius: '100px', fontWeight: 600, textTransform: 'none', boxShadow: 'none' }}
-                                    disabled={formSubmitting}
-                                >
-                                    {formSubmitting ? 'Generating...' : 'Generate Invite'}
-                                </Button>
-                            </Box>
-                        </CardContent>
-                    </Card>
-                </Grid>
+                <DashboardCard title="Generate Invite Token" subtitle="Issue authorization tokens">
+                    <Box component="form" onSubmit={handleCreateInvite} sx={{ display: 'flex', flexDirection: 'column', gap: 2.5 }}>
+                        <TextField 
+                            label="Email Address" 
+                            placeholder="staff@alshifaa.com" 
+                            type="email"
+                            fullWidth
+                            value={email}
+                            onChange={(e) => setEmail(e.target.value)}
+                            required
+                            slotProps={{ input: { sx: { borderRadius: '12px' } } }}
+                        />
+                        <TextField 
+                            select 
+                            label="Role Assignment" 
+                            value={role}
+                            onChange={(e) => setRole(e.target.value)}
+                            fullWidth
+                            slotProps={{ select: { sx: { borderRadius: '12px' } } }}
+                        >
+                            <MenuItem value="DOCTOR">Doctor / Clinician</MenuItem>
+                            <MenuItem value="NURSE">Clinical Nurse</MenuItem>
+                            <MenuItem value="RECEPTIONIST">Receptionist</MenuItem>
+                            <MenuItem value="PHARMACIST">Pharmacist</MenuItem>
+                            <MenuItem value="LAB_TECHNICIAN">Lab Technician</MenuItem>
+                            <MenuItem value="RADIOLOGIST">Radiologist</MenuItem>
+                        </TextField>
+                        <TextField 
+                            select 
+                            label="Department" 
+                            value={departmentId}
+                            onChange={(e) => setDepartmentId(e.target.value)}
+                            fullWidth
+                            disabled={loadingDepartments || departments.length === 0}
+                            slotProps={{ select: { sx: { borderRadius: '12px' } } }}
+                        >
+                            {loadingDepartments ? (
+                                <MenuItem value="" disabled>Loading departments...</MenuItem>
+                            ) : (
+                                departments.map((dept) => (
+                                    <MenuItem key={dept.id} value={dept.id}>
+                                        {dept.name}
+                                    </MenuItem>
+                                ))
+                            )}
+                        </TextField>
+                        <Button 
+                            type="submit"
+                            variant="contained" 
+                            startIcon={formSubmitting ? <CircularProgress size={16} color="inherit" /> : <Plus size={16} />}
+                            sx={{ py: 1.25, borderRadius: '100px', fontWeight: 600, textTransform: 'none', boxShadow: 'none' }}
+                            disabled={formSubmitting}
+                        >
+                            {formSubmitting ? 'Generating...' : 'Generate Invite'}
+                        </Button>
+                    </Box>
+                </DashboardCard>
 
                 {/* Listing Table */}
-                <Grid item xs={12} md={8}>
-                    <SectionCard 
-                        title="Active Onboarding Tokens" 
-                        loading={loading}
-                        actionButton={
-                            <Button size="small" startIcon={<RefreshCw size={14} />} onClick={fetchInvites} sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '100px', borderColor: 'divider', color: 'text.primary', fontSize: '12.5px', px: 2, '&:hover': { bgcolor: 'action.hover' } }}>
-                                Reload Invites
-                            </Button>
-                        }
-                    >
-                        <AdminFilterBar
-                            searchQuery={searchQuery}
-                            onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
-                            searchPlaceholder="Search email, department..."
-                            filter1Label="Status"
-                            filter1Value={statusFilter}
-                            onFilter1Change={(val) => { setStatusFilter(val); pagination.resetPage(); }}
-                            filter1Options={[
-                                { value: 'ALL', label: 'All Statuses' },
-                                { value: 'PENDING', label: 'Pending' },
-                                { value: 'REGISTERED', label: 'Registered' },
-                                { value: 'EXPIRED', label: 'Expired' }
-                            ]}
-                            filter2Label="Role"
-                            filter2Value={roleFilter}
-                            onFilter2Change={(val) => { setRoleFilter(val); pagination.resetPage(); }}
-                            filter2Options={[
-                                { value: 'ALL', label: 'All Roles' },
-                                { value: 'DOCTOR', label: 'Doctor' },
-                                { value: 'NURSE', label: 'Nurse' },
-                                { value: 'RECEPTIONIST', label: 'Receptionist' },
-                                { value: 'PHARMACIST', label: 'Pharmacist' },
-                                { value: 'LAB_TECHNICIAN', label: 'Lab Tech' },
-                                { value: 'RADIOLOGIST', label: 'Radiologist' }
-                            ]}
+                <DashboardCard 
+                    title="Active Onboarding Tokens" 
+                    subtitle="Manage issued invitation keys"
+                    action={
+                        <Button 
+                            size="small" 
+                            startIcon={<RefreshCw size={14} />} 
+                            onClick={fetchInvites} 
+                            sx={{ textTransform: 'none', fontWeight: 600, borderRadius: '100px', borderColor: 'divider', color: 'text.primary', fontSize: '12.5px', px: 2, '&:hover': { bgcolor: 'action.hover' } }}
+                        >
+                            Reload Invites
+                        </Button>
+                    }
+                >
+                    <AdminFilterBar
+                        searchQuery={searchQuery}
+                        onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
+                        searchPlaceholder="Search email, department..."
+                        filter1Label="Status"
+                        filter1Value={statusFilter}
+                        onFilter1Change={(val) => { setStatusFilter(val); pagination.resetPage(); }}
+                        filter1Options={[
+                            { value: 'ALL', label: 'All Statuses' },
+                            { value: 'PENDING', label: 'Pending' },
+                            { value: 'REGISTERED', label: 'Registered' },
+                            { value: 'EXPIRED', label: 'Expired' }
+                        ]}
+                        filter2Label="Role"
+                        filter2Value={roleFilter}
+                        onFilter2Change={(val) => { setRoleFilter(val); pagination.resetPage(); }}
+                        filter2Options={[
+                            { value: 'ALL', label: 'All Roles' },
+                            { value: 'DOCTOR', label: 'Doctor' },
+                            { value: 'NURSE', label: 'Nurse' },
+                            { value: 'RECEPTIONIST', label: 'Receptionist' },
+                            { value: 'PHARMACIST', label: 'Pharmacist' },
+                            { value: 'LAB_TECHNICIAN', label: 'Lab Tech' },
+                            { value: 'RADIOLOGIST', label: 'Radiologist' }
+                        ]}
+                    />
+                    
+                    <AsyncWrapper loading={loading} error={errorStates.invites}>
+                        <DataTable
+                            columns={columns}
+                            data={paginatedInvites}
+                            sortState={tableSort}
+                            paginationState={{ ...pagination, count: processedInvites.length }}
+                            onRowClick={(invite) => detailsDialog.openDialog(invite)}
+                            emptyMessage="No matching onboarding records found."
                         />
-                        
-                        <AsyncWrapper loading={loading} error={errorStates.invites}>
-                            <DataTable
-                                columns={columns}
-                                data={paginatedInvites}
-                                sortState={tableSort}
-                                paginationState={{ ...pagination, count: processedInvites.length }}
-                                onRowClick={(invite) => detailsDialog.openDialog(invite)}
-                                emptyMessage="No matching onboarding records found."
-                            />
-                        </AsyncWrapper>
-                    </SectionCard>
-                </Grid>
-            </Grid>
+                    </AsyncWrapper>
+                </DashboardCard>
+            </Box>
 
             <RevokeInviteDialog
                 open={revokeDialog.open}

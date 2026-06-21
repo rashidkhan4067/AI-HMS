@@ -80,7 +80,7 @@ class CustomTokenObtainPairView(TokenObtainPairView):
             log_login_attempt(email, ip, 'PASSWORD', False, failure_reason='Rate limit exceeded')
             return Response({'error': 'rate_limit_exceeded', 'detail': 'Too many login attempts. Please wait a minute.'}, status=status.HTTP_429_TOO_MANY_REQUESTS)
 
-        user = User.objects.filter(email=email).first()
+        user = User.objects.select_related('department').filter(email=email).first()
 
         if user and user.locked_until and user.locked_until > timezone.now():
             log_login_attempt(email, ip, 'PASSWORD', False, user, 'Account is locked due to too many failed attempts')
@@ -102,11 +102,29 @@ class CustomTokenObtainPairView(TokenObtainPairView):
                 response = set_jwt_cookies(response, refresh_token)
 
             if user:
+                # Update in-memory values so the response serializer receives updated data instantly
                 user.failed_attempts = 0
                 user.locked_until = None
                 user.last_login_ip = ip
                 user.last_login_at = timezone.now()
-                user.save(update_fields=['failed_attempts', 'locked_until', 'last_login_ip', 'last_login_at'])
+
+                # Perform the database write in a background thread to prevent blocking the HTTP response
+                import threading
+                def _save_user_stats_async(u_id, ip_val, at_val):
+                    from django.db import connection
+                    try:
+                        User.objects.filter(pk=u_id).update(
+                            failed_attempts=0,
+                            locked_until=None,
+                            last_login_ip=ip_val,
+                            last_login_at=at_val
+                        )
+                    except Exception:
+                        pass
+                    finally:
+                        connection.close()
+
+                threading.Thread(target=_save_user_stats_async, args=(user.id, ip, user.last_login_at), daemon=True).start()
 
                 role_redirect_map = {
                     'ADMIN': '/admin/dashboard', 'DOCTOR': '/doctor/dashboard', 'NURSE': '/nurse/dashboard',
@@ -362,6 +380,6 @@ class CustomLogoutView(APIView):
             except Exception: pass
                 
         response = Response({"detail": "Successfully logged out."}, status=status.HTTP_200_OK)
-        for path in ["/api/v1/auth/", "/api/auth/", "/"]:
-            response.delete_cookie("refresh_token", path=path)
+        # Delete cookie at path='/' which is now where it is set
+        response.delete_cookie("refresh_token", path="/")
         return response

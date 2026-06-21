@@ -22,12 +22,26 @@ class InvoiceSerializer(serializers.ModelSerializer):
         if amount is None and self.instance:
             amount = self.instance.amount
 
+        request = self.context.get('request')
+        payment_status = None
+        if request:
+            payment_status = request.data.get('payment_status')
+            if not payment_status and request.method == 'POST':
+                from core.constants import INVOICE_STATUS_PAID
+                payment_status = INVOICE_STATUS_PAID
+        elif self.instance:
+            payment_status = self.instance.payment_status
+
         paid_amount = attrs.get('paid_amount')
         if paid_amount is None:
             if self.instance:
                 paid_amount = self.instance.paid_amount
+            elif payment_status == 'PAID' and amount is not None:
+                paid_amount = amount
+                attrs['paid_amount'] = amount
             else:
                 paid_amount = 0
+                attrs['paid_amount'] = 0
 
         insurance_amount = attrs.get('insurance_amount')
         if insurance_amount is None:
@@ -35,6 +49,7 @@ class InvoiceSerializer(serializers.ModelSerializer):
                 insurance_amount = self.instance.insurance_amount
             else:
                 insurance_amount = 0
+                attrs['insurance_amount'] = 0
 
         due_date = attrs.get('due_date')
         if due_date is None and self.instance:

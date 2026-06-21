@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
     Box, Card, CardContent, Typography, Chip, Button, useMediaQuery, useTheme, Divider
 } from '@mui/material';
@@ -19,6 +20,7 @@ import { FONTS } from '../../../shared/theme.constants';
 export const AdminAudits = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+    const [searchParams] = useSearchParams();
 
     const {
         audits,
@@ -33,7 +35,7 @@ export const AdminAudits = () => {
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'ALL');
     const [methodFilter, setMethodFilter] = useState('ALL');
 
     // Hooks

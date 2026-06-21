@@ -25,6 +25,11 @@ import { HelpCircle, Plus } from 'lucide-react';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 import { useAuth } from '../../../features/auth/hooks/useAuth';
 import { motion, AnimatePresence } from 'framer-motion';
+import { useQueryClient } from '@tanstack/react-query';
+import { adminApi } from '../../../features/admin/services/adminApi';
+import { departmentApi } from '../../../features/departments/services/departmentApi';
+import { invitationApi } from '../../../features/invitations/services/invitationApi';
+import { applicationApi } from '../../../features/applications/services/applicationApi';
 
 const drawerWidth = 260;
 
@@ -59,7 +64,7 @@ const DrawerHeader = styled('div')(({ theme }) => ({
 }));
 
 const CustomAppBar = styled(MuiAppBar, {
-    shouldForwardProp: (prop) => prop !== 'open',
+    shouldForwardProp: (prop) => prop !== 'open' && prop !== 'isMobile',
 })(({ theme, open, isMobile }) => ({
     zIndex: theme.zIndex.drawer + 1,
     transition: theme.transitions.create(['width', 'margin'], {
@@ -111,6 +116,86 @@ export const DashboardLayout = ({
     const { user } = useAuth();
     const navigate = useNavigate();
     const location = useLocation();
+
+    const queryClient = useQueryClient();
+
+    const prefetchRouteData = (path) => {
+        const prefetchMap = {
+            '/admin/dashboard': {
+                key: ['adminOverview'],
+                fn: adminApi.getOverview,
+                staleTime: 30 * 1000
+            },
+            '/admin/revenue': {
+                key: ['adminRevenue'],
+                fn: adminApi.getRevenueReconciliation,
+                staleTime: 30 * 1000
+            },
+            '/admin/compliance': {
+                key: ['adminCompliance'],
+                fn: adminApi.getPMDCCompliance,
+                staleTime: 5 * 60 * 1000
+            },
+            '/admin/ipd': {
+                key: ['adminBeds'],
+                fn: adminApi.getBeds,
+                staleTime: 30 * 1000
+            },
+            '/admin/roster': {
+                key: ['adminRosters'],
+                fn: adminApi.getRosters,
+                staleTime: 5 * 60 * 1000
+            },
+            '/admin/appointments': {
+                key: ['adminAppointments'],
+                fn: async () => {
+                    const data = await adminApi.getAppointments();
+                    return data.results || data;
+                },
+                staleTime: 30 * 1000
+            },
+            '/admin/invites': {
+                key: ['adminInvites'],
+                fn: invitationApi.getInvites,
+                staleTime: 5 * 60 * 1000
+            },
+            '/admin/applications': {
+                key: ['adminApplications'],
+                fn: applicationApi.getApplications,
+                staleTime: 5 * 60 * 1000
+            },
+            '/admin/users': {
+                key: ['adminUsers'],
+                fn: adminApi.getUsers,
+                staleTime: 5 * 60 * 1000
+            },
+            '/admin/departments': {
+                key: ['departments'],
+                fn: async () => {
+                    const data = await departmentApi.getAdminList();
+                    return data.results || data;
+                },
+                staleTime: 30 * 60 * 1000
+            },
+            '/admin/audits': {
+                key: ['adminAudits'],
+                fn: async () => {
+                    const data = await adminApi.getAudits();
+                    return data.results || data;
+                },
+                staleTime: 5 * 60 * 1000
+            }
+        };
+
+        const config = prefetchMap[path];
+        if (config) {
+            queryClient.prefetchQuery({
+                queryKey: config.key,
+                queryFn: config.fn,
+                staleTime: config.staleTime
+            });
+        }
+    };
 
     // Default open drawer on desktop, closed on mobile
     const [open, setOpen] = useState(!isMobile);
@@ -230,6 +315,7 @@ export const DashboardLayout = ({
                     return (
                         <ListItem key={item.text} disablePadding sx={{ display: 'block', mb: 0.5 }}>
                             <ListItemButton
+                                onMouseEnter={() => prefetchRouteData(item.path)}
                                 onClick={() => {
                                     navigate(item.path);
                                     if (isMobile) setMobileOpen(false);
@@ -351,7 +437,7 @@ export const DashboardLayout = ({
                         }} 
                     />
                 )}
-                <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 1.5, sm: 3 } }}>
+                <Toolbar sx={{ justifyContent: 'space-between', px: { xs: 2, sm: 3 } }}>
                     {isMobile && isSearchExpanded && searchConfig ? (
                         <Box sx={{ 
                             display: 'flex', 
@@ -457,44 +543,47 @@ export const DashboardLayout = ({
                                 </Box>
                             )}
 
-                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.5 }}>
-                                {/* Search Toggle Button for Mobile */}
-                                {isMobile && searchConfig && (
-                                    <Tooltip title="Search">
-                                        <IconButton onClick={() => setIsSearchExpanded(true)} color="inherit">
-                                            <SearchIcon sx={{ fontSize: 20 }} />
+                            <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 2.5, sm: 3.5 } }}>
+                                {/* Utility Icons Cluster */}
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: { xs: 1, sm: 1.5 } }}>
+                                    {/* Search Toggle Button for Mobile */}
+                                    {isMobile && searchConfig && (
+                                        <Tooltip title="Search">
+                                            <IconButton onClick={() => setIsSearchExpanded(true)} color="inherit" sx={{ p: 1 }}>
+                                                <SearchIcon sx={{ fontSize: 20 }} />
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+
+                                    {/* Theme Switcher */}
+                                    <Tooltip title="Toggle light/dark theme">
+                                        <IconButton onClick={toggleThemeMode} color="inherit" sx={{ p: 1 }}>
+                                            {mode === 'dark' ? (
+                                                <LightModeIcon sx={{ color: '#ffb400', fontSize: 20 }} />
+                                            ) : (
+                                                <DarkModeIcon sx={{ color: '#5f6368', fontSize: 20 }} />
+                                            )}
                                         </IconButton>
                                     </Tooltip>
-                                )}
 
-                                {/* Theme Switcher */}
-                                <Tooltip title="Toggle light/dark theme">
-                                    <IconButton onClick={toggleThemeMode} color="inherit">
-                                        {mode === 'dark' ? (
-                                            <LightModeIcon sx={{ color: '#ffb400', fontSize: 20 }} />
-                                        ) : (
-                                            <DarkModeIcon sx={{ color: '#5f6368', fontSize: 20 }} />
-                                        )}
-                                    </IconButton>
-                                </Tooltip>
-
-                                {/* Help Desk Icon */}
-                                <Tooltip title="System Help Center">
-                                    <IconButton color="inherit" sx={{ display: { xs: 'none', sm: 'inline-flex' } }}>
-                                        <HelpCircle size={20} style={{ color: theme.palette.text.secondary }} />
-                                    </IconButton>
-                                </Tooltip>
-
-                                {/* Notification Bell */}
-                                {notifications && notifications.length > 0 && (
-                                    <Tooltip title="Notifications & Alerts">
-                                        <IconButton color="inherit" sx={{ mr: 1 }} onClick={handleNotificationsClick}>
-                                            <Badge badgeContent={notifications.length} color="error" variant="dot">
-                                                <NotificationsIcon sx={{ fontSize: 20 }} />
-                                            </Badge>
+                                    {/* Help Desk Icon */}
+                                    <Tooltip title="System Help Center">
+                                        <IconButton color="inherit" sx={{ display: { xs: 'none', sm: 'inline-flex' }, p: 1 }}>
+                                            <HelpCircle size={20} style={{ color: theme.palette.text.secondary }} />
                                         </IconButton>
                                     </Tooltip>
-                                )}
+
+                                    {/* Notification Bell */}
+                                    {notifications && notifications.length > 0 && (
+                                        <Tooltip title="Notifications & Alerts">
+                                            <IconButton color="inherit" onClick={handleNotificationsClick} sx={{ p: 1 }}>
+                                                <Badge badgeContent={notifications.length} color="error" variant="dot">
+                                                    <NotificationsIcon sx={{ fontSize: 20 }} />
+                                                </Badge>
+                                            </IconButton>
+                                        </Tooltip>
+                                    )}
+                                </Box>
 
                                 {/* User profile dropdown button */}
                                 <Box 
@@ -553,7 +642,7 @@ export const DashboardLayout = ({
                 component="main" 
                 sx={{ 
                     flexGrow: 1, 
-                    p: { xs: 2.5, sm: 4, md: 5 }, 
+                    p: { xs: 2, sm: 4, md: 5 }, 
                     width: '100%', 
                     overflowX: 'hidden'
                 }}
@@ -718,36 +807,7 @@ export const DashboardLayout = ({
                 </Button>
             </Popover>
 
-            {/* SpeedDial Action FAB on Mobile */}
-            {isMobile && speedDialActions && speedDialActions.length > 0 && (
-                <SpeedDial
-                    ariaLabel="Shortcut Actions"
-                    sx={{ 
-                        position: 'fixed', 
-                        bottom: 24, 
-                        right: 24,
-                        zIndex: 1100,
-                        '& .MuiFab-primary': {
-                            bgcolor: 'primary.main',
-                            color: 'primary.contrastText',
-                            '&:hover': {
-                                bgcolor: 'primary.dark',
-                            }
-                        }
-                    }}
-                    icon={<Plus size={24} />}
-                >
-                    {speedDialActions.map((act, index) => (
-                        <SpeedDialAction
-                            key={index}
-                            icon={act.icon}
-                            tooltipTitle={act.name}
-                            tooltipOpen
-                            onClick={act.action}
-                        />
-                    ))}
-                </SpeedDial>
-            )}
+
         </Box>
     );
 };

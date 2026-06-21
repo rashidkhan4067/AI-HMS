@@ -1,4 +1,5 @@
 import { useState, useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
     Box, Typography, Button, Chip, Stack
 } from '@mui/material';
@@ -19,6 +20,7 @@ import { useDialogState } from '../../../hooks/useDialogState';
 import { FONTS } from '../../../shared/theme.constants';
 
 export const AdminApplications = () => {
+    const [searchParams] = useSearchParams();
     const {
         applications,
         users,
@@ -31,7 +33,7 @@ export const AdminApplications = () => {
 
     // Filter, Search States
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('PENDING');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'PENDING');
     const [experienceFilter, setExperienceFilter] = useState('ALL');
 
     // Hooks
@@ -98,9 +100,9 @@ export const AdminApplications = () => {
     const processedApps = useMemo(() => {
         const filtered = applications.filter((app) => {
             const matchesSearch = 
-                app.full_name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                app.specialization.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                app.pmdc_number.toLowerCase().includes(searchQuery.toLowerCase());
+                (app.full_name || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (app.specialization || '').toLowerCase().includes(searchQuery.toLowerCase()) ||
+                (app.pmdc_number || '').toLowerCase().includes(searchQuery.toLowerCase());
 
             const matchesStatus = statusFilter === 'ALL' || app.status === statusFilter;
 

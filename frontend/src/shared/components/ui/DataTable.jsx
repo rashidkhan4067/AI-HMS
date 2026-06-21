@@ -32,6 +32,7 @@ export const DataTable = ({
   paginationState,
   onRowClick,
   emptyMessage = 'No records found.',
+  minWidth = 700,
 }) => {
   const theme = useTheme();
 
@@ -47,7 +48,7 @@ export const DataTable = ({
           overflowX: 'auto',
         }}
       >
-        <Table size="small" sx={{ minWidth: 700 }}>
+        <Table size="small" sx={{ minWidth: minWidth }}>
           <TableHead>
             <TableRow sx={{ bgcolor: 'action.hover' }}>
               {columns.map((col) => (

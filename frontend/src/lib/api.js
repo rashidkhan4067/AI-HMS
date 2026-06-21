@@ -5,9 +5,19 @@ const getBaseURL = () => {
     if (envBaseURL) {
         // Strip trailing /v1/ or /v1 from the base URL if configured to prevent double v1 in API paths
         if (envBaseURL.endsWith('/v1/')) {
-            return envBaseURL.slice(0, -4);
+            envBaseURL = envBaseURL.slice(0, -4);
         } else if (envBaseURL.endsWith('/v1')) {
-            return envBaseURL.slice(0, -3);
+            envBaseURL = envBaseURL.slice(0, -3);
+        }
+
+        // Dynamically align localhost vs 127.0.0.1 with the window location to prevent SameSite cookie blocking
+        if (typeof window !== 'undefined') {
+            const currentHostname = window.location.hostname;
+            if (currentHostname === 'localhost' && envBaseURL.includes('127.0.0.1')) {
+                envBaseURL = envBaseURL.replace('127.0.0.1', 'localhost');
+            } else if (currentHostname === '127.0.0.1' && envBaseURL.includes('localhost')) {
+                envBaseURL = envBaseURL.replace('localhost', '127.0.0.1');
+            }
         }
         return envBaseURL;
     }
@@ -15,6 +25,10 @@ const getBaseURL = () => {
     // Automatically detect Vercel production hosting and point to production Railway backend
     if (typeof window !== 'undefined' && (window.location.hostname.includes('vercel.app') || window.location.hostname === 'ai-hms-drab.vercel.app')) {
         return 'https://ai-hms-production.up.railway.app/api';
+    }
+
+    if (typeof window !== 'undefined') {
+        return `http://${window.location.hostname}:8000/api`;
     }
 
     return 'http://127.0.0.1:8000/api';

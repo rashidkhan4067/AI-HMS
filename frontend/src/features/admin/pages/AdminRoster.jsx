@@ -1,9 +1,9 @@
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { 
     Box, Typography, Button, IconButton, Chip, Tooltip, Stack 
 } from '@mui/material';
 import { 
-    Clock, User, Plus, Edit2, Trash2, RefreshCw, MapPin 
+    Clock, User, Plus, Edit2, Trash2, RefreshCw, MapPin, Calendar, CheckCircle, AlertTriangle, Users, CalendarCheck 
 } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { adminApi } from '../services/adminApi';
@@ -12,7 +12,7 @@ import { RosterShiftDialog } from '../dialogs/RosterShiftDialog';
 import { ConfirmRosterDeleteDialog } from '../dialogs/ConfirmRosterDeleteDialog';
 import { AdminFilterBar } from '../components/AdminFilterBar';
 import { 
-    AdminPageHeader, SectionCard, DataTable, ToastNotification 
+    AdminPageHeader, DashboardCard, DataTable, ToastNotification, StatGrid, StatCard 
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
@@ -27,10 +27,18 @@ export const AdminRoster = () => {
         departments = [], 
         loadingStates, 
         refreshRosters,
+        refreshUsers,
+        refreshDepartments,
         setRosters 
     } = useAdmin();
 
     const loading = loadingStates.rosters;
+
+    useEffect(() => {
+        refreshRosters();
+        refreshUsers();
+        refreshDepartments();
+    }, [refreshRosters, refreshUsers, refreshDepartments]);
 
     // Search and filter states
     const [searchTerm, setSearchTerm] = useState('');
@@ -131,7 +139,6 @@ export const AdminRoster = () => {
                 setRosters(prev => [data, ...prev]);
                 showToast('Shift assigned successfully.', 'success');
             }
-            refreshRosters();
             formDialog.closeDialog();
         } catch (err) {
             const errData = err.response?.data;
@@ -149,8 +156,8 @@ export const AdminRoster = () => {
 
     const processedRosters = useMemo(() => {
         const filtered = rosters.filter(r => {
-            const nameMatch = r.staff_name?.toLowerCase().includes(searchTerm.toLowerCase()) || 
-                              r.notes?.toLowerCase().includes(searchTerm.toLowerCase());
+            const nameMatch = (r.staff_name || '').toLowerCase().includes(searchTerm.toLowerCase()) || 
+                              (r.notes || '').toLowerCase().includes(searchTerm.toLowerCase());
             
             const deptMatch = deptFilter === 'ALL' || r.department === deptFilter;
             const roleMatch = roleFilter === 'ALL' || r.staff_role === roleFilter;
@@ -173,20 +180,39 @@ export const AdminRoster = () => {
         'RADIOLOGIST': 'Radiologist'
     };
 
+    const rostersList = rosters || [];
+    const totalShifts = rostersList.length;
+    const nowTime = useMemo(() => new Date(), [rostersList]);
+    const activeShifts = useMemo(() => rostersList.filter(r => new Date(r.shift_start) <= nowTime && new Date(r.shift_end) >= nowTime).length, [rostersList, nowTime]);
+    const upcomingShifts = useMemo(() => rostersList.filter(r => new Date(r.shift_start) > nowTime).length, [rostersList, nowTime]);
+    const uniqueStaffCount = useMemo(() => new Set(rostersList.map(r => r.staff_member)).size, [rostersList]);
+
     const columns = [
         {
             id: 'staff_name',
             label: 'Staff Member',
             sortable: true,
-            render: (roster) => (
-                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
-                    <User size={16} color={COLORS.TEXT_SECONDARY} />
-                    <Box>
-                        <Typography sx={{ fontWeight: 600, fontFamily: FONTS.BODY }}>{roster.staff_name}</Typography>
-                        <Chip label={roleLabels[roster.staff_role] || roster.staff_role} size="small" variant="outlined" sx={{ height: 16, fontSize: '8px', fontWeight: 700 }} />
+            render: (roster) => {
+                const initial = roster.staff_name?.charAt(0)?.toUpperCase() || 'S';
+                const roleLabel = roleLabels[roster.staff_role] || roster.staff_role;
+                return (
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        <Box sx={{
+                            width: 32, height: 32, borderRadius: '50%',
+                            bgcolor: 'primary.light', color: 'primary.contrastText',
+                            display: 'flex', alignItems: 'center', justifyContent: 'center',
+                            fontSize: '12px', fontWeight: 700, fontFamily: FONTS.HEADING,
+                            opacity: 0.85
+                        }}>
+                            {initial}
+                        </Box>
+                        <Box>
+                            <Typography sx={{ fontWeight: 700, fontSize: '13px', fontFamily: FONTS.BODY, color: 'text.primary' }}>{roster.staff_name}</Typography>
+                            <Chip label={roleLabel} size="small" variant="outlined" sx={{ height: 16, fontSize: '8px', fontWeight: 700, mt: 0.25 }} />
+                        </Box>
                     </Box>
-                </Box>
-            )
+                );
+            }
         },
         {
             id: 'department',
@@ -255,7 +281,7 @@ export const AdminRoster = () => {
     ];
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AdminPageHeader
                 title="Workforce Shift Scheduling"
                 subtitle="Plan clinical staff rosters, configure shifts, and prevent workforce schedule overlaps."
@@ -269,7 +295,46 @@ export const AdminRoster = () => {
                 }
             />
 
-            <SectionCard title="Duty Roster Schedule" loading={loading}>
+            {/* KPI Strip */}
+            <StatGrid cols={4}>
+                <StatCard 
+                    title="Active Shifts" 
+                    value={activeShifts} 
+                    supportingText="Staff currently on duty" 
+                    icon={Clock} 
+                    color={COLORS.SUCCESS} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Rostered Staff" 
+                    value={uniqueStaffCount} 
+                    supportingText="Unique personnel scheduled" 
+                    icon={Users} 
+                    color={COLORS.PRIMARY} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Upcoming Shifts" 
+                    value={upcomingShifts} 
+                    supportingText="Future rostered slots" 
+                    icon={CalendarCheck} 
+                    color={COLORS.INFO} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Total Shift Records" 
+                    value={totalShifts} 
+                    supportingText="All roster database entries" 
+                    icon={Calendar} 
+                    color={COLORS.WARNING} 
+                    loading={loading}
+                />
+            </StatGrid>
+
+            <DashboardCard 
+                title="Duty Roster Schedule" 
+                subtitle="Active shift configurations and staff assignments"
+            >
                 <AdminFilterBar
                     searchQuery={searchTerm}
                     onSearchChange={(val) => { setSearchTerm(val); pagination.resetPage(); }}
@@ -302,7 +367,7 @@ export const AdminRoster = () => {
                     paginationState={{ ...pagination, count: processedRosters.length }}
                     emptyMessage="No scheduled shifts found matching your filters."
                 />
-            </SectionCard>
+            </DashboardCard>
 
             <RosterShiftDialog
                 open={formDialog.open}

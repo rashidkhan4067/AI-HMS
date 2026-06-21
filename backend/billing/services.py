@@ -49,7 +49,10 @@ def get_billing_oversight_data(today):
             
     insurance_receivables = Invoice.objects.filter(payment_status__in=['PENDING', 'PARTIALLY_PAID']).aggregate(total=Sum('insurance_amount'))['total'] or 0.00
 
-    overdue_invoices = Invoice.objects.filter(payment_status__in=['PENDING', 'PARTIALLY_PAID'], due_date__lt=today)
+    overdue_invoices = Invoice.objects.filter(
+        payment_status__in=['PENDING', 'PARTIALLY_PAID'], 
+        due_date__lt=today
+    ).select_related('patient', 'patient__user')
     total_overdue = sum([float(inv.amount) - float(inv.paid_amount) for inv in overdue_invoices if float(inv.amount) - float(inv.paid_amount) > 0])
             
     overdue_alerts = sorted([{

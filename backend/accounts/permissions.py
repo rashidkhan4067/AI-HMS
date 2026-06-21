@@ -2,7 +2,7 @@ from rest_framework.permissions import BasePermission
 from core.constants import (
     ROLE_ADMIN, ROLE_DOCTOR, ROLE_NURSE, ROLE_RECEPTIONIST, 
     ROLE_PHARMACIST, ROLE_LAB_TECHNICIAN, ROLE_RADIOLOGIST, 
-    ROLE_PATIENT, CLINICAL_ROLES
+    ROLE_PATIENT, CLINICAL_ROLES, STAFF_ROLES
 )
 
 class IsAdminUser(BasePermission):
@@ -46,6 +46,14 @@ class IsClinicalStaff(BasePermission):
         return bool(
             request.user and request.user.is_authenticated
             and request.user.role in CLINICAL_ROLES
+        )
+
+class IsStaffUser(BasePermission):
+    """Allows access to any staff role."""
+    def has_permission(self, request, view):
+        return bool(
+            request.user and request.user.is_authenticated
+            and request.user.role in STAFF_ROLES
         )
 
 class IsAdminOrDoctor(BasePermission):

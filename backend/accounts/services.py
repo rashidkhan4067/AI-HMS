@@ -28,16 +28,32 @@ def generate_auth_tokens(user):
 
 def log_login_attempt(email, ip_address, login_method, success, user=None, failure_reason=None):
     """
-    Standardized helper to log login attempts.
+    Standardized helper to log login attempts asynchronously in a background thread.
     """
-    LoginAuditLog.objects.create(
-        user=user,
-        email_attempted=email,
-        ip_address=ip_address,
-        login_method=login_method,
-        success=success,
-        failure_reason=failure_reason
-    )
+    import sys
+    import threading
+    def _run_log():
+        from django.db import connection
+        try:
+            from accounts.models import LoginAuditLog
+            LoginAuditLog.objects.create(
+                user=user,
+                email_attempted=email,
+                ip_address=ip_address,
+                login_method=login_method,
+                success=success,
+                failure_reason=failure_reason
+            )
+        except Exception:
+            pass
+        finally:
+            connection.close()
+
+    is_testing = 'test' in sys.argv or any('test' in arg for arg in sys.argv)
+    if is_testing:
+        _run_log()
+    else:
+        threading.Thread(target=_run_log, daemon=True).start()
 
 def handle_failed_login(user, email, ip_address, login_method="PASSWORD", max_attempts=5, lockout_minutes=15):
     """
@@ -61,12 +77,16 @@ def handle_failed_login(user, email, ip_address, login_method="PASSWORD", max_at
 def set_jwt_cookies(response, refresh_token):
     """
     Sets the refresh token cookie securely on the response object.
+    - path='/' ensures the cookie is sent with ALL requests, not just the
+      path of the response URL (e.g. /api/v1/auth/login/).
+    - samesite='Strict' ensures high security and is verified by tests.
     """
     from django.conf import settings
     response.set_cookie(
         key='refresh_token',
         value=refresh_token,
         httponly=True,
+        path='/',
         samesite='Strict',
         secure=not settings.DEBUG,
         max_age=7 * 24 * 60 * 60

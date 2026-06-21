@@ -25,8 +25,16 @@ export const SectionCard = ({
   children,
 }) => {
   return (
-    <Card sx={{ borderRadius: RADII.CARD, height: '100%', display: 'flex', flexDirection: 'column' }}>
-      <Box sx={{ p: 2.5, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <Card sx={{ 
+      borderRadius: '8px', 
+      border: '1px solid',
+      borderColor: (theme) => theme.palette.mode === 'dark' ? 'divider' : '#E5E7EB',
+      boxShadow: 'none',
+      height: '100%', 
+      display: 'flex', 
+      flexDirection: 'column' 
+    }}>
+      <Box sx={{ p: { xs: 2, sm: 2.5 }, display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
         <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
           {Icon && (
             <Box
@@ -57,7 +65,7 @@ export const SectionCard = ({
         {actions && <Box>{actions}</Box>}
       </Box>
       <Divider />
-      <CardContent sx={{ p: 3, flexGrow: 1 }}>
+      <CardContent sx={{ p: { xs: 2, sm: 3 }, flexGrow: 1, '&:last-child': { pb: { xs: 2, sm: 3 } } }}>
         {children}
       </CardContent>
     </Card>

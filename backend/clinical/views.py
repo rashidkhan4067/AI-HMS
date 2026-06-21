@@ -53,7 +53,11 @@ class MedicalRecordViewSet(RoleBasedSecurityMixin, viewsets.ModelViewSet):
     - Accessible only by authorized clinical roles and the owner Patient.
     - Admins and Receptionists are strictly denied.
     """
-    queryset = MedicalRecord.objects.all().select_related('patient', 'patient__user', 'doctor', 'doctor__user', 'appointment')
+    queryset = MedicalRecord.objects.all().select_related(
+        'patient', 'patient__user', 
+        'doctor', 'doctor__user', 
+        'appointment', 'dispense', 'dispense__dispensed_by'
+    )
     serializer_class = MedicalRecordSerializer
     permission_classes = [IsAuthenticated, HasMedicalRecordAccess]
     patient_field = 'patient__user'
@@ -108,9 +112,9 @@ class DiagnosticOrderViewSet(RoleBasedSecurityMixin, viewsets.ModelViewSet):
 
         if user.role == ROLE_PATIENT:
             return self.get_role_filtered_queryset(qs)
-        elif user.role == ROLE_LAB_TECHNICIAN:
+        elif user.role == ROLE_LAB_TECHNICIAN and self.action != 'submit_result':
             return qs.filter(category='LAB')
-        elif user.role == ROLE_RADIOLOGIST:
+        elif user.role == ROLE_RADIOLOGIST and self.action != 'submit_result':
             return qs.filter(category='RADIOLOGY')
 
         # Doctors, Nurses, and Admins can see all

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useSearchParams } from 'react-router-dom';
 import { 
     Box, Card, CardContent, Typography, Chip, Switch, Avatar, Divider, 
     useMediaQuery, useTheme
@@ -26,6 +27,7 @@ export const AdminUsers = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { user: currentUser } = useAuth();
+    const [searchParams] = useSearchParams();
 
     const { 
         users, 
@@ -41,8 +43,8 @@ export const AdminUsers = () => {
 
     // Filters
     const [searchQuery, setSearchQuery] = useState('');
-    const [statusFilter, setStatusFilter] = useState('ALL');
-    const [roleFilter, setRoleFilter] = useState('ALL');
+    const [statusFilter, setStatusFilter] = useState(searchParams.get('status') || 'ALL');
+    const [roleFilter, setRoleFilter] = useState(searchParams.get('role') || 'ALL');
 
     // Hooks
     const pagination = usePagination();
@@ -146,14 +148,23 @@ export const AdminUsers = () => {
         const user = toggleDialog.data;
         if (!user) return;
 
+        const previousUsers = users;
+        const targetActive = !user.is_active;
+
+        // Optimistically update UI
+        setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: targetActive } : u));
+        
+        // Close dialog immediately for smooth UX
+        toggleDialog.closeDialog();
+
         try {
             const res = await adminApi.toggleUserActive(user.id);
             showToast(res.detail || 'User access status updated successfully.', 'success');
             setUsers(prev => prev.map(u => u.id === user.id ? { ...u, is_active: res.is_active } : u));
         } catch (err) {
-            showToast(err.response?.data?.detail || 'Failed to update user active status.', 'error');
-        } finally {
-            toggleDialog.closeDialog();
+            // Rollback to previous state
+            setUsers(previousUsers);
+            showToast(err.response?.data?.detail || 'Failed to update user active status. Rolled back.', 'error');
         }
     };
 

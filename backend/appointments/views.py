@@ -52,7 +52,11 @@ class DoctorAvailabilityViewSet(RoleBasedSecurityMixin, viewsets.ModelViewSet):
 
 
 class AppointmentViewSet(RoleBasedSecurityMixin, viewsets.ModelViewSet):
-    queryset = Appointment.objects.all().select_related('patient', 'patient__user', 'doctor', 'doctor__user')
+    queryset = Appointment.objects.all().select_related(
+        'patient', 'patient__user', 
+        'doctor', 'doctor__user', 
+        'vitals', 'vitals__patient', 'vitals__patient__user', 'vitals__recorded_by'
+    )
     serializer_class = AppointmentSerializer
     permission_classes = [IsAuthenticated]
     patient_field = 'patient__user'

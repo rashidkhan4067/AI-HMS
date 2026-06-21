@@ -1,6 +1,6 @@
 import { useState, useEffect, useMemo } from 'react';
 import { 
-    Box, Card, CardContent, Grid, Typography, Button, 
+    Box, Card, CardContent, Typography, Button, 
     Select, MenuItem, InputLabel, FormControl, Chip, 
     Skeleton, useTheme, Divider, Popover
 } from '@mui/material';
@@ -17,7 +17,7 @@ import { CreateWardDialog } from '../dialogs/CreateWardDialog';
 import { CreateBedDialog } from '../dialogs/CreateBedDialog';
 import { ConfirmDischargeDialog } from '../dialogs/ConfirmDischargeDialog';
 import { 
-    AdminPageHeader, StatCard, AsyncWrapper, ToastNotification
+    AdminPageHeader, StatGrid, StatCard, DashboardCard, AsyncWrapper, ToastNotification
 } from '../../../shared/components/ui';
 import { AdminFilterBar } from '../components/AdminFilterBar';
 import { useToast } from '../../../hooks/useToast';
@@ -95,7 +95,7 @@ export const AdminIPD = () => {
                 const [patientsRes, doctorsRes, deptRes] = await Promise.all([
                     axiosInstance.get('auth/patients/'),
                     axiosInstance.get('auth/doctors/'),
-                    axiosInstance.get('departments/')
+                    axiosInstance.get('auth/departments/')
                 ]);
                 setPatients(patientsRes.data.results || patientsRes.data);
                 setDoctors(doctorsRes.data.results || doctorsRes.data);
@@ -109,6 +109,12 @@ export const AdminIPD = () => {
         };
         loadFormData();
     }, []);
+
+    useEffect(() => {
+        refreshWards();
+        refreshBeds();
+        refreshAdmissions();
+    }, [refreshWards, refreshBeds, refreshAdmissions]);
 
     const getActiveAdmission = (bedId) => {
         return admissions.find(adm => adm.bed === bedId && adm.status === 'ADMITTED');
@@ -138,7 +144,13 @@ export const AdminIPD = () => {
             });
             setBeds(prev => prev.map(b => b.id === admissionBed ? { ...b, status: 'OCCUPIED' } : b));
             setAdmissions(prev => [data, ...prev]);
-            refreshWards();
+            
+            // Update available_beds locally
+            const bedObj = beds.find(b => b.id === admissionBed);
+            if (bedObj) {
+                setWards(prev => prev.map(w => w.id === bedObj.ward ? { ...w, available_beds: Math.max(0, (w.available_beds || 0) - 1) } : w));
+            }
+            
             showToast('Patient admitted successfully.', 'success');
             setOpenAdmitDialog(false);
         } catch (err) {
@@ -163,7 +175,6 @@ export const AdminIPD = () => {
             await adminApi.dischargeAdmission(admissionId);
             setBeds(prev => prev.map(b => b.id === bedId ? { ...b, status: 'CLEANING' } : b));
             setAdmissions(prev => prev.map(a => a.id === admissionId ? { ...a, status: 'DISCHARGED', discharged_at: new Date().toISOString() } : a));
-            refreshWards();
             showToast('Patient discharged successfully. Bed scheduled for cleaning.', 'success');
             setDischargeOpen(false);
             handlePopoverClose();
@@ -178,8 +189,19 @@ export const AdminIPD = () => {
         setStatusChanging(true);
         try {
             await adminApi.updateBed(bedId, { status: newStatus });
+            
+            // Update available_beds count locally
+            const bedObj = beds.find(b => b.id === bedId);
+            if (bedObj) {
+                const wasAvailable = bedObj.status === 'AVAILABLE';
+                const isNowAvailable = newStatus === 'AVAILABLE';
+                if (wasAvailable !== isNowAvailable) {
+                    const diff = isNowAvailable ? 1 : -1;
+                    setWards(prev => prev.map(w => w.id === bedObj.ward ? { ...w, available_beds: Math.max(0, (w.available_beds || 0) + diff) } : w));
+                }
+            }
+            
             setBeds(prev => prev.map(b => b.id === bedId ? { ...b, status: newStatus } : b));
-            refreshWards();
             showToast(`Bed status updated to ${newStatus}.`, 'success');
             handlePopoverClose();
         } catch (err) {
@@ -221,7 +243,10 @@ export const AdminIPD = () => {
                 bed_number: bedNumber
             });
             setBeds(prev => [...prev, data]);
-            refreshWards();
+            
+            // Update total_beds and available_beds locally (bed starts as AVAILABLE by default)
+            setWards(prev => prev.map(w => w.id === bedWard ? { ...w, total_beds: (w.total_beds || 0) + 1, available_beds: (w.available_beds || 0) + 1 } : w));
+            
             setOpenBedDialog(false);
             setBedNumber('');
             showToast(`Bed "${data.bed_number}" registered successfully.`, 'success');
@@ -249,14 +274,14 @@ export const AdminIPD = () => {
 
     const filteredWards = useMemo(() => {
         return wards.filter(ward => {
-            const nameMatch = ward.name.toLowerCase().includes(wardSearch.toLowerCase());
+            const nameMatch = (ward.name || '').toLowerCase().includes(wardSearch.toLowerCase());
             const catMatch = categoryFilter === 'ALL' || ward.category === categoryFilter;
             return nameMatch && catMatch;
         });
     }, [wards, wardSearch, categoryFilter]);
 
     return (
-        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
             <AdminPageHeader
                 title="In-Patient Department (IPD) Occupancy"
                 subtitle="Monitor real-time bed configurations, admit emergency triages, manage ward maps, and log discharges."
@@ -284,12 +309,12 @@ export const AdminIPD = () => {
             />
 
             <AsyncWrapper loading={false} error={error}>
-                <Box sx={{ display: 'grid', gridTemplateColumns: { xs: '1fr', sm: '1fr 1fr', md: 'repeat(4, 1fr)' }, gap: 3 }}>
+                <StatGrid cols={4}>
                     <StatCard title="Total Beds Registered" value={stats.total} description="Bed infrastructure" icon={Hotel} color={COLORS.PRIMARY} loading={loading} />
                     <StatCard title="Available Beds" value={stats.available} description="Immediate occupancy" icon={CheckCircle2} color={COLORS.SUCCESS} loading={loading} />
                     <StatCard title="Occupied Beds" value={stats.occupied} description="Patient admitted" icon={User} color={COLORS.INFO} loading={loading} />
                     <StatCard title="Under Cleaning" value={stats.cleaning} description="Triage turnaround status" icon={RefreshCw} color={COLORS.WARNING} loading={loading} />
-                </Box>
+                </StatGrid>
 
                 <AdminFilterBar
                     searchQuery={wardSearch}
@@ -319,104 +344,97 @@ export const AdminIPD = () => {
                     </Button>
                 </Box>
 
-                <Grid container spacing={3}>
+                <Box sx={{ display: 'grid', gridTemplateColumns: '1fr', gap: 3 }}>
                     {loading && wards.length === 0 ? (
                         [1, 2].map((n) => (
-                            <Grid item xs={12} key={n}>
-                                <Skeleton variant="rectangular" height={200} sx={{ borderRadius: '24px' }} />
-                            </Grid>
+                            <Skeleton key={n} variant="rectangular" height={200} sx={{ borderRadius: '8px' }} />
                         ))
                     ) : filteredWards.length === 0 ? (
-                        <Grid item xs={12}>
-                            <Card sx={{ borderRadius: '24px', py: 8, textAlign: 'center', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-                                <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>No IPD Wards Found</Typography>
-                                <Typography variant="caption" color="text.secondary">Try adjusting your filters or use the buttons above to register wards.</Typography>
-                            </Card>
-                        </Grid>
+                        <Card sx={{ borderRadius: '8px', py: 8, textAlign: 'center', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+                            <Typography variant="subtitle1" sx={{ fontWeight: 600 }}>No IPD Wards Found</Typography>
+                            <Typography variant="caption" color="text.secondary">Try adjusting your filters or use the buttons above to register wards.</Typography>
+                        </Card>
                     ) : (
                         filteredWards.map((ward) => {
                             const wardBeds = beds.filter(b => b.ward === ward.id);
-                            const categoryColors = { 'GENERAL': COLORS.PRIMARY, 'PRIVATE': COLORS.SECONDARY, 'ICU': COLORS.DANGER, 'CCU': COLORS.WARNING };
+                            const categoryColors = { 'GENERAL': COLORS.PRIMARY, 'PRIVATE': COLORS.INFO, 'ICU': COLORS.DANGER, 'CCU': COLORS.WARNING };
                             const occupiedRatio = wardBeds.length > 0 ? (wardBeds.filter(b => b.status === 'OCCUPIED').length / wardBeds.length) * 100 : 0;
 
                             return (
-                                <Grid item xs={12} key={ward.id}>
-                                    <Card sx={{ borderRadius: '24px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', overflow: 'hidden' }}>
-                                        <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', flexWrap: 'wrap', justifyItems: 'center', justifyContent: 'space-between', gap: 2 }}>
-                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
-                                                <Hotel style={{ color: categoryColors[ward.category] || '#555' }} />
-                                                <Box>
-                                                    <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING }}>{ward.name}</Typography>
-                                                    <Box sx={{ display: 'flex', gap: 1, mt: 0.5, alignItems: 'center' }}>
-                                                        <Chip label={ward.category} size="small" sx={{ fontSize: '9px', fontWeight: 700, bgcolor: `${categoryColors[ward.category]}11`, color: categoryColors[ward.category] }} />
-                                                        <Typography variant="caption" color="text.secondary">Daily Rate: <strong>Rs. {parseFloat(ward.daily_rate).toLocaleString()}</strong></Typography>
-                                                    </Box>
+                                <Card key={ward.id} sx={{ borderRadius: '8px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', overflow: 'hidden' }}>
+                                    <Box sx={{ p: 3, borderBottom: '1px solid', borderColor: 'divider', display: 'flex', flexWrap: 'wrap', justifyItems: 'center', justifyContent: 'space-between', gap: 2 }}>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 2 }}>
+                                            <Hotel style={{ color: categoryColors[ward.category] || '#555' }} />
+                                            <Box>
+                                                <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING }}>{ward.name}</Typography>
+                                                <Box sx={{ display: 'flex', gap: 1, mt: 0.5, alignItems: 'center' }}>
+                                                    <Chip label={ward.category} size="small" sx={{ fontSize: '9px', fontWeight: 700, bgcolor: `${categoryColors[ward.category]}11`, color: categoryColors[ward.category] }} />
+                                                    <Typography variant="caption" color="text.secondary">Daily Rate: <strong>Rs. {parseFloat(ward.daily_rate).toLocaleString()}</strong></Typography>
                                                 </Box>
                                             </Box>
-                                            <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
-                                                <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{ward.available_beds} / {ward.total_beds} Available Beds</Typography>
-                                                <Typography variant="caption" color="text.secondary">Occupancy Rate: {Math.round(occupiedRatio)}%</Typography>
-                                            </Box>
                                         </Box>
+                                        <Box sx={{ textAlign: { xs: 'left', sm: 'right' } }}>
+                                            <Typography variant="subtitle2" sx={{ fontWeight: 700 }}>{ward.available_beds} / {ward.total_beds} Available Beds</Typography>
+                                            <Typography variant="caption" color="text.secondary">Occupancy Rate: {Math.round(occupiedRatio)}%</Typography>
+                                        </Box>
+                                    </Box>
 
-                                        <CardContent sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? '#141A1A' : '#FAFAFA' }}>
-                                            {wardBeds.length === 0 ? (
-                                                <Typography variant="caption" color="text.disabled" sx={{ py: 2, display: 'block' }}>This ward does not contain any beds. Use "Add Bed to Ward" to configure.</Typography>
-                                            ) : (
-                                                <Grid container spacing={2}>
-                                                    {wardBeds.map((bed) => {
-                                                        let statusColor = '#E2E8F0';
-                                                        let statusBg = 'rgba(0,0,0,0.03)';
-                                                        let textStyleColor = 'text.secondary';
+                                    <CardContent sx={{ p: 3, bgcolor: theme.palette.mode === 'dark' ? '#141A1A' : '#FAFAFA' }}>
+                                        {wardBeds.length === 0 ? (
+                                            <Typography variant="caption" color="text.disabled" sx={{ py: 2, display: 'block' }}>This ward does not contain any beds. Use "Add Bed to Ward" to configure.</Typography>
+                                        ) : (
+                                            <Box sx={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(130px, 1fr))', gap: 2 }}>
+                                                {wardBeds.map((bed) => {
+                                                    let statusColor = '#E2E8F0';
+                                                    let statusBg = 'rgba(0,0,0,0.03)';
+                                                    let textStyleColor = 'text.secondary';
 
-                                                        if (bed.status === 'AVAILABLE') { statusColor = COLORS.SUCCESS; statusBg = `${COLORS.SUCCESS}15`; textStyleColor = COLORS.SUCCESS; }
-                                                        else if (bed.status === 'OCCUPIED') { statusColor = COLORS.INFO; statusBg = `${COLORS.INFO}15`; textStyleColor = COLORS.INFO; }
-                                                        else if (bed.status === 'CLEANING') { statusColor = COLORS.WARNING; statusBg = `${COLORS.WARNING}15`; textStyleColor = COLORS.WARNING; }
-                                                        else if (bed.status === 'MAINTENANCE') { statusColor = COLORS.DANGER; statusBg = `${COLORS.DANGER}15`; textStyleColor = COLORS.DANGER; }
+                                                    if (bed.status === 'AVAILABLE') { statusColor = COLORS.SUCCESS; statusBg = `${COLORS.SUCCESS}15`; textStyleColor = COLORS.SUCCESS; }
+                                                    else if (bed.status === 'OCCUPIED') { statusColor = COLORS.INFO; statusBg = `${COLORS.INFO}15`; textStyleColor = COLORS.INFO; }
+                                                    else if (bed.status === 'CLEANING') { statusColor = COLORS.WARNING; statusBg = `${COLORS.WARNING}15`; textStyleColor = COLORS.WARNING; }
+                                                    else if (bed.status === 'MAINTENANCE') { statusColor = COLORS.DANGER; statusBg = `${COLORS.DANGER}15`; textStyleColor = COLORS.DANGER; }
 
-                                                        const admission = getActiveAdmission(bed.id);
+                                                    const admission = getActiveAdmission(bed.id);
 
-                                                        return (
-                                                            <Grid item xs={6} sm={4} md={3} lg={2} key={bed.id}>
-                                                                <Box
-                                                                    component={motion.div}
-                                                                    whileHover={{ scale: 1.03, y: -2 }}
-                                                                    whileTap={{ scale: 0.98 }}
-                                                                    onClick={(e) => handleBedClick(e, bed)}
-                                                                    sx={{
-                                                                        p: 2, borderRadius: '16px', border: '1px solid',
-                                                                        borderColor: bed.status === 'OCCUPIED' ? 'transparent' : 'divider',
-                                                                        bgcolor: statusBg, cursor: 'pointer',
-                                                                        transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
-                                                                        display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.25,
-                                                                        '&:hover': { borderColor: statusColor, boxShadow: `0 4px 12px ${statusBg}` }
-                                                                    }}
-                                                                >
-                                                                    <Hotel size={24} style={{ color: statusColor }} />
-                                                                    <Box sx={{ textAlign: 'center' }}>
-                                                                        <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, color: textStyleColor }}>
-                                                                            Bed {bed.bed_number}
-                                                                        </Typography>
-                                                                        {bed.status === 'OCCUPIED' && admission && (
-                                                                            <Typography variant="caption" sx={{ fontSize: '10px', display: 'block', color: textStyleColor, fontWeight: 600, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                                                {admission.patient_name}
-                                                                            </Typography>
-                                                                        )}
-                                                                        <Chip label={bed.status} size="small" sx={{ height: 14, fontSize: '8px', fontWeight: 700, mt: 0.5, bgcolor: 'rgba(255,255,255,0.7)', color: statusColor, border: `1px solid ${statusColor}` }} />
-                                                                    </Box>
-                                                                </Box>
-                                                            </Grid>
-                                                        );
-                                                    })}
-                                                </Grid>
-                                            )}
-                                        </CardContent>
-                                    </Card>
-                                </Grid>
+                                                    return (
+                                                        <Box
+                                                            key={bed.id}
+                                                            component={motion.div}
+                                                            whileHover={{ scale: 1.03, y: -2 }}
+                                                            whileTap={{ scale: 0.98 }}
+                                                            onClick={(e) => handleBedClick(e, bed)}
+                                                            sx={{
+                                                                p: 2, borderRadius: '8px', border: '1px solid',
+                                                                borderColor: bed.status === 'OCCUPIED' ? 'transparent' : 'divider',
+                                                                bgcolor: statusBg, cursor: 'pointer',
+                                                                transition: 'border-color 0.15s ease, box-shadow 0.15s ease',
+                                                                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 1.25,
+                                                                '&:hover': { borderColor: statusColor, boxShadow: `0 4px 12px ${statusBg}` }
+                                                            }}
+                                                        >
+                                                            <Hotel size={24} style={{ color: statusColor }} />
+                                                            <Box sx={{ textAlign: 'center' }}>
+                                                                <Typography variant="subtitle2" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, color: textStyleColor }}>
+                                                                    Bed {bed.bed_number}
+                                                                </Typography>
+                                                                {bed.status === 'OCCUPIED' && admission && (
+                                                                    <Typography variant="caption" sx={{ fontSize: '10px', display: 'block', color: textStyleColor, fontWeight: 600, maxWidth: 100, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                                                        {admission.patient_name}
+                                                                    </Typography>
+                                                                )}
+                                                                <Chip label={bed.status} size="small" sx={{ height: 14, fontSize: '8px', fontWeight: 700, mt: 0.5, bgcolor: 'rgba(255,255,255,0.7)', color: statusColor, border: `1px solid ${statusColor}` }} />
+                                                            </Box>
+                                                        </Box>
+                                                    );
+                                                })}
+                                            </Box>
+                                        )}
+                                    </CardContent>
+                                </Card>
                             );
                         })
                     )}
-                </Grid>
+                </Box>
             </AsyncWrapper>
 
             <Popover

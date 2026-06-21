@@ -15,7 +15,13 @@ import { FONTS } from '../../theme.constants';
  */
 export const AdminPageHeader = ({ title, subtitle, onRefresh, loading, actions }) => {
   return (
-    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: 2 }}>
+    <Box sx={{ 
+      display: 'flex', 
+      flexDirection: { xs: 'column', sm: 'row' },
+      justifyContent: 'space-between', 
+      alignItems: { xs: 'stretch', sm: 'flex-start' }, 
+      gap: { xs: 1.25, sm: 2 }
+    }}>
       <Box>
         {loading && !title ? (
           <Skeleton width={200} height={40} />
@@ -36,13 +42,24 @@ export const AdminPageHeader = ({ title, subtitle, onRefresh, loading, actions }
         {loading && !subtitle ? (
           <Skeleton width={300} height={20} />
         ) : (
-          <Typography variant="body2" sx={{ color: 'text.secondary', fontFamily: FONTS.BODY }}>
+          <Typography 
+            variant="body2" 
+            sx={{ 
+              color: (theme) => theme.palette.mode === 'dark' ? '#9CA3AF' : '#6B7280', 
+              fontFamily: FONTS.BODY 
+            }}
+          >
             {subtitle}
           </Typography>
         )}
       </Box>
 
-      <Box sx={{ display: 'flex', gap: 1.5 }}>
+      <Box sx={{ 
+        display: 'flex', 
+        gap: 1.5,
+        justifyContent: { xs: 'flex-end', sm: 'flex-start' },
+        mt: { xs: -0.5, sm: 0 }
+      }}>
         {actions}
         {onRefresh && (
           <Button

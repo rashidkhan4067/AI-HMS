@@ -17,6 +17,7 @@ from pharmacy.models import PrescriptionDispense
 from billing.models import Invoice
 from invitations.models import StaffInvite
 from applications.models import DoctorApplication
+from roster.models import DutyRoster
 
 
 class Command(BaseCommand):
@@ -26,28 +27,28 @@ class Command(BaseCommand):
         self.stdout.write("Starting database seeding process...")
 
         try:
-            with transaction.atomic():
-                self.clear_existing_data()
-                
-                departments = self.seed_departments()
-                applications = self.seed_doctor_applications()
-                staff_users = self.seed_staff_users(departments)
-                patients = self.seed_patient_users()
-                self.seed_doctor_availabilities(staff_users['doctors'])
-                appointments = self.seed_appointments(patients, staff_users['doctors'])
-                vitals = self.seed_vitals(appointments, staff_users['nurse1'])
-                medical_records = self.seed_medical_records(appointments, staff_users['doctors'])
-                self.seed_billing_invoices(appointments, patients)
-                self.seed_prescription_dispenses(medical_records, staff_users['pharmacist1'])
-                self.seed_diagnostics(
-                    appointments,
-                    staff_users['doctors'],
-                    patients,
-                    staff_users['labtech'],
-                    staff_users['radiologist']
-                )
-                self.seed_staff_invites(departments)
-                self.seed_login_audit_logs(staff_users['admin'], staff_users['doctors'][0])
+            self.clear_existing_data()
+            
+            departments = self.seed_departments()
+            applications = self.seed_doctor_applications()
+            staff_users = self.seed_staff_users(departments)
+            patients = self.seed_patient_users()
+            self.seed_doctor_availabilities(staff_users['doctors'])
+            appointments = self.seed_appointments(patients, staff_users['doctors'])
+            vitals = self.seed_vitals(appointments, staff_users['nurse1'])
+            medical_records = self.seed_medical_records(appointments, staff_users['doctors'])
+            self.seed_billing_invoices(appointments, patients)
+            self.seed_prescription_dispenses(medical_records, staff_users['pharmacist1'])
+            self.seed_diagnostics(
+                appointments,
+                staff_users['doctors'],
+                patients,
+                staff_users['labtech'],
+                staff_users['radiologist']
+            )
+            self.seed_staff_invites(departments)
+            self.seed_login_audit_logs(staff_users['admin'], staff_users['doctors'][0])
+            self.seed_rosters(staff_users, departments)
 
             self.stdout.write(self.style.SUCCESS("Database seeded successfully!"))
         except Exception as e:
@@ -58,6 +59,7 @@ class Command(BaseCommand):
         self.stdout.write("Clearing existing data...")
         
         # Delete in order of dependencies to avoid foreign key violations
+        DutyRoster.objects.all().delete()
         LoginAuditLog.objects.all().delete()
         StaffInvite.objects.all().delete()
         Invoice.objects.all().delete()
@@ -226,6 +228,7 @@ class Command(BaseCommand):
         )
 
         # 2. Doctors
+        today = datetime.date.today()
         doctors_to_create = [
             {
                 "email": "doctor1@test.com", # Matches the approved application
@@ -235,7 +238,9 @@ class Command(BaseCommand):
                 "phone": "0300-9876543",
                 "specialization": "Cardiology",
                 "consultation_fee": 1500.00,
-                "bio": "Dr. Sarah Connor is a veteran cardiologist specializing in non-invasive imaging, cardiac rehabilitation, and coronary artery disease prevention."
+                "bio": "Dr. Sarah Connor is a veteran cardiologist specializing in non-invasive imaging, cardiac rehabilitation, and coronary artery disease prevention.",
+                "pmdc_expiry_date": today + datetime.timedelta(days=45),  # Expiring soon
+                "license_status": "ACTIVE",
             },
             {
                 "email": "doctor2@test.com",
@@ -245,7 +250,9 @@ class Command(BaseCommand):
                 "phone": "0321-5556667",
                 "specialization": "Pediatrics",
                 "consultation_fee": 1200.00,
-                "bio": "Dr. Watson offers comprehensive primary care services to pediatric patients. He focuses on childhood developmental milestones, asthma management, and adolescent wellness."
+                "bio": "Dr. Watson offers comprehensive primary care services to pediatric patients. He focuses on childhood developmental milestones, asthma management, and adolescent wellness.",
+                "pmdc_expiry_date": today + datetime.timedelta(days=180),  # Valid
+                "license_status": "ACTIVE",
             },
             {
                 "email": "doctor3@test.com",
@@ -255,7 +262,9 @@ class Command(BaseCommand):
                 "phone": "0333-8889990",
                 "specialization": "Emergency Medicine",
                 "consultation_fee": 2000.00,
-                "bio": "Dr. House is a seasoned emergency physician who excels under high-stress clinical conditions. His areas of interest include critical care resuscitation and diagnostics."
+                "bio": "Dr. House is a seasoned emergency physician who excels under high-stress clinical conditions. His areas of interest include critical care resuscitation and diagnostics.",
+                "pmdc_expiry_date": today - datetime.timedelta(days=10),  # Expired
+                "license_status": "EXPIRED",
             }
         ]
 
@@ -279,6 +288,8 @@ class Command(BaseCommand):
             doc_profile.consultation_fee = doc_info["consultation_fee"]
             doc_profile.bio = doc_info["bio"]
             doc_profile.is_available = True
+            doc_profile.pmdc_expiry_date = doc_info.get("pmdc_expiry_date")
+            doc_profile.license_status = doc_info.get("license_status", "ACTIVE")
             doc_profile.save()
             doctors.append(doc_profile)
 
@@ -741,6 +752,8 @@ class Command(BaseCommand):
         # Invoices for completed appointments are PAID, others are PENDING
         
         invoice_count = 0
+        today = timezone.now()
+        
         for i, appt in enumerate(appointments):
             if appt.status == "CANCELLED":
                 continue
@@ -755,16 +768,46 @@ class Command(BaseCommand):
                 decimal_val = Decimal(str(random.choice([250.00, 500.00, 1000.00])))
                 amount += decimal_val
             
-            Invoice.objects.create(
+            inv = Invoice.objects.create(
                 appointment=appt,
                 patient=appt.patient,
                 amount=amount,
+                paid_amount=amount if is_paid else Decimal("0.00"),
                 payment_status=status,
                 payment_method=method
             )
+            
+            # Distribute dates of main invoices
+            days_ago = random.randint(0, 10)
+            created_date = today - datetime.timedelta(days=days_ago)
+            Invoice.objects.filter(id=inv.id).update(created_at=created_date)
+            
             invoice_count += 1
 
-        self.stdout.write(f"Seeded {invoice_count} billing invoices.")
+        # Generate additional realistic historical invoices for the past 30 days
+        # to ensure the Collections Trend (Last 30 Days) chart has rich mock data.
+        historical_invoice_count = 0
+        for day in range(1, 30):
+            created_date = today - datetime.timedelta(days=day)
+            # Seed 1 to 3 invoices for this day
+            num_invoices = random.randint(1, 3)
+            for _ in range(num_invoices):
+                patient = random.choice(patients)
+                amount = Decimal(str(random.choice([1200.00, 1500.00, 2200.00, 3000.00, 4500.00])))
+                method = random.choice(["CARD", "CASH", "MOBILE_PAY"])
+                
+                inv = Invoice.objects.create(
+                    patient=patient,
+                    amount=amount,
+                    paid_amount=amount,
+                    payment_status="PAID",
+                    payment_method=method
+                )
+                Invoice.objects.filter(id=inv.id).update(created_at=created_date)
+                historical_invoice_count += 1
+                invoice_count += 1
+
+        self.stdout.write(f"Seeded {invoice_count} billing invoices ({historical_invoice_count} historical trend records).")
 
     def seed_prescription_dispenses(self, medical_records, pharmacist):
         self.stdout.write("Updating automatically generated prescription dispenses...")
@@ -949,7 +992,6 @@ class Command(BaseCommand):
             attachment_url="/reports/cxr_diana.jpg"
         )
 
-        # 4. Pending Radiology Order for Evan Wright, ordered by Dr. Gregory House, linked to appt 4
         DiagnosticOrder.objects.create(
             patient=patients[3],
             doctor=doctors[2],
@@ -961,3 +1003,61 @@ class Command(BaseCommand):
         )
 
         self.stdout.write("Seeded 4 diagnostic orders (2 Completed, 2 Pending).")
+
+    def seed_rosters(self, staff_users, departments):
+        self.stdout.write("Seeding duty rosters...")
+        
+        today = timezone.now()
+        rosters = []
+        
+        # Seed shifts for doctors and nurses for the next few days
+        staff_list = [
+            (staff_users['doctors'][0].user, departments['CARD']),
+            (staff_users['doctors'][1].user, departments['PEDS']),
+            (staff_users['doctors'][2].user, departments['EMER']),
+            (staff_users['nurse1'], departments['CARD']),
+            (staff_users['nurse2'], departments['EMER']),
+        ]
+        
+        for day_offset in range(-2, 5):
+            shift_date = today + datetime.timedelta(days=day_offset)
+            
+            for staff, dept in staff_list:
+                # Morning shift: 08:00 to 14:00
+                start_time = datetime.datetime.combine(shift_date.date(), datetime.time(8, 0))
+                end_time = datetime.datetime.combine(shift_date.date(), datetime.time(14, 0))
+                
+                # Make timezone aware using UTC (default in settings)
+                start_time = timezone.make_aware(start_time, datetime.timezone.utc)
+                end_time = timezone.make_aware(end_time, datetime.timezone.utc)
+                
+                rosters.append(
+                    DutyRoster(
+                        staff_member=staff,
+                        department=dept,
+                        shift_start=start_time,
+                        shift_end=end_time,
+                        notes="Standard morning clinical duty."
+                    )
+                )
+                
+                # Night shift on alternate days for some staff
+                if (day_offset + ord(staff.full_name[0])) % 2 == 0:
+                    start_time_night = datetime.datetime.combine(shift_date.date(), datetime.time(20, 0))
+                    end_time_night = datetime.datetime.combine(shift_date.date() + datetime.timedelta(days=1), datetime.time(2, 0))
+                    
+                    start_time_night = timezone.make_aware(start_time_night, datetime.timezone.utc)
+                    end_time_night = timezone.make_aware(end_time_night, datetime.timezone.utc)
+                    
+                    rosters.append(
+                        DutyRoster(
+                            staff_member=staff,
+                            department=dept,
+                            shift_start=start_time_night,
+                            shift_end=end_time_night,
+                            notes="On-call emergency night shift duty."
+                        )
+                    )
+                    
+        DutyRoster.objects.bulk_create(rosters)
+        self.stdout.write(f"Seeded {len(rosters)} duty roster shifts.")

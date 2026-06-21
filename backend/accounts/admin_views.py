@@ -126,64 +126,119 @@ class AdminDashboardDataView(APIView):
     """
     GET /api/auth/admin/dashboard-data/
     Returns all admin dashboard metrics and directories in a single request.
+    Optimized to run all DB queries in parallel via ThreadPoolExecutor.
     """
     permission_classes = (IsAuthenticated, IsAdminUser)
 
     def get(self, request, *args, **kwargs):
-        # 1. Stats (Overview)
+        from concurrent.futures import ThreadPoolExecutor
+        from django.db import connection, close_old_connections
+        from django.db.models import Q
+
         staff_roles = ['DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST']
-        active_staff_count = User.objects.filter(role__in=staff_roles, is_active=True).count()
-        pending_apps_count = DoctorApplication.objects.filter(status='PENDING').count()
-        active_invites_count = StaffInvite.objects.filter(is_used=False, expires_at__gt=timezone.now()).count()
-        cutoff = timezone.now() - timezone.timedelta(hours=24)
-        security_warnings_count = LoginAuditLog.objects.filter(success=False, timestamp__gt=cutoff).count()
-
+        cutoff = timezone.now() - timedelta(hours=24)
         today = timezone.now().date()
-        total_patients = Patient.objects.count()
-        appointments_today = Appointment.objects.filter(date=today).count()
-        check_ins_today = Appointment.objects.filter(date=today, status__in=['CONFIRMED', 'COMPLETED']).count()
-        vitals_logged_today = Vitals.objects.filter(created_at__date=today).count()
-        consults_completed_today = Appointment.objects.filter(date=today, status='COMPLETED').count()
 
-        overview_data = {
-            'total_active_staff': active_staff_count,
-            'pending_applications': pending_apps_count,
-            'active_invite_tokens': active_invites_count,
-            'security_warnings': security_warnings_count,
-            'total_patients': total_patients,
-            'appointments_today': appointments_today,
-            'check_ins_today': check_ins_today,
-            'vitals_logged_today': vitals_logged_today,
-            'consults_completed_today': consults_completed_today,
+        # Define individual query tasks
+        def get_staff_count():
+            return User.objects.filter(role__in=staff_roles, is_active=True).count()
+
+        def get_pending_apps():
+            return DoctorApplication.objects.filter(status='PENDING').count()
+
+        def get_active_invites():
+            return StaffInvite.objects.filter(is_used=False, expires_at__gt=timezone.now()).count()
+
+        def get_security_warnings():
+            return LoginAuditLog.objects.filter(success=False, timestamp__gt=cutoff).count()
+
+        def get_total_patients():
+            return Patient.objects.count()
+
+        def get_vitals_logged_today():
+            return Vitals.objects.filter(created_at__date=today).count()
+
+        def get_appointment_stats():
+            stats = Appointment.objects.filter(date=today).aggregate(
+                total=Count('id'),
+                check_ins=Count('id', filter=Q(status__in=['CONFIRMED', 'COMPLETED'])),
+                completed=Count('id', filter=Q(status='COMPLETED'))
+            )
+            return stats
+
+        def get_users():
+            users_qs = User.objects.select_related('department').all().order_by('-created_at')
+            return UserSerializer(users_qs, many=True, context={'request': request}).data
+
+        def get_invites():
+            invites_qs = StaffInvite.objects.select_related('department').all().order_by('-created_at')
+            return StaffInviteSerializer(invites_qs, many=True).data
+
+        def get_applications():
+            apps_qs = DoctorApplication.objects.all().order_by('-created_at')
+            return DoctorApplicationSerializer(apps_qs, many=True).data
+
+        def get_audits():
+            audits_qs = LoginAuditLog.objects.all().order_by('-timestamp')[:100]
+            return LoginAuditLogSerializer(audits_qs, many=True).data
+
+        def get_departments():
+            departments_qs = Department.objects.annotate(staff_count=Count('users')).order_by('name')
+            return AdminDepartmentSerializer(departments_qs, many=True).data
+
+        tasks = {
+            'staff_count': get_staff_count,
+            'pending_apps': get_pending_apps,
+            'active_invites': get_active_invites,
+            'security_warnings': get_security_warnings,
+            'total_patients': get_total_patients,
+            'vitals_logged_today': get_vitals_logged_today,
+            'appointment_stats': get_appointment_stats,
+            'users': get_users,
+            'invites': get_invites,
+            'applications': get_applications,
+            'audits': get_audits,
+            'departments': get_departments
         }
 
-        # 2. Active User Directories
-        users_qs = User.objects.select_related('department').all().order_by('-created_at')
-        users_data = UserSerializer(users_qs, many=True).data
+        # Helper to execute safely and reuse active connections (leverages conn_max_age)
+        def run_in_thread(func):
+            def wrapper():
+                try:
+                    close_old_connections()
+                    return func()
+                finally:
+                    close_old_connections()
+            return wrapper
 
-        # 3. Active invites
-        invites_qs = StaffInvite.objects.select_related('department').all().order_by('-created_at')
-        invites_data = StaffInviteSerializer(invites_qs, many=True).data
+        # Execute tasks concurrently. Using thread pool connection reuse significantly reduces latency.
+        with ThreadPoolExecutor(max_workers=3) as executor:
+            future_to_key = {executor.submit(run_in_thread(func)): key for key, func in tasks.items()}
+            results = {}
+            for future in future_to_key:
+                key = future_to_key[future]
+                results[key] = future.result()
 
-        # 4. Pending applications
-        apps_qs = DoctorApplication.objects.all().order_by('-created_at')
-        apps_data = DoctorApplicationSerializer(apps_qs, many=True).data
-
-        # 5. Security logs (limit to 100 to optimize performance)
-        audits_qs = LoginAuditLog.objects.all().order_by('-timestamp')[:100]
-        audits_data = LoginAuditLogSerializer(audits_qs, many=True).data
-
-        # 6. Departments with staff counts
-        departments_qs = Department.objects.annotate(staff_count=Count('users')).order_by('name')
-        departments_data = AdminDepartmentSerializer(departments_qs, many=True).data
+        appt_stats = results['appointment_stats']
+        overview_data = {
+            'total_active_staff': results['staff_count'],
+            'pending_applications': results['pending_apps'],
+            'active_invite_tokens': results['active_invites'],
+            'security_warnings': results['security_warnings'],
+            'total_patients': results['total_patients'],
+            'appointments_today': appt_stats['total'],
+            'check_ins_today': appt_stats['check_ins'],
+            'vitals_logged_today': results['vitals_logged_today'],
+            'consults_completed_today': appt_stats['completed'],
+        }
 
         return Response({
             'overview': overview_data,
-            'users': users_data,
-            'invites': invites_data,
-            'applications': apps_data,
-            'audits': audits_data,
-            'departments': departments_data,
+            'users': results['users'],
+            'invites': results['invites'],
+            'applications': results['applications'],
+            'audits': results['audits'],
+            'departments': results['departments'],
         }, status=status.HTTP_200_OK)
 
 

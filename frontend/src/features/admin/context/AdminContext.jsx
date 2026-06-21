@@ -1,4 +1,6 @@
-import React, { createContext, useContext, useState, useEffect, useCallback } from 'react';
+import React, { createContext, useContext, useEffect, useCallback } from 'react';
+import { useLocation } from 'react-router-dom';
+import { useQuery, useQueryClient } from '@tanstack/react-query';
 import { adminApi } from '../services/adminApi';
 import { departmentApi } from '../../departments/services/departmentApi';
 import { invitationApi } from '../../invitations/services/invitationApi';
@@ -17,163 +19,275 @@ const getCachedData = () => {
 };
 
 export const AdminProvider = ({ children }) => {
+    const queryClient = useQueryClient();
     const cached = getCachedData();
+    const location = useLocation();
+    const path = location.pathname;
 
-    const [overview, setOverview] = useState(cached?.overview || {
-        total_active_staff: 0,
-        pending_applications: 0,
-        active_invite_tokens: 0,
-        security_warnings: 0,
-    });
-    const [users, setUsers] = useState(cached?.users || []);
-    const [invites, setInvites] = useState(cached?.invites || []);
-    const [applications, setApplications] = useState(cached?.applications || []);
-    const [audits, setAudits] = useState(cached?.audits || []);
-    const [departments, setDepartments] = useState(cached?.departments || []);
+    // Path-based dynamic enabling to prevent rendering request storms (lazy load only what is active)
+    const isDashboard = path === '/admin/dashboard' || path === '/admin' || path === '/admin/';
+    const isOverviewEnabled = isDashboard;
+    const isUsersEnabled = path.startsWith('/admin/users') || isDashboard;
+    const isInvitesEnabled = path.startsWith('/admin/invites');
+    const isApplicationsEnabled = path.startsWith('/admin/applications') || isDashboard;
+    const isAuditsEnabled = path.startsWith('/admin/audits') || isDashboard;
+    const isComplianceEnabled = path.startsWith('/admin/compliance') || isDashboard;
+    const isRostersEnabled = path.startsWith('/admin/roster');
+    const isDepartmentsEnabled = path.startsWith('/admin/departments') || isDashboard;
+    const isAppointmentsEnabled = path.startsWith('/admin/appointments');
+    const isRevenueEnabled = path.startsWith('/admin/revenue');
+    const isBillingOversightEnabled = path.startsWith('/admin/revenue') || isDashboard;
+    const isBedsEnabled = path.startsWith('/admin/ipd') || isDashboard;
+    const isAdmissionsEnabled = path.startsWith('/admin/ipd');
+    const isWardsEnabled = path.startsWith('/admin/ipd');
 
-    // New feature states
-    const [compliance, setCompliance] = useState(cached?.compliance || []);
-    const [revenue, setRevenue] = useState(cached?.revenue || null);
-    const [billingOversight, setBillingOversight] = useState(cached?.billingOversight || null);
-    const [wards, setWards] = useState(cached?.wards || []);
-    const [beds, setBeds] = useState(cached?.beds || []);
-    const [admissions, setAdmissions] = useState(cached?.admissions || []);
-    const [rosters, setRosters] = useState(cached?.rosters || []);
-    const [appointments, setAppointments] = useState(cached?.appointments || []);
+    // --- Queries ---
 
-    const hasCache = !!cached;
-    const initialLoading = !hasCache;
-
-    const [loadingStates, setLoadingStates] = useState({
-        overview: initialLoading, users: initialLoading, invites: initialLoading,
-        applications: initialLoading, audits: initialLoading, departments: initialLoading,
-        compliance: initialLoading, revenue: initialLoading, billingOversight: initialLoading,
-        wards: initialLoading, beds: initialLoading, admissions: initialLoading,
-        rosters: initialLoading, appointments: initialLoading,
-    });
-
-    const [errorStates, setErrorStates] = useState({
-        overview: null, users: null, invites: null, applications: null, audits: null,
-        departments: null, compliance: null, revenue: null, billingOversight: null,
-        wards: null, beds: null, admissions: null, rosters: null, appointments: null,
+    // Real-time data (staleTime: 30 seconds)
+    const overviewQuery = useQuery({
+        queryKey: ['adminOverview'],
+        queryFn: adminApi.getOverview,
+        staleTime: 30 * 1000,
+        initialData: cached?.overview || {
+            total_active_staff: 0,
+            pending_applications: 0,
+            active_invite_tokens: 0,
+            security_warnings: 0,
+        },
+        enabled: isOverviewEnabled,
     });
 
-    const [isSyncing, setIsSyncing] = useState(false);
+    const appointmentsQuery = useQuery({
+        queryKey: ['adminAppointments'],
+        queryFn: async () => {
+            const data = await adminApi.getAppointments();
+            return data.results || data;
+        },
+        staleTime: 30 * 1000,
+        initialData: cached?.appointments || [],
+        enabled: isAppointmentsEnabled,
+    });
 
-    // --- Generic Refresh Factory ---
-    const createRefresh = useCallback((key, apiCall, setter, errorMsg, transform = (d) => d) => {
-        return async (...args) => {
-            setLoadingStates(prev => ({ ...prev, [key]: true }));
-            setErrorStates(prev => ({ ...prev, [key]: null }));
-            try {
-                const data = await apiCall(...args);
-                setter(transform(data));
-            } catch (err) {
-                setErrorStates(prev => ({ ...prev, [key]: errorMsg }));
-            } finally {
-                setLoadingStates(prev => ({ ...prev, [key]: false }));
-            }
-        };
-    }, []);
+    const revenueQuery = useQuery({
+        queryKey: ['adminRevenue'],
+        queryFn: adminApi.getRevenueReconciliation,
+        staleTime: 30 * 1000,
+        initialData: cached?.revenue || null,
+        enabled: isRevenueEnabled,
+    });
 
-    const refreshOverview = createRefresh('overview', adminApi.getOverview, setOverview, 'Failed to load metrics.');
-    const refreshUsers = createRefresh('users', adminApi.getUsers, setUsers, 'Failed to load users.');
-    const refreshInvites = createRefresh('invites', invitationApi.getInvites, setInvites, 'Failed to load invites.');
-    const refreshApplications = createRefresh('applications', applicationApi.getApplications, setApplications, 'Failed to load applications.');
-    const refreshAudits = createRefresh('audits', adminApi.getAudits, setAudits, 'Failed to load audit logs.', d => d.results || d);
-    const refreshDepartments = createRefresh('departments', departmentApi.getAdminList, setDepartments, 'Failed to load departments.', d => d.results || d);
-    const refreshCompliance = createRefresh('compliance', adminApi.getPMDCCompliance, setCompliance, 'Failed to load PMDC compliance records.');
-    const refreshRevenue = createRefresh('revenue', adminApi.getRevenueReconciliation, setRevenue, 'Failed to load revenue metrics.');
-    const refreshBillingOversight = createRefresh('billingOversight', adminApi.getBillingOversight, setBillingOversight, 'Failed to load billing oversight metrics.');
-    const refreshWards = createRefresh('wards', adminApi.getWards, setWards, 'Failed to load IPD wards.');
-    const refreshBeds = createRefresh('beds', adminApi.getBeds, setBeds, 'Failed to load IPD beds.');
-    const refreshAdmissions = createRefresh('admissions', adminApi.getAdmissions, setAdmissions, 'Failed to load admission records.');
-    const refreshRosters = createRefresh('rosters', adminApi.getRosters, setRosters, 'Failed to load duty rosters.');
-    const refreshAppointments = createRefresh('appointments', adminApi.getAppointments, setAppointments, 'Failed to load appointments.', d => d.results || d);
+    const billingOversightQuery = useQuery({
+        queryKey: ['adminBillingOversight'],
+        queryFn: adminApi.getBillingOversight,
+        staleTime: 30 * 1000,
+        initialData: cached?.billingOversight || null,
+        enabled: isBillingOversightEnabled,
+    });
 
-    const refreshAll = useCallback(async (forceLoading = false) => {
-        const cachedData = getCachedData();
-        const shouldLoad = forceLoading || !cachedData;
+    const bedsQuery = useQuery({
+        queryKey: ['adminBeds'],
+        queryFn: adminApi.getBeds,
+        staleTime: 30 * 1000,
+        initialData: cached?.beds || [],
+        enabled: isBedsEnabled,
+    });
 
-        if (shouldLoad) {
-            setLoadingStates(prev => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: true }), {}));
-        }
-        setIsSyncing(true);
-        setErrorStates(prev => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: null }), {}));
+    const admissionsQuery = useQuery({
+        queryKey: ['adminAdmissions'],
+        queryFn: adminApi.getAdmissions,
+        staleTime: 30 * 1000,
+        initialData: cached?.admissions || [],
+        enabled: isAdmissionsEnabled,
+    });
 
-        try {
-            const data = await adminApi.getDashboardData();
-            setOverview(data.overview);
-            setUsers(data.users);
-            setInvites(data.invites);
-            setApplications(data.applications);
-            setAudits(data.audits);
-            if (data.departments) setDepartments(data.departments);
-        } catch (err) {
-            console.error("getDashboardData failed, attempting legacy fallbacks...", err);
-            // Fallback: Fire legacy requests concurrently
-            const results = await Promise.allSettled([
-                adminApi.getOverview().then(setOverview),
-                adminApi.getUsers().then(setUsers),
-                invitationApi.getInvites().then(setInvites),
-                applicationApi.getApplications().then(setApplications),
-                adminApi.getAudits().then(res => setAudits(res.results || res)),
-                departmentApi.getAdminList().then(res => setDepartments(res.results || res)),
-            ]);
+    // Semi-dynamic data (staleTime: 5 minutes)
+    const usersQuery = useQuery({
+        queryKey: ['adminUsers'],
+        queryFn: adminApi.getUsers,
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.users || [],
+        enabled: isUsersEnabled,
+    });
 
-            const keys = ['overview', 'users', 'invites', 'applications', 'audits', 'departments'];
-            results.forEach((res, idx) => {
-                if (res.status === 'rejected') {
-                    const key = keys[idx];
-                    console.error(`Fallback failed for ${key}:`, res.reason);
-                    setErrorStates(prev => ({ ...prev, [key]: `Failed to sync ${key}.` }));
-                }
-            });
-        }
+    const invitesQuery = useQuery({
+        queryKey: ['adminInvites'],
+        queryFn: invitationApi.getInvites,
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.invites || [],
+        enabled: isInvitesEnabled,
+    });
 
-        // Parallel fetch of new features data
-        try {
-            const results = await Promise.allSettled([
-                adminApi.getPMDCCompliance(),
-                adminApi.getRevenueReconciliation(),
-                adminApi.getBillingOversight(),
-                adminApi.getWards(),
-                adminApi.getBeds(),
-                adminApi.getAdmissions(),
-                adminApi.getRosters(),
-                adminApi.getAppointments()
-            ]);
+    const applicationsQuery = useQuery({
+        queryKey: ['adminApplications'],
+        queryFn: applicationApi.getApplications,
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.applications || [],
+        enabled: isApplicationsEnabled,
+    });
 
-            const setIfSuccess = (res, setter, key, errStr, transform = d => d) => {
-                if (res.status === 'fulfilled') setter(transform(res.value));
-                else setErrorStates(prev => ({ ...prev, [key]: errStr }));
-            };
+    const auditsQuery = useQuery({
+        queryKey: ['adminAudits'],
+        queryFn: async () => {
+            const data = await adminApi.getAudits();
+            return data.results || data;
+        },
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.audits || [],
+        enabled: isAuditsEnabled,
+    });
 
-            setIfSuccess(results[0], setCompliance, 'compliance', 'Failed to load PMDC records');
-            setIfSuccess(results[1], setRevenue, 'revenue', 'Failed to load revenue metrics');
-            setIfSuccess(results[2], setBillingOversight, 'billingOversight', 'Failed to load billing metrics');
-            setIfSuccess(results[3], setWards, 'wards', 'Failed to load wards');
-            setIfSuccess(results[4], setBeds, 'beds', 'Failed to load beds');
-            setIfSuccess(results[5], setAdmissions, 'admissions', 'Failed to load admissions');
-            setIfSuccess(results[6], setRosters, 'rosters', 'Failed to load duty rosters');
-            setIfSuccess(results[7], setAppointments, 'appointments', 'Failed to load appointments', d => d.results || d);
+    const complianceQuery = useQuery({
+        queryKey: ['adminCompliance'],
+        queryFn: adminApi.getPMDCCompliance,
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.compliance || [],
+        enabled: isComplianceEnabled,
+    });
 
-        } catch (err) {
-            // Silent fallback
-        } finally {
-            setLoadingStates(prev => Object.keys(prev).reduce((acc, key) => ({ ...acc, [key]: false }), {}));
-            setIsSyncing(false);
-        }
-    }, []);
+    const rostersQuery = useQuery({
+        queryKey: ['adminRosters'],
+        queryFn: adminApi.getRosters,
+        staleTime: 5 * 60 * 1000,
+        initialData: cached?.rosters || [],
+        enabled: isRostersEnabled,
+    });
 
-    // Load everything on mount
+    // Static data (staleTime: 30 minutes)
+    const departmentsQuery = useQuery({
+        queryKey: ['departments'],
+        queryFn: async () => {
+            const data = await departmentApi.getAdminList();
+            return data.results || data;
+        },
+        staleTime: 30 * 60 * 1000,
+        initialData: cached?.departments || [],
+        enabled: isDepartmentsEnabled,
+    });
+
+    const wardsQuery = useQuery({
+        queryKey: ['adminWards'],
+        queryFn: adminApi.getWards,
+        staleTime: 30 * 60 * 1000,
+        initialData: cached?.wards || [],
+        enabled: isWardsEnabled,
+    });
+
+    // --- Extracted Data ---
+    const overview = overviewQuery.data?.overview || overviewQuery.data;
+    const users = usersQuery.data;
+    const invites = invitesQuery.data;
+    const applications = applicationsQuery.data;
+    const audits = auditsQuery.data;
+    const departments = departmentsQuery.data;
+    const compliance = complianceQuery.data;
+    const revenue = revenueQuery.data;
+    const billingOversight = billingOversightQuery.data;
+    const wards = wardsQuery.data;
+    const beds = bedsQuery.data;
+    const admissions = admissionsQuery.data;
+    const rosters = rostersQuery.data;
+    const appointments = appointmentsQuery.data;
+
+    // --- Loading & Error States ---
+    const loadingStates = {
+        overview: overviewQuery.isLoading,
+        users: usersQuery.isLoading,
+        invites: invitesQuery.isLoading,
+        applications: applicationsQuery.isLoading,
+        audits: auditsQuery.isLoading,
+        departments: departmentsQuery.isLoading,
+        compliance: complianceQuery.isLoading,
+        revenue: revenueQuery.isLoading,
+        billingOversight: billingOversightQuery.isLoading,
+        wards: wardsQuery.isLoading,
+        beds: bedsQuery.isLoading,
+        admissions: admissionsQuery.isLoading,
+        rosters: rostersQuery.isLoading,
+        appointments: appointmentsQuery.isLoading,
+    };
+
+    const errorStates = {
+        overview: overviewQuery.error ? 'Failed to load metrics.' : null,
+        users: usersQuery.error ? 'Failed to load users.' : null,
+        invites: invitesQuery.error ? 'Failed to load invites.' : null,
+        applications: applicationsQuery.error ? 'Failed to load applications.' : null,
+        audits: auditsQuery.error ? 'Failed to load audit logs.' : null,
+        departments: departmentsQuery.error ? 'Failed to load departments.' : null,
+        compliance: complianceQuery.error ? 'Failed to load PMDC compliance records.' : null,
+        revenue: revenueQuery.error ? 'Failed to load revenue metrics.' : null,
+        billingOversight: billingOversightQuery.error ? 'Failed to load billing oversight metrics.' : null,
+        wards: wardsQuery.error ? 'Failed to load IPD wards.' : null,
+        beds: bedsQuery.error ? 'Failed to load IPD beds.' : null,
+        admissions: admissionsQuery.error ? 'Failed to load admission records.' : null,
+        rosters: rostersQuery.error ? 'Failed to load duty rosters.' : null,
+        appointments: appointmentsQuery.error ? 'Failed to load appointments.' : null,
+    };
+
+    const isSyncing = 
+        overviewQuery.isFetching ||
+        usersQuery.isFetching ||
+        invitesQuery.isFetching ||
+        applicationsQuery.isFetching ||
+        auditsQuery.isFetching ||
+        departmentsQuery.isFetching ||
+        complianceQuery.isFetching ||
+        revenueQuery.isFetching ||
+        billingOversightQuery.isFetching ||
+        wardsQuery.isFetching ||
+        bedsQuery.isFetching ||
+        admissionsQuery.isFetching ||
+        rostersQuery.isFetching ||
+        appointmentsQuery.isFetching;
+
+    // --- Setters (Cache Updaters) ---
+    const setOverview = useCallback((updater) => queryClient.setQueryData(['adminOverview'], updater), [queryClient]);
+    const setUsers = useCallback((updater) => queryClient.setQueryData(['adminUsers'], updater), [queryClient]);
+    const setInvites = useCallback((updater) => queryClient.setQueryData(['adminInvites'], updater), [queryClient]);
+    const setApplications = useCallback((updater) => queryClient.setQueryData(['adminApplications'], updater), [queryClient]);
+    const setAudits = useCallback((updater) => queryClient.setQueryData(['adminAudits'], updater), [queryClient]);
+    const setDepartments = useCallback((updater) => queryClient.setQueryData(['departments'], updater), [queryClient]);
+    const setCompliance = useCallback((updater) => queryClient.setQueryData(['adminCompliance'], updater), [queryClient]);
+    const setRevenue = useCallback((updater) => queryClient.setQueryData(['adminRevenue'], updater), [queryClient]);
+    const setBillingOversight = useCallback((updater) => queryClient.setQueryData(['adminBillingOversight'], updater), [queryClient]);
+    const setWards = useCallback((updater) => queryClient.setQueryData(['adminWards'], updater), [queryClient]);
+    const setBeds = useCallback((updater) => queryClient.setQueryData(['adminBeds'], updater), [queryClient]);
+    const setAdmissions = useCallback((updater) => queryClient.setQueryData(['adminAdmissions'], updater), [queryClient]);
+    const setRosters = useCallback((updater) => queryClient.setQueryData(['adminRosters'], updater), [queryClient]);
+    const setAppointments = useCallback((updater) => queryClient.setQueryData(['adminAppointments'], updater), [queryClient]);
+
+    // --- Individual Refresher Functions ---
+    const refreshOverview = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminOverview'] }), [queryClient]);
+    const refreshUsers = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminUsers'] }), [queryClient]);
+    const refreshInvites = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminInvites'] }), [queryClient]);
+    const refreshApplications = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminApplications'] }), [queryClient]);
+    const refreshAudits = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminAudits'] }), [queryClient]);
+    const refreshDepartments = useCallback(() => queryClient.invalidateQueries({ queryKey: ['departments'] }), [queryClient]);
+    const refreshCompliance = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminCompliance'] }), [queryClient]);
+    const refreshRevenue = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminRevenue'] }), [queryClient]);
+    const refreshBillingOversight = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminBillingOversight'] }), [queryClient]);
+    const refreshWards = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminWards'] }), [queryClient]);
+    const refreshBeds = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminBeds'] }), [queryClient]);
+    const refreshAdmissions = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminAdmissions'] }), [queryClient]);
+    const refreshRosters = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminRosters'] }), [queryClient]);
+    const refreshAppointments = useCallback(() => queryClient.invalidateQueries({ queryKey: ['adminAppointments'] }), [queryClient]);
+
+    const refreshAll = useCallback(async () => {
+        await queryClient.invalidateQueries();
+    }, [queryClient]);
+
+    // --- Save changes to localStorage cache in real time ---
     useEffect(() => {
-        refreshAll();
-    }, [refreshAll]);
+        const hasData = (overview && overview.total_active_staff > 0) || 
+                        (users && users.length > 0) || 
+                        (invites && invites.length > 0) || 
+                        (applications && applications.length > 0) || 
+                        (audits && audits.length > 0) || 
+                        (departments && departments.length > 0) || 
+                        (compliance && compliance.length > 0) || 
+                        (wards && wards.length > 0) || 
+                        (rosters && rosters.length > 0) || 
+                        (appointments && appointments.length > 0);
 
-    // Save changes to localStorage cache in real time
-    useEffect(() => {
-        const hasData = overview.total_active_staff > 0 || users.length > 0 || invites.length > 0 || applications.length > 0 || audits.length > 0 || departments.length > 0 || compliance.length > 0 || wards.length > 0 || rosters.length > 0 || appointments.length > 0;
         if (hasData) {
             try {
                 localStorage.setItem(LOCAL_STORAGE_KEYS.ADMIN_CACHE, JSON.stringify({

@@ -19,6 +19,7 @@ def custom_exception_handler(exc, context):
         if isinstance(response.data, dict) and not 'detail' in response.data:
             custom_data['validation_errors'] = response.data
             custom_data['detail'] = 'Validation failed for one or more fields.'
+            custom_data.update(response.data)
         elif isinstance(response.data, list):
             custom_data['validation_errors'] = response.data
             custom_data['detail'] = 'Validation failed.'

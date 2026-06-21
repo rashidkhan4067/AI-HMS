@@ -1,10 +1,11 @@
 import { Box, Typography, Button, Link } from '@mui/material';
-import { Link as RouterLink } from 'react-router-dom';
+import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { User, Stethoscope, ArrowRight, ArrowLeft, Info } from 'lucide-react';
 import { useThemeMode } from '../../../app/theme/ThemeModeContext';
 
 export const BlockedRegisterView = () => {
+    const navigate = useNavigate();
     const { mode } = useThemeMode();
     const isDark = mode === 'dark';
 
@@ -94,7 +95,7 @@ export const BlockedRegisterView = () => {
                         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : '#FFFFFF',
                         cursor: 'pointer',
                     }}
-                    onClick={() => window.location.href = '/auth/register?type=patient'}
+                    onClick={() => navigate('/register?type=patient')}
                 >
                     <Box>
                         {/* Icon Badge */}
@@ -184,7 +185,7 @@ export const BlockedRegisterView = () => {
                         backgroundColor: isDark ? 'rgba(255, 255, 255, 0.02)' : '#FFFFFF',
                         cursor: 'pointer',
                     }}
-                    onClick={() => window.location.href = '/auth/register?apply=doctor'}
+                    onClick={() => navigate('/register?apply=doctor')}
                 >
                     <Box>
                         {/* Icon Badge */}

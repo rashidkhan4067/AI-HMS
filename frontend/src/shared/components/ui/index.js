@@ -12,5 +12,7 @@ export { DataTable }     from './DataTable';
 export { AdminPageHeader } from './AdminPageHeader';
 export { StatCard }      from './StatCard';
 export { SectionCard }   from './SectionCard';
+export { DashboardCard } from './DashboardCard';
+export { StatGrid }      from './StatGrid';
 export { AsyncWrapper }  from './AsyncWrapper';
 export { ToastNotification } from './ToastNotification';
