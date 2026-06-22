@@ -4,7 +4,7 @@ import { Chip } from '@mui/material';
 /**
  * StatusChip — Color-coded chip displaying appointment or onboarding invitation statuses.
  *
- * Used in: PatientDashboard, DoctorDashboard, AdminInvitations, InviteDetailsDialog
+ * Used in: PatientDashboard, DoctorDashboard, Invitations, InviteDetailsDialog
  * Location: shared/components/ui/
  *
  * @param {string} status   - Status value (e.g., 'PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED' or 'REGISTERED', 'EXPIRED')

@@ -4,37 +4,40 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { jwtDecode } from 'jwt-decode';
 import { api, setAccessToken, injectAuthCallbacks } from '../lib/api';
 
-const isPathAllowedForRole = (path, role) => {
-    if (!path) return false;
+const isPathAllowedForUser = (path, user) => {
+    if (!path || !user) return false;
+    const role = user.role;
+    const crossRoles = user.cross_authorized_roles || [];
+    const checkRole = (r) => role === r || crossRoles.includes(r);
     
     // Check role-specific dashboard paths
     if (path.startsWith('/admin')) {
-        return role === 'ADMIN';
+        return checkRole('ADMIN');
     }
     if (path.startsWith('/doctor')) {
-        return role === 'DOCTOR';
+        return checkRole('DOCTOR');
     }
     if (path.startsWith('/nurse')) {
-        return role === 'NURSE';
+        return checkRole('NURSE');
     }
     if (path.startsWith('/receptionist') || path.startsWith('/reception')) {
-        return role === 'RECEPTIONIST';
+        return checkRole('RECEPTIONIST');
     }
     if (path.startsWith('/pharmacist') || path.startsWith('/pharmacy')) {
-        return role === 'PHARMACIST';
+        return checkRole('PHARMACIST');
     }
     if (path.startsWith('/lab')) {
-        return role === 'LAB_TECHNICIAN';
+        return checkRole('LAB_TECHNICIAN');
     }
     if (path.startsWith('/radiology')) {
-        return role === 'RADIOLOGIST';
+        return checkRole('RADIOLOGIST');
     }
     
     // General protected routes
     const generalProtectedPaths = ['/dashboard', '/forbidden', '/profile', '/auth/complete-profile'];
     if (generalProtectedPaths.some(p => path.startsWith(p))) {
         const validRoles = ['ADMIN', 'DOCTOR', 'NURSE', 'RECEPTIONIST', 'PHARMACIST', 'LAB_TECHNICIAN', 'RADIOLOGIST'];
-        return validRoles.includes(role);
+        return validRoles.some(r => checkRole(r));
     }
     
     // Public paths are always allowed
@@ -75,6 +78,7 @@ export const AuthProvider = ({ children }) => {
                     id: decoded.user_id,
                     full_name: decoded.full_name || '',
                     must_complete_profile: decoded.must_complete_profile ?? false,
+                    cross_authorized_roles: decoded.cross_authorized_roles || [],
                 };
 
                 setUser(loggedInUser);
@@ -149,6 +153,7 @@ export const AuthProvider = ({ children }) => {
                 id: decoded.user_id,
                 full_name: decoded.full_name || '',
                 must_complete_profile: decoded.must_complete_profile ?? false,
+                cross_authorized_roles: decoded.cross_authorized_roles || [],
             };
 
             setUser(loggedInUser);
@@ -162,7 +167,7 @@ export const AuthProvider = ({ children }) => {
                 const savedPath = location.state?.from?.pathname;
                 
                 let targetPath = redirectPath;
-                if (savedPath && isPathAllowedForRole(savedPath, loggedInUser.role)) {
+                if (savedPath && isPathAllowedForUser(savedPath, loggedInUser)) {
                     targetPath = savedPath;
                 }
                 navigate(targetPath);
@@ -196,6 +201,7 @@ export const AuthProvider = ({ children }) => {
                 id: decoded.user_id,
                 full_name: decoded.full_name || '',
                 must_complete_profile: decoded.must_complete_profile ?? false,
+                cross_authorized_roles: decoded.cross_authorized_roles || [],
             };
 
             setUser(loggedInUser);
@@ -209,7 +215,7 @@ export const AuthProvider = ({ children }) => {
                 const savedPath = location.state?.from?.pathname;
                 
                 let targetPath = redirectPath;
-                if (savedPath && isPathAllowedForRole(savedPath, loggedInUser.role)) {
+                if (savedPath && isPathAllowedForUser(savedPath, loggedInUser)) {
                     targetPath = savedPath;
                 }
                 navigate(targetPath);
@@ -327,6 +333,7 @@ export const AuthProvider = ({ children }) => {
                 id: decoded.user_id,
                 full_name: decoded.full_name || '',
                 must_complete_profile: false,
+                cross_authorized_roles: decoded.cross_authorized_roles || [],
             };
             setUser(updatedUser);
             return updatedUser;

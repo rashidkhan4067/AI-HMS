@@ -52,7 +52,7 @@ export const StaffComplianceTimeline = ({ compliance = [], loadingStates = {}, e
                     <Box sx={{ display: 'flex', flexDirection: 'column', gap: 1 }}>
                         {sortedCompliance.map((doc, idx) => {
                             const u = getUrgency(doc.days_to_expiry);
-                            const name = doc.user?.full_name || 'Unknown';
+                            const name = doc.doctor_name || 'Unknown';
                             const initials = name.split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
                             return (
                                 <Box key={doc.id || idx} sx={{

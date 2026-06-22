@@ -152,6 +152,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         token['email'] = user.email
         token['full_name'] = user.full_name
         token['must_complete_profile'] = user.must_complete_profile
+        token['cross_authorized_roles'] = [
+            r.strip() for r in user.cross_authorized_roles.split(',') if r.strip()
+        ] if user.cross_authorized_roles else []
 
         return token
 
@@ -160,6 +163,9 @@ class CustomTokenObtainPairSerializer(TokenObtainPairSerializer):
         data['role'] = self.user.role
         data['email'] = self.user.email
         data['must_complete_profile'] = self.user.must_complete_profile
+        data['cross_authorized_roles'] = [
+            r.strip() for r in self.user.cross_authorized_roles.split(',') if r.strip()
+        ] if self.user.cross_authorized_roles else []
         return data
 
 class ChangePasswordSerializer(serializers.Serializer):

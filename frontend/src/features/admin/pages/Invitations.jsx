@@ -1,15 +1,16 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { 
-    Box, Typography, TextField, MenuItem, Button, Chip, IconButton, Stack, CircularProgress
+    Box, Typography, TextField, MenuItem, Button, Chip, IconButton, Stack, CircularProgress,
+    Card, Divider, useMediaQuery, useTheme
 } from '@mui/material';
 import { Plus, RefreshCw, Trash2, Copy, Check, Mail, UserCheck, Clock, ShieldAlert } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { invitationApi } from '../../invitations/services/invitationApi';
 import { departmentApi } from '../../departments/services/departmentApi';
-import { StatusChip, AdminPageHeader, DataTable, DashboardCard, StatGrid, StatCard, AsyncWrapper, ToastNotification } from '../../../shared/components/ui';
+import { StatusChip, PageHeader, DataTable, DashboardCard, StatGrid, StatCard, AsyncWrapper, ToastNotification } from '../../../shared/components/ui';
 import { formatDate } from '../../../shared/utils/dateUtils';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { RevokeInviteDialog } from '../../invitations/dialogs/RevokeInviteDialog';
 import { InviteDetailsDialog } from '../../invitations/dialogs/InviteDetailsDialog';
 import { usePagination } from '../../../hooks/usePagination';
@@ -18,7 +19,9 @@ import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
 import { FONTS, COLORS } from '../../../shared/theme.constants';
 
-export const AdminInvitations = () => {
+export const Invitations = () => {
+    const theme = useTheme();
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [searchParams] = useSearchParams();
     const {
         invites,
@@ -227,9 +230,65 @@ export const AdminInvitations = () => {
     const pendingCount = useMemo(() => invitesList.filter(i => !i.is_used && !i.is_expired).length, [invitesList]);
     const expiredCount = useMemo(() => invitesList.filter(i => !i.is_used && i.is_expired).length, [invitesList]);
 
+    const mobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedInvites.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    No matching onboarding records found.
+                </Box>
+            ) : (
+                paginatedInvites.map((invite) => (
+                    <Card 
+                        key={invite.id} 
+                        onClick={() => detailsDialog.openDialog(invite)}
+                        sx={{ 
+                            p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5, cursor: 'pointer',
+                            transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                            '&:hover': { transform: 'translateY(-2px)', boxShadow: theme.palette.mode === 'dark' ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                        }}
+                    >
+                        <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                            <Box sx={{ flexGrow: 1, minWidth: 0 }}>
+                                <Typography variant="subtitle2" sx={{ fontWeight: 700, color: 'text.primary', fontFamily: FONTS.HEADING, fontSize: '14px', whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>{invite.email}</Typography>
+                                <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block' }}>{invite.department_name || 'General'}</Typography>
+                            </Box>
+                            <Box onClick={e => e.stopPropagation()}>
+                                <Stack direction="row" spacing={0.5}>
+                                    {!invite.is_used && (
+                                        <>
+                                            <IconButton size="small" color="primary" onClick={() => handleCopyLink(invite)} title="Copy Signup Link">
+                                                {copiedId === invite.id ? <Check size={14} style={{ color: '#2E7D32' }} /> : <Copy size={14} />}
+                                            </IconButton>
+                                            <IconButton size="small" color="secondary" onClick={() => handleResendInvite(invite.id)} title="Resend Invitation Email">
+                                                <RefreshCw size={14} />
+                                            </IconButton>
+                                        </>
+                                    )}
+                                    <IconButton size="small" color="error" onClick={() => revokeDialog.openDialog(invite)} title="Revoke Token">
+                                        <Trash2 size={14} />
+                                    </IconButton>
+                                </Stack>
+                            </Box>
+                        </Box>
+                        <Divider />
+                        <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                            <Box sx={{ display: 'flex', gap: 1 }}>
+                                <Chip label={invite.role} size="small" variant="outlined" color="primary" sx={{ fontSize: '9px', fontWeight: 600, height: 20 }} />
+                                <StatusChip invite={invite} type="invitation" uppercase={true} sx={{ fontSize: '9px', borderRadius: '4px', height: 20 }} />
+                            </Box>
+                            <Typography variant="caption" sx={{ color: 'text.secondary', fontSize: '11px', fontFamily: FONTS.BODY }}>
+                                Issued: {formatDate(invite.created_at)}
+                            </Typography>
+                        </Box>
+                    </Card>
+                ))
+            )}
+        </Box>
+    );
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Staff Onboarding Invitations"
                 subtitle="Issue authorization tokens to onboarding medical staff. Invited users must match the assigned email and role."
             />
@@ -345,7 +404,7 @@ export const AdminInvitations = () => {
                         </Button>
                     }
                 >
-                    <AdminFilterBar
+                    <FilterBar
                         searchQuery={searchQuery}
                         onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
                         searchPlaceholder="Search email, department..."
@@ -373,14 +432,16 @@ export const AdminInvitations = () => {
                     />
                     
                     <AsyncWrapper loading={loading} error={errorStates.invites}>
-                        <DataTable
-                            columns={columns}
-                            data={paginatedInvites}
-                            sortState={tableSort}
-                            paginationState={{ ...pagination, count: processedInvites.length }}
-                            onRowClick={(invite) => detailsDialog.openDialog(invite)}
-                            emptyMessage="No matching onboarding records found."
-                        />
+                        {isMobile ? mobileCards : (
+                            <DataTable
+                                columns={columns}
+                                data={paginatedInvites}
+                                sortState={tableSort}
+                                paginationState={{ ...pagination, count: processedInvites.length }}
+                                onRowClick={(invite) => detailsDialog.openDialog(invite)}
+                                emptyMessage="No matching onboarding records found."
+                            />
+                        )}
                     </AsyncWrapper>
                 </DashboardCard>
             </Box>
@@ -405,4 +466,4 @@ export const AdminInvitations = () => {
     );
 };
 
-export default AdminInvitations;
+export default Invitations;

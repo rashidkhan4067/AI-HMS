@@ -48,7 +48,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminOverview'],
         queryFn: adminApi.getOverview,
         staleTime: 30 * 1000,
-        initialData: cached?.overview || {
+        placeholderData: cached?.overview || {
             total_active_staff: 0,
             pending_applications: 0,
             active_invite_tokens: 0,
@@ -64,7 +64,7 @@ export const AdminProvider = ({ children }) => {
             return data.results || data;
         },
         staleTime: 30 * 1000,
-        initialData: cached?.appointments || [],
+        placeholderData: cached?.appointments || [],
         enabled: isAppointmentsEnabled,
     });
 
@@ -72,7 +72,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminRevenue'],
         queryFn: adminApi.getRevenueReconciliation,
         staleTime: 30 * 1000,
-        initialData: cached?.revenue || null,
+        placeholderData: cached?.revenue || null,
         enabled: isRevenueEnabled,
     });
 
@@ -80,7 +80,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminBillingOversight'],
         queryFn: adminApi.getBillingOversight,
         staleTime: 30 * 1000,
-        initialData: cached?.billingOversight || null,
+        placeholderData: cached?.billingOversight || null,
         enabled: isBillingOversightEnabled,
     });
 
@@ -88,7 +88,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminBeds'],
         queryFn: adminApi.getBeds,
         staleTime: 30 * 1000,
-        initialData: cached?.beds || [],
+        placeholderData: cached?.beds || [],
         enabled: isBedsEnabled,
     });
 
@@ -96,7 +96,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminAdmissions'],
         queryFn: adminApi.getAdmissions,
         staleTime: 30 * 1000,
-        initialData: cached?.admissions || [],
+        placeholderData: cached?.admissions || [],
         enabled: isAdmissionsEnabled,
     });
 
@@ -105,7 +105,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminUsers'],
         queryFn: adminApi.getUsers,
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.users || [],
+        placeholderData: cached?.users || [],
         enabled: isUsersEnabled,
     });
 
@@ -113,7 +113,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminInvites'],
         queryFn: invitationApi.getInvites,
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.invites || [],
+        placeholderData: cached?.invites || [],
         enabled: isInvitesEnabled,
     });
 
@@ -121,7 +121,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminApplications'],
         queryFn: applicationApi.getApplications,
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.applications || [],
+        placeholderData: cached?.applications || [],
         enabled: isApplicationsEnabled,
     });
 
@@ -132,7 +132,7 @@ export const AdminProvider = ({ children }) => {
             return data.results || data;
         },
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.audits || [],
+        placeholderData: cached?.audits || [],
         enabled: isAuditsEnabled,
     });
 
@@ -140,7 +140,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminCompliance'],
         queryFn: adminApi.getPMDCCompliance,
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.compliance || [],
+        placeholderData: cached?.compliance || [],
         enabled: isComplianceEnabled,
     });
 
@@ -148,7 +148,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminRosters'],
         queryFn: adminApi.getRosters,
         staleTime: 5 * 60 * 1000,
-        initialData: cached?.rosters || [],
+        placeholderData: cached?.rosters || [],
         enabled: isRostersEnabled,
     });
 
@@ -160,7 +160,7 @@ export const AdminProvider = ({ children }) => {
             return data.results || data;
         },
         staleTime: 30 * 60 * 1000,
-        initialData: cached?.departments || [],
+        placeholderData: cached?.departments || [],
         enabled: isDepartmentsEnabled,
     });
 
@@ -168,7 +168,7 @@ export const AdminProvider = ({ children }) => {
         queryKey: ['adminWards'],
         queryFn: adminApi.getWards,
         staleTime: 30 * 60 * 1000,
-        initialData: cached?.wards || [],
+        placeholderData: cached?.wards || [],
         enabled: isWardsEnabled,
     });
 

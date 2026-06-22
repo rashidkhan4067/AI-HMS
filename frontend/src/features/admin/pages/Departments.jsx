@@ -1,16 +1,16 @@
 import { useState, useMemo, useEffect } from 'react';
 import {
-    Box, Typography, Chip, Button, IconButton, Tooltip, useTheme, Stack, LinearProgress
+    Box, Typography, Chip, Button, IconButton, Tooltip, useTheme, Stack, LinearProgress, Card, Divider, useMediaQuery
 } from '@mui/material';
 import { Plus, Pencil, Trash2, Building2, Users, ShieldCheck, TrendingUp, MapPin, Phone } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { departmentApi } from '../../departments/services/departmentApi';
 import { DepartmentFormDialog } from '../../departments/dialogs/DepartmentFormDialog';
 import { DeleteDepartmentDialog } from '../../departments/dialogs/DeleteDepartmentDialog';
 import { DepartmentDetailsDialog } from '../../departments/dialogs/DepartmentDetailsDialog';
 import {
-    AdminPageHeader, StatGrid, StatCard, DashboardCard, DataTable,
+    PageHeader, StatGrid, StatCard, DashboardCard, DataTable,
     ToastNotification, AsyncWrapper
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
@@ -27,9 +27,10 @@ const getDeptColor = (name) => {
     return palette[Math.abs(hash) % palette.length];
 };
 
-export const AdminDepartments = () => {
+export const Departments = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
 
     const { departments, setDepartments, loadingStates, refreshDepartments } = useAdmin();
     const loading = loadingStates.departments;
@@ -294,9 +295,84 @@ export const AdminDepartments = () => {
         }
     ];
 
+    const mobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedDepartments.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    {searchQuery ? 'No departments match your search.' : 'No departments configured yet.'}
+                </Box>
+            ) : (
+                paginatedDepartments.map((dept) => {
+                    const color = getDeptColor(dept.name);
+                    const hasStaff = (dept.staff_count || 0) > 0;
+                    return (
+                        <Card 
+                            key={dept.id} 
+                            onClick={() => detailsDialog.openDialog(dept)}
+                            sx={{ 
+                                p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5, cursor: 'pointer',
+                                transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Box sx={{
+                                        width: 36, height: 36, borderRadius: '9px', flexShrink: 0,
+                                        bgcolor: `${color}18`, color,
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '14px', fontWeight: 700, fontFamily: FONTS.HEADING,
+                                    }}>
+                                        {dept.name?.charAt(0)?.toUpperCase() || 'D'}
+                                    </Box>
+                                    <Box>
+                                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                            <Typography sx={{ fontWeight: 700, fontSize: '13px', fontFamily: FONTS.HEADING, color: 'text.primary' }}>
+                                                {dept.name}
+                                            </Typography>
+                                            <Chip label={dept.code || 'NO CODE'} size="small"
+                                                sx={{ fontSize: '9px', fontWeight: 700, height: 16, bgcolor: 'action.selected', fontFamily: FONTS.HEADING, px: 0.5 }}
+                                            />
+                                        </Box>
+                                        <Typography sx={{ fontSize: '11px', color: 'text.secondary', fontFamily: FONTS.BODY, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap', maxWidth: 200 }}>
+                                            {dept.location || 'No location'}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Box onClick={e => e.stopPropagation()}>
+                                    <Stack direction="row" spacing={0.5}>
+                                        <IconButton size="small" onClick={() => openEditDialog(dept)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+                                            <Pencil size={13} />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => deleteDialog.openDialog(dept)} disabled={hasStaff} sx={{ border: '1px solid', borderColor: hasStaff ? 'divider' : 'error.light', borderRadius: '6px', color: hasStaff ? 'text.disabled' : 'error.main' }}>
+                                            <Trash2 size={13} />
+                                        </IconButton>
+                                    </Stack>
+                                </Box>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Chip label={dept.is_active ? 'Active' : 'Inactive'} size="small" color={dept.is_active ? 'success' : 'default'} variant={dept.is_active ? 'outlined' : 'filled'} sx={{ fontWeight: 700, fontSize: '9px', height: 20 }} />
+                                    <Chip label={`${dept.staff_count || 0} Staff`} size="small" color={(dept.staff_count || 0) > 0 ? 'primary' : 'default'} variant={(dept.staff_count || 0) > 0 ? 'filled' : 'outlined'} sx={{ fontWeight: 700, fontSize: '9px', height: 20 }} />
+                                </Box>
+                                {dept.contact_number && (
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 0.75 }}>
+                                        <Phone size={12} style={{ color: theme.palette.text.secondary }} />
+                                        <Typography sx={{ fontSize: '11px', fontFamily: FONTS.BODY, color: 'text.secondary' }}>{dept.contact_number}</Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Card>
+                    );
+                })
+            )}
+        </Box>
+    );
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Clinical Departments"
                 subtitle="Manage hospital departments, codes, and physical locations. Inactive departments are hidden from signup selections."
                 onRefresh={refreshDepartments}
@@ -484,7 +560,7 @@ export const AdminDepartments = () => {
                         }
                     >
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <AdminFilterBar
+                            <FilterBar
                                 searchQuery={searchQuery}
                                 onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
                                 searchPlaceholder="Search by name, code, location…"
@@ -505,14 +581,16 @@ export const AdminDepartments = () => {
                                     { value: 'EMPTY',     label: 'Empty (No Staff)'  }
                                 ]}
                             />
-                            <DataTable
-                                columns={columns}
-                                data={paginatedDepartments}
-                                sortState={tableSort}
-                                paginationState={{ ...pagination, count: processedDepartments.length }}
-                                onRowClick={(dept) => detailsDialog.openDialog(dept)}
-                                emptyMessage={searchQuery ? 'No departments match your search.' : 'No departments configured yet.'}
-                            />
+                            {isMobile ? mobileCards : (
+                                <DataTable
+                                    columns={columns}
+                                    data={paginatedDepartments}
+                                    sortState={tableSort}
+                                    paginationState={{ ...pagination, count: processedDepartments.length }}
+                                    onRowClick={(dept) => detailsDialog.openDialog(dept)}
+                                    emptyMessage={searchQuery ? 'No departments match your search.' : 'No departments configured yet.'}
+                                />
+                            )}
                         </Box>
                     </DashboardCard>
                 </Box>
@@ -558,4 +636,4 @@ export const AdminDepartments = () => {
     );
 };
 
-export default AdminDepartments;
+export default Departments;

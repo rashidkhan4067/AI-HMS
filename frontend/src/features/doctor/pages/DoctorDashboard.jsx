@@ -8,7 +8,7 @@ import {
     List, ListItem, ListItemText, Divider
 } from '@mui/material';
 import { Calendar, Trash2, Clock, Award, Users, Check, X, CalendarDays, List as ListIcon, User, FileText, Search, Clipboard, Pill, ShieldAlert, Activity, AlertTriangle } from 'lucide-react';
-import { PageHeader, StatusChip } from '../../../shared/components/ui';
+import { PageHeader, StatusChip, StatGrid, StatCard, DataTable } from '../../../shared/components/ui';
 import { formatTimeLabel } from '../../../shared/utils/dateUtils';
 import { schedulingApi } from '../../scheduling/services/schedulingApi';
 import { useAuth } from '../../auth/hooks/useAuth';
@@ -276,6 +276,154 @@ export const DoctorDashboard = () => {
         }
     };
 
+    const consultColumns = [
+        {
+            id: 'patient_name',
+            label: 'Patient Name',
+            render: (appt) => {
+                const isActive = appt.status === 'PENDING' || appt.status === 'CONFIRMED';
+                const { isCritical } = checkVitalStatus(appt.vitals);
+                return (
+                    <Box>
+                        <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
+                            <Typography variant="body2" sx={{ fontWeight: 600 }}>{appt.patient_name}</Typography>
+                            {isActive && isCritical && (
+                                <Chip 
+                                    icon={<AlertTriangle size={10} style={{ color: '#BA1A1A' }} />}
+                                    label="CRITICAL VITALS" 
+                                    size="small" 
+                                    sx={{ 
+                                        height: 16, 
+                                        fontSize: '8.5px', 
+                                        fontWeight: 800, 
+                                        color: '#BA1A1A', 
+                                        bgcolor: 'rgba(186, 26, 26, 0.08)',
+                                        border: 'none',
+                                        '& .MuiChip-icon': { marginLeft: '4px', marginRight: '-2px' }
+                                    }} 
+                                />
+                            )}
+                        </Box>
+                        {appt.vitals ? (
+                            <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
+                                <Chip 
+                                    label={`BP: ${appt.vitals.blood_pressure}`} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ 
+                                        fontSize: '10px', 
+                                        height: '18px', 
+                                        borderColor: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'error.main' : 'rgba(0,0,0,0.1)',
+                                        color: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'error.main' : 'text.primary',
+                                        bgcolor: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
+                                    }} 
+                                />
+                                <Chip 
+                                    label={`Temp: ${appt.vitals.temperature}°F`} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ 
+                                        fontSize: '10px', 
+                                        height: '18px', 
+                                        borderColor: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'error.main' : 'rgba(0,0,0,0.1)',
+                                        color: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'error.main' : 'text.primary',
+                                        bgcolor: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
+                                    }} 
+                                />
+                                <Chip 
+                                    label={`SpO2: ${appt.vitals.spo2}%`} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ 
+                                        fontSize: '10px', 
+                                        height: '18px', 
+                                        borderColor: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'error.main' : 'rgba(0,0,0,0.1)',
+                                        color: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'error.main' : 'text.primary',
+                                        bgcolor: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
+                                    }} 
+                                />
+                                <Chip 
+                                    label={`HR: ${appt.vitals.heart_rate} bpm`} 
+                                    size="small" 
+                                    variant="outlined" 
+                                    sx={{ 
+                                        fontSize: '10px', 
+                                        height: '18px', 
+                                        borderColor: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'error.main' : 'rgba(0,0,0,0.1)',
+                                        color: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'error.main' : 'text.primary',
+                                        bgcolor: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
+                                    }} 
+                                />
+                            </Box>
+                        ) : (
+                            <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5, fontWeight: 600 }}>
+                                No vitals logged
+                            </Typography>
+                        )}
+                    </Box>
+                );
+            }
+        },
+        {
+            id: 'patient_mrn',
+            label: 'Medical Record (MRN)',
+            render: (appt) => <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '14px', fontWeight: 600, color: 'text.secondary' }}>{appt.patient_mrn}</Typography>
+        },
+        {
+            id: 'date',
+            label: 'Date',
+            render: (appt) => new Date(appt.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })
+        },
+        {
+            id: 'time',
+            label: 'Time Interval',
+            render: (appt) => <Typography sx={{ fontFamily: "'Outfit', sans-serif", fontSize: '14px', fontWeight: 500 }}>{formatTimeLabel(appt.start_time)} - {formatTimeLabel(appt.end_time)}</Typography>
+        },
+        {
+            id: 'reason',
+            label: 'Symptom Reason',
+            render: (appt) => <Box sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{appt.reason || 'No description'}</Box>
+        },
+        {
+            id: 'status',
+            label: 'Status',
+            render: (appt) => <StatusChip status={appt.status} />
+        },
+        {
+            id: 'actions',
+            label: 'Actions',
+            align: 'right',
+            render: (appt) => {
+                const isActive = appt.status === 'PENDING' || appt.status === 'CONFIRMED';
+                if (!isActive) return <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>No Actions</Typography>;
+                
+                return (
+                    <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
+                        <IconButton 
+                            color="success"
+                            onClick={() => {
+                                setDocCompletedAppt(appt);
+                                setRecordFormOpen(true);
+                            }}
+                            sx={{ color: 'success.main', '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.05)' } }}
+                            title="Complete Consultation"
+                        >
+                            <Check size={18} />
+                        </IconButton>
+                        <IconButton 
+                            color="error"
+                            onClick={() => handleStatusChange(appt.id, 'CANCELLED')}
+                            sx={{ color: '#BA1A1A', '&:hover': { bgcolor: 'rgba(186, 26, 26, 0.05)' } }}
+                            title="Cancel Consultation"
+                        >
+                            <X size={18} />
+                        </IconButton>
+                    </Box>
+                );
+            }
+        }
+    ];
+
     // Calculate queue metrics
     const totalQueue = appointments.length;
     const activeConsults = appointments.filter(a => a.status === 'PENDING' || a.status === 'CONFIRMED').length;
@@ -314,61 +462,29 @@ export const DoctorDashboard = () => {
             {tabVal === 0 && (
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
                     {/* KPI Metrics */}
-                    <Grid container spacing={3}>
-                        <Grid item xs={12} sm={4}>
-                            <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-                                <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                    <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(0, 106, 106, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'primary.main', flexShrink: 0 }}>
-                                        <Users size={20} />
-                                    </Box>
-                                    <Box>
-                                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Total Bookings
-                                        </Typography>
-                                        <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.25, fontFamily: "'Outfit', sans-serif" }}>
-                                            {totalQueue}
-                                        </Typography>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-
-                        <Grid item xs={12} sm={4}>
-                            <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-                                <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                    <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13, 110, 253, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'info.main', flexShrink: 0 }}>
-                                        <Clock size={20} />
-                                    </Box>
-                                    <Box>
-                                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Active Queue
-                                        </Typography>
-                                        <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.25, fontFamily: "'Outfit', sans-serif" }}>
-                                            {activeConsults}
-                                        </Typography>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-
-                        <Grid item xs={12} sm={4}>
-                            <Card sx={{ borderRadius: '20px', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
-                                <CardContent sx={{ p: 3, display: 'flex', alignItems: 'center', gap: 2.5 }}>
-                                    <Box sx={{ width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(22, 163, 74, 0.05)', display: 'flex', alignItems: 'center', justifyContent: 'center', color: 'success.main', flexShrink: 0 }}>
-                                        <Award size={20} />
-                                    </Box>
-                                    <Box>
-                                        <Typography variant="caption" sx={{ color: 'text.secondary', display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.5px' }}>
-                                            Completed Visits
-                                        </Typography>
-                                        <Typography variant="h5" sx={{ fontWeight: 700, mt: 0.25, fontFamily: "'Outfit', sans-serif" }}>
-                                            {completedConsults}
-                                        </Typography>
-                                    </Box>
-                                </CardContent>
-                            </Card>
-                        </Grid>
-                    </Grid>
+                    <StatGrid cols={3} sx={{ '& .MuiCard-root': { borderRadius: '20px', p: 1 }, '& .MuiTypography-h4': { fontSize: '1.5rem', fontWeight: 700, fontFamily: "'Outfit', sans-serif" }, '& .MuiBox-root': { flexShrink: 0 } }}>
+                        <StatCard 
+                            title="Total Bookings" 
+                            value={totalQueue} 
+                            icon={Users} 
+                            color="#006a6a"
+                            sx={{ '& > .MuiBox-root:first-of-type': { width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(0, 106, 106, 0.05)' } }}
+                        />
+                        <StatCard 
+                            title="Active Queue" 
+                            value={activeConsults} 
+                            icon={Clock} 
+                            color="#0d6efd"
+                            sx={{ '& > .MuiBox-root:first-of-type': { width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(13, 110, 253, 0.05)' } }}
+                        />
+                        <StatCard 
+                            title="Completed Visits" 
+                            value={completedConsults} 
+                            icon={Award} 
+                            color="#16a34a"
+                            sx={{ '& > .MuiBox-root:first-of-type': { width: 44, height: 44, borderRadius: '12px', bgcolor: 'rgba(22, 163, 74, 0.05)' } }}
+                        />
+                    </StatGrid>
 
                     {/* Priority Triage Queue Insights Banner */}
                     {(() => {
@@ -468,150 +584,9 @@ export const DoctorDashboard = () => {
                                     </Typography>
                                 </Box>
                             ) : (
-                                <TableContainer component={Paper} elevation={0} sx={{ border: 'none', borderRadius: 0 }}>
-                                    <Table sx={{ minWidth: 650 }}>
-                                        <TableHead sx={{ bgcolor: 'action.hover' }}>
-                                            <TableRow>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Patient Name</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Medical Record (MRN)</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Date</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Time Interval</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Symptom Reason</TableCell>
-                                                <TableCell sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Status</TableCell>
-                                                <TableCell align="right" sx={{ fontWeight: 700, fontFamily: "'Outfit', sans-serif" }}>Actions</TableCell>
-                                            </TableRow>
-                                        </TableHead>
-                                        <TableBody>
-                                            {appointments.map((appt) => {
-                                                const isActive = appt.status === 'PENDING' || appt.status === 'CONFIRMED';
-                                                const { isCritical } = checkVitalStatus(appt.vitals);
-                                                return (
-                                                    <TableRow key={appt.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
-                                                        <TableCell sx={{ fontWeight: 600 }}>
-                                                            <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, flexWrap: 'wrap', mb: 0.5 }}>
-                                                                <Typography variant="body2" sx={{ fontWeight: 600 }}>{appt.patient_name}</Typography>
-                                                                {isActive && isCritical && (
-                                                                    <Chip 
-                                                                        icon={<AlertTriangle size={10} style={{ color: '#BA1A1A' }} />}
-                                                                        label="CRITICAL VITALS" 
-                                                                        size="small" 
-                                                                        sx={{ 
-                                                                            height: 16, 
-                                                                            fontSize: '8.5px', 
-                                                                            fontWeight: 800, 
-                                                                            color: '#BA1A1A', 
-                                                                            bgcolor: 'rgba(186, 26, 26, 0.08)',
-                                                                            border: 'none',
-                                                                            '& .MuiChip-icon': { marginLeft: '4px', marginRight: '-2px' }
-                                                                        }} 
-                                                                    />
-                                                                )}
-                                                            </Box>
-                                                            {appt.vitals ? (
-                                                                <Box sx={{ display: 'flex', gap: 1, mt: 0.5, flexWrap: 'wrap' }}>
-                                                                    <Chip 
-                                                                        label={`BP: ${appt.vitals.blood_pressure}`} 
-                                                                        size="small" 
-                                                                        variant="outlined" 
-                                                                        sx={{ 
-                                                                            fontSize: '10px', 
-                                                                            height: '18px', 
-                                                                            borderColor: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'error.main' : 'rgba(0,0,0,0.1)',
-                                                                            color: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'error.main' : 'text.primary',
-                                                                            bgcolor: appt.vitals.blood_pressure && (parseFloat(appt.vitals.blood_pressure.split('/')[0]) > 140 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) > 90 || parseFloat(appt.vitals.blood_pressure.split('/')[0]) < 90 || parseFloat(appt.vitals.blood_pressure.split('/')[1]) < 60) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
-                                                                        }} 
-                                                                    />
-                                                                    <Chip 
-                                                                        label={`Temp: ${appt.vitals.temperature}°F`} 
-                                                                        size="small" 
-                                                                        variant="outlined" 
-                                                                        sx={{ 
-                                                                            fontSize: '10px', 
-                                                                            height: '18px', 
-                                                                            borderColor: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'error.main' : 'rgba(0,0,0,0.1)',
-                                                                            color: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'error.main' : 'text.primary',
-                                                                            bgcolor: appt.vitals.temperature && (parseFloat(appt.vitals.temperature) > 100.4 || parseFloat(appt.vitals.temperature) < 95) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
-                                                                        }} 
-                                                                    />
-                                                                    <Chip 
-                                                                        label={`SpO2: ${appt.vitals.spo2}%`} 
-                                                                        size="small" 
-                                                                        variant="outlined" 
-                                                                        sx={{ 
-                                                                            fontSize: '10px', 
-                                                                            height: '18px',
-                                                                            borderColor: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'error.main' : 'rgba(0,0,0,0.1)',
-                                                                            color: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'error.main' : 'text.primary',
-                                                                            bgcolor: appt.vitals.spo2 && parseFloat(appt.vitals.spo2) < 95 ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
-                                                                        }} 
-                                                                    />
-                                                                    <Chip 
-                                                                        label={`HR: ${appt.vitals.heart_rate} bpm`} 
-                                                                        size="small" 
-                                                                        variant="outlined" 
-                                                                        sx={{ 
-                                                                            fontSize: '10px', 
-                                                                            height: '18px', 
-                                                                            borderColor: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'error.main' : 'rgba(0,0,0,0.1)',
-                                                                            color: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'error.main' : 'text.primary',
-                                                                            bgcolor: appt.vitals.heart_rate && (parseFloat(appt.vitals.heart_rate) > 100 || parseFloat(appt.vitals.heart_rate) < 60) ? 'rgba(186, 26, 26, 0.05)' : 'transparent'
-                                                                        }} 
-                                                                    />
-                                                                </Box>
-                                                            ) : (
-                                                                <Typography variant="caption" sx={{ color: 'warning.main', display: 'block', mt: 0.5, fontWeight: 600 }}>
-                                                                    No vitals logged
-                                                                </Typography>
-                                                            )}
-                                                        </TableCell>
-                                                        <TableCell sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 600, color: 'text.secondary' }}>
-                                                            {appt.patient_mrn}
-                                                        </TableCell>
-                                                        <TableCell>
-                                                            {new Date(appt.date).toLocaleDateString('en-US', { year: 'numeric', month: 'short', day: 'numeric' })}
-                                                        </TableCell>
-                                                        <TableCell sx={{ fontFamily: "'Outfit', sans-serif", fontWeight: 500 }}>
-                                                            {formatTimeLabel(appt.start_time)} - {formatTimeLabel(appt.end_time)}
-                                                        </TableCell>
-                                                        <TableCell sx={{ maxWidth: '200px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                                                            {appt.reason || 'No description'}
-                                                        </TableCell>
-                                                        <TableCell><StatusChip status={appt.status} /></TableCell>
-                                                        <TableCell align="right">
-                                                            {isActive ? (
-                                                                <Box sx={{ display: 'flex', gap: 1, justifyContent: 'flex-end' }}>
-                                                                    <IconButton 
-                                                                        color="success"
-                                                                        onClick={() => {
-                                                                            setDocCompletedAppt(appt);
-                                                                            setRecordFormOpen(true);
-                                                                        }}
-                                                                        sx={{ color: 'success.main', '&:hover': { bgcolor: 'rgba(22, 163, 74, 0.05)' } }}
-                                                                        title="Complete Consultation"
-                                                                    >
-                                                                        <Check size={18} />
-                                                                    </IconButton>
-                                                                    <IconButton 
-                                                                        color="error"
-                                                                        onClick={() => handleStatusChange(appt.id, 'CANCELLED')}
-                                                                        sx={{ color: '#BA1A1A', '&:hover': { bgcolor: 'rgba(186, 26, 26, 0.05)' } }}
-                                                                        title="Cancel Consultation"
-                                                                    >
-                                                                        <X size={18} />
-                                                                    </IconButton>
-                                                                </Box>
-                                                            ) : (
-                                                                <Typography variant="caption" sx={{ color: 'text.disabled', fontStyle: 'italic' }}>
-                                                                    No Actions
-                                                                </Typography>
-                                                            )}
-                                                        </TableCell>
-                                                    </TableRow>
-                                                );
-                                            })}
-                                        </TableBody>
-                                    </Table>
-                                </TableContainer>
+                                <Box sx={{ '& .MuiPaper-root': { border: 'none', borderRadius: 0 }, '& .MuiTableCell-root': { fontFamily: "'Outfit', sans-serif" }, '& .MuiTableRow-head': { bgcolor: 'action.hover' } }}>
+                                    <DataTable columns={consultColumns} data={appointments} />
+                                </Box>
                             )}
                         </Card>
                     )}

@@ -1,7 +1,7 @@
 import { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-    Box, Typography, Chip, Tooltip, IconButton, Stack, useTheme, Button, LinearProgress
+    Box, Typography, Chip, Tooltip, IconButton, Stack, useTheme, Button, LinearProgress, Card, Divider, useMediaQuery
 } from '@mui/material';
 import {
     Calendar, XCircle, Lock, Eye, Trash2, CheckCircle, TrendingUp,
@@ -14,19 +14,20 @@ import { CancelAppointmentDialog } from '../dialogs/CancelAppointmentDialog';
 import { DeleteAppointmentDialog } from '../dialogs/DeleteAppointmentDialog';
 import { formatPKR as formatCurrency } from '../../../shared/utils/formatUtils';
 import {
-    AdminPageHeader, StatGrid, StatCard, DashboardCard, DataTable,
+    PageHeader, StatGrid, StatCard, DashboardCard, DataTable,
     AsyncWrapper, ToastNotification
 } from '../../../shared/components/ui';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
 import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
 import { COLORS, FONTS } from '../../../shared/theme.constants';
 
-export const AdminAppointments = () => {
+export const Appointments = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [searchParams] = useSearchParams();
 
     const {
@@ -296,9 +297,81 @@ export const AdminAppointments = () => {
         }
     ];
 
+    const mobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedAppointments.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    No appointment records found matching your filters.
+                </Box>
+            ) : (
+                paginatedAppointments.map((appt) => {
+                    const initials = (appt.patient_name || 'WI').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                    return (
+                        <Card 
+                            key={appt.id} 
+                            onClick={() => detailsDialog.openDialog(appt)}
+                            sx={{ 
+                                p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5, cursor: 'pointer',
+                                transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.25 }}>
+                                    <Box sx={{
+                                        width: 30, height: 30, borderRadius: '7px', flexShrink: 0,
+                                        bgcolor: isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.04)',
+                                        color: 'text.secondary',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '10px', fontWeight: 700, fontFamily: FONTS.HEADING,
+                                    }}>
+                                        {initials}
+                                    </Box>
+                                    <Box>
+                                        <Typography sx={{ fontWeight: 700, fontSize: '12.5px', fontFamily: FONTS.HEADING, color: 'text.primary' }}>
+                                            {appt.patient_name || 'Walk-In'}
+                                        </Typography>
+                                        <Typography sx={{ fontSize: '10.5px', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                                            Dr. {appt.doctor_name || 'Unassigned'}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Box onClick={e => e.stopPropagation()}>
+                                    <Stack direction="row" spacing={0.5}>
+                                        <IconButton size="small" onClick={() => detailsDialog.openDialog(appt)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+                                            <Eye size={13} />
+                                        </IconButton>
+                                        {appt.status !== 'CANCELLED' && appt.status !== 'COMPLETED' && (
+                                            <IconButton size="small" color="error" onClick={() => { setActionError(''); setActionSuccess(''); cancelDialog.openDialog(appt); }} sx={{ border: '1px solid', borderColor: 'error.light', borderRadius: '6px' }}>
+                                                <XCircle size={13} />
+                                            </IconButton>
+                                        )}
+                                        <IconButton size="small" color="error" onClick={() => { setActionError(''); setActionSuccess(''); deleteDialog.openDialog(appt); }} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+                                            <Trash2 size={13} />
+                                        </IconButton>
+                                    </Stack>
+                                </Box>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Chip label={appt.status} size="small" color={getStatusColor(appt.status)} sx={{ fontWeight: 700, fontSize: '9px', height: 20 }} />
+                                    <Chip label={appt.date} size="small" variant="outlined" sx={{ fontSize: '9px', fontWeight: 600, height: 20 }} />
+                                </Box>
+                                <Typography sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, fontSize: '12.5px', color: 'text.primary' }}>
+                                    {formatCurrency(appt.doctor_consultation_fee || 0)}
+                                </Typography>
+                            </Box>
+                        </Card>
+                    );
+                })
+            )}
+        </Box>
+    );
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Appointment Overview Log"
                 subtitle="Monitor scheduled appointments, track status flows, and review professional consulting revenues."
                 onRefresh={refreshAppointments}
@@ -490,7 +563,7 @@ export const AdminAppointments = () => {
                 }
             >
                 <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                    <AdminFilterBar
+                    <FilterBar
                         searchQuery={searchTerm}
                         onSearchChange={(val) => { setSearchTerm(val); pagination.resetPage(); }}
                         searchPlaceholder="Search by patient, MRN, doctor, specialty…"
@@ -526,17 +599,19 @@ export const AdminAppointments = () => {
                                 </IconButton>
                             )}
                         </Box>
-                    </AdminFilterBar>
+                    </FilterBar>
 
                     <AsyncWrapper loading={loading} error={errorStates.appointments}>
-                        <DataTable
-                            columns={columns}
-                            data={paginatedAppointments}
-                            sortState={tableSort}
-                            paginationState={{ ...pagination, count: processedAppointments.length }}
-                            onRowClick={(appt) => detailsDialog.openDialog(appt)}
-                            emptyMessage="No appointment records found matching your filters."
-                        />
+                        {isMobile ? mobileCards : (
+                            <DataTable
+                                columns={columns}
+                                data={paginatedAppointments}
+                                sortState={tableSort}
+                                paginationState={{ ...pagination, count: processedAppointments.length }}
+                                onRowClick={(appt) => detailsDialog.openDialog(appt)}
+                                emptyMessage="No appointment records found matching your filters."
+                            />
+                        )}
                     </AsyncWrapper>
                 </Box>
             </DashboardCard>
@@ -550,4 +625,4 @@ export const AdminAppointments = () => {
     );
 };
 
-export default AdminAppointments;
+export default Appointments;

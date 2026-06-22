@@ -7,3 +7,4 @@ export { BedOccupancySnapshot } from './BedOccupancySnapshot';
 export { StaffComplianceTimeline } from './StaffComplianceTimeline';
 export { StaffDirectoryAllocations } from './StaffDirectoryAllocations';
 export { RecentSecurityActivity } from './RecentSecurityActivity';
+export { DepartmentOperations } from './DepartmentOperations';

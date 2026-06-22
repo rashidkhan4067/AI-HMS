@@ -1,7 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import {
-    Box, Typography, IconButton, Chip, Tooltip, Stack, LinearProgress, useTheme
+    Box, Typography, IconButton, Chip, Tooltip, Stack, LinearProgress, useTheme, Card, Divider, useMediaQuery
 } from '@mui/material';
 import {
     Award, ShieldAlert, CheckCircle2, Clock, Edit2, AlertTriangle,
@@ -10,9 +10,9 @@ import {
 import { useAdmin } from '../context/AdminContext';
 import { adminApi } from '../services/adminApi';
 import { UpdateDoctorComplianceDialog } from '../dialogs/UpdateDoctorComplianceDialog';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import {
-    AdminPageHeader, StatCard, StatGrid, DashboardCard, DataTable,
+    PageHeader, StatCard, StatGrid, DashboardCard, DataTable,
     ToastNotification, AsyncWrapper
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
@@ -21,9 +21,10 @@ import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
 import { FONTS, COLORS } from '../../../shared/theme.constants';
 
-export const AdminCompliance = () => {
+export const Compliance = () => {
     const theme = useTheme();
     const isDark = theme.palette.mode === 'dark';
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [searchParams] = useSearchParams();
 
     const {
@@ -275,13 +276,86 @@ export const AdminCompliance = () => {
         }
     ];
 
+    const mobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedDoctors.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    No physician compliance records found matching your filters.
+                </Box>
+            ) : (
+                paginatedDoctors.map((doc) => {
+                    const initials = (doc.doctor_name || '??').split(' ').map(w => w[0]).join('').toUpperCase().slice(0, 2);
+                    
+                    const isExpired = doc.license_status === 'EXPIRED' || (doc.days_to_expiry !== null && doc.days_to_expiry < 0);
+                    const isExpiringSoon = doc.license_status === 'ACTIVE' && doc.days_to_expiry !== null && doc.days_to_expiry >= 0 && doc.days_to_expiry < 60;
+                    const isPending = doc.license_status === 'PENDING_RENEWAL';
+                    let statusColor = 'success', statusLabel = 'Active';
+                    if (isExpired)      { statusColor = 'error';   statusLabel = 'Expired';         }
+                    else if (isExpiringSoon) { statusColor = 'warning'; statusLabel = 'Expiring Soon'; }
+                    else if (isPending) { statusColor = 'info';    statusLabel = 'Pending Renewal'; }
+
+                    return (
+                        <Card 
+                            key={doc.id} 
+                            onClick={() => handleEditClick(doc)}
+                            sx={{ 
+                                p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5, cursor: 'pointer',
+                                transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Box sx={{
+                                        width: 34, height: 34, borderRadius: '8px', flexShrink: 0,
+                                        bgcolor: isDark ? 'rgba(0,106,106,0.15)' : 'rgba(0,106,106,0.08)',
+                                        color: 'primary.main',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '12px', fontWeight: 700, fontFamily: FONTS.HEADING,
+                                    }}>
+                                        {initials}
+                                    </Box>
+                                    <Box>
+                                        <Typography sx={{ fontWeight: 700, fontSize: '13px', fontFamily: FONTS.HEADING, color: 'text.primary' }}>
+                                            Dr. {doc.doctor_name}
+                                        </Typography>
+                                        <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontFamily: FONTS.BODY, fontSize: '11px' }}>
+                                            {doc.doctor_email}
+                                        </Typography>
+                                    </Box>
+                                </Box>
+                                <Box onClick={e => e.stopPropagation()}>
+                                    <Stack direction="row" spacing={0.5}>
+                                        <IconButton size="small" onClick={() => handleEditClick(doc)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+                                            <Edit2 size={13} />
+                                        </IconButton>
+                                    </Stack>
+                                </Box>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Box sx={{ display: 'flex', gap: 1 }}>
+                                    <Chip label={doc.specialization || 'General'} size="small" variant="outlined" sx={{ fontSize: '9px', fontWeight: 600, height: 20 }} />
+                                    <Chip label={statusLabel} size="small" color={statusColor} sx={{ fontWeight: 700, fontSize: '9px', height: 20 }} />
+                                </Box>
+                                <Typography sx={{ fontFamily: FONTS.BODY, fontSize: '11px', fontWeight: 600, color: 'text.secondary' }}>
+                                    Exp: {doc.pmdc_expiry_date || '—'}
+                                </Typography>
+                            </Box>
+                        </Card>
+                    );
+                })
+            )}
+        </Box>
+    );
+
     // ── Icon/bg helpers ──────────────────────────────────────────────────
     const neutralBg    = isDark ? 'rgba(255,255,255,0.05)' : '#F9FAFB';
     const neutralColor = isDark ? '#9CA3AF' : '#374151';
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="PMDC License Compliance Monitor"
                 subtitle="Track physician certifications, Pakistan Medical & Dental Council (PMDC) expiries, and licensing audit status."
                 onRefresh={refreshCompliance}
@@ -535,7 +609,7 @@ export const AdminCompliance = () => {
                         }
                     >
                         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-                            <AdminFilterBar
+                            <FilterBar
                                 searchQuery={searchTerm}
                                 onSearchChange={(val) => { setSearchTerm(val); pagination.resetPage(); }}
                                 searchPlaceholder="Search physician name or specialization…"
@@ -552,13 +626,15 @@ export const AdminCompliance = () => {
                                 ]}
                             />
 
-                            <DataTable
-                                columns={columns}
-                                data={paginatedDoctors}
-                                sortState={tableSort}
-                                paginationState={{ ...pagination, count: processedDoctors.length }}
-                                emptyMessage="No physician compliance records found matching your filters."
-                            />
+                            {isMobile ? mobileCards : (
+                                <DataTable
+                                    columns={columns}
+                                    data={paginatedDoctors}
+                                    sortState={tableSort}
+                                    paginationState={{ ...pagination, count: processedDoctors.length }}
+                                    emptyMessage="No physician compliance records found matching your filters."
+                                />
+                            )}
                         </Box>
                     </DashboardCard>
                 </Box>
@@ -583,4 +659,4 @@ export const AdminCompliance = () => {
     );
 };
 
-export default AdminCompliance;
+export default Compliance;

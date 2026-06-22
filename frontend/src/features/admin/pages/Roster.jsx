@@ -1,6 +1,6 @@
 import React, { useState, useMemo, useEffect } from 'react';
 import { 
-    Box, Typography, Button, IconButton, Chip, Tooltip, Stack 
+    Box, Typography, Button, IconButton, Chip, Tooltip, Stack, useTheme, useMediaQuery, Card, Divider
 } from '@mui/material';
 import { 
     Clock, User, Plus, Edit2, Trash2, RefreshCw, MapPin, Calendar, CheckCircle, AlertTriangle, Users, CalendarCheck 
@@ -10,9 +10,9 @@ import { adminApi } from '../services/adminApi';
 import { formatDateTime } from '../../../shared/utils/dateUtils';
 import { RosterShiftDialog } from '../dialogs/RosterShiftDialog';
 import { ConfirmRosterDeleteDialog } from '../dialogs/ConfirmRosterDeleteDialog';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { 
-    AdminPageHeader, DashboardCard, DataTable, ToastNotification, StatGrid, StatCard 
+    PageHeader, DashboardCard, DataTable, ToastNotification, StatGrid, StatCard 
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
@@ -20,7 +20,11 @@ import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
 import { FONTS, COLORS } from '../../../shared/theme.constants';
 
-export const AdminRoster = () => {
+export const Roster = () => {
+    const theme = useTheme();
+    const isDark = theme.palette.mode === 'dark';
+    const isMobile = useMediaQuery(theme.breakpoints.down('md'));
+
     const { 
         rosters = [], 
         users = [], 
@@ -280,9 +284,97 @@ export const AdminRoster = () => {
         }
     ];
 
+    const mobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedRosters.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    No scheduled shifts found matching your filters.
+                </Box>
+            ) : (
+                paginatedRosters.map((roster) => {
+                    const initial = roster.staff_name?.charAt(0)?.toUpperCase() || 'S';
+                    const roleLabel = roleLabels[roster.staff_role] || roster.staff_role;
+                    const deptName = departments.find(d => d.id === roster.department)?.name || 'General';
+
+                    return (
+                        <Card 
+                            key={roster.id} 
+                            sx={{ 
+                                p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5,
+                                transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                                <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                                    <Box sx={{
+                                        width: 32, height: 32, borderRadius: '50%',
+                                        bgcolor: 'primary.light', color: 'primary.contrastText',
+                                        display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                        fontSize: '12px', fontWeight: 700, fontFamily: FONTS.HEADING,
+                                        opacity: 0.85
+                                    }}>
+                                        {initial}
+                                    </Box>
+                                    <Box>
+                                        <Typography sx={{ fontWeight: 700, fontSize: '13px', fontFamily: FONTS.HEADING, color: 'text.primary' }}>
+                                            {roster.staff_name}
+                                        </Typography>
+                                        <Chip label={roleLabel} size="small" variant="outlined" sx={{ height: 16, fontSize: '8px', fontWeight: 700, mt: 0.25 }} />
+                                    </Box>
+                                </Box>
+                                <Box onClick={e => e.stopPropagation()}>
+                                    <Stack direction="row" spacing={0.5}>
+                                        <IconButton size="small" onClick={() => handleEditClick(roster)} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '6px' }}>
+                                            <Edit2 size={13} />
+                                        </IconButton>
+                                        <IconButton size="small" onClick={() => deleteDialog.openDialog(roster)} sx={{ border: '1px solid', borderColor: 'error.light', borderRadius: '6px', color: 'error.main' }}>
+                                            <Trash2 size={13} />
+                                        </IconButton>
+                                    </Stack>
+                                </Box>
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', flexDirection: 'column', gap: 0.75 }}>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <MapPin size={12} style={{ opacity: 0.7, color: theme.palette.text.secondary }} />
+                                        <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Department</Typography>
+                                    </Box>
+                                    <Typography sx={{ fontWeight: 600, fontSize: '11.5px' }}>{deptName}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Clock size={12} style={{ opacity: 0.7, color: theme.palette.text.secondary }} />
+                                        <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Shift Start</Typography>
+                                    </Box>
+                                    <Typography sx={{ fontWeight: 600, fontSize: '11px' }}>{formatDateTime(roster.shift_start)}</Typography>
+                                </Box>
+                                <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1 }}>
+                                        <Clock size={12} style={{ opacity: 0.7, color: theme.palette.text.secondary }} />
+                                        <Typography sx={{ fontSize: '11px', color: 'text.secondary' }}>Shift End</Typography>
+                                    </Box>
+                                    <Typography sx={{ fontWeight: 600, fontSize: '11px' }}>{formatDateTime(roster.shift_end)}</Typography>
+                                </Box>
+                                {roster.notes && (
+                                    <Box sx={{ mt: 0.5, p: 1, bgcolor: isDark ? 'rgba(255,255,255,0.05)' : 'rgba(0,0,0,0.03)', borderRadius: '6px' }}>
+                                        <Typography sx={{ fontStyle: 'italic', fontSize: '11px', color: 'text.secondary', display: 'block', lineHeight: 1.3 }}>
+                                            {roster.notes}
+                                        </Typography>
+                                    </Box>
+                                )}
+                            </Box>
+                        </Card>
+                    );
+                })
+            )}
+        </Box>
+    );
+
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Workforce Shift Scheduling"
                 subtitle="Plan clinical staff rosters, configure shifts, and prevent workforce schedule overlaps."
                 onRefresh={refreshRosters}
@@ -335,7 +427,7 @@ export const AdminRoster = () => {
                 title="Duty Roster Schedule" 
                 subtitle="Active shift configurations and staff assignments"
             >
-                <AdminFilterBar
+                <FilterBar
                     searchQuery={searchTerm}
                     onSearchChange={(val) => { setSearchTerm(val); pagination.resetPage(); }}
                     searchPlaceholder="Search staff name or notes..."
@@ -360,13 +452,15 @@ export const AdminRoster = () => {
                     ]}
                 />
 
-                <DataTable
-                    columns={columns}
-                    data={paginatedRosters}
-                    sortState={tableSort}
-                    paginationState={{ ...pagination, count: processedRosters.length }}
-                    emptyMessage="No scheduled shifts found matching your filters."
-                />
+                {isMobile ? mobileCards : (
+                    <DataTable
+                        columns={columns}
+                        data={paginatedRosters}
+                        sortState={tableSort}
+                        paginationState={{ ...pagination, count: processedRosters.length }}
+                        emptyMessage="No scheduled shifts found matching your filters."
+                    />
+                )}
             </DashboardCard>
 
             <RosterShiftDialog
@@ -405,4 +499,4 @@ export const AdminRoster = () => {
     );
 };
 
-export default AdminRoster;
+export default Roster;

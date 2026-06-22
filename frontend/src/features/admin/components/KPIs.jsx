@@ -11,7 +11,7 @@ const containerVariants = {
     visible: { transition: { staggerChildren: 0.06 } }
 };
 
-export const AdminKPIs = ({ stats = {}, loading = false }) => {
+export const KPIs = ({ stats = {}, loading = false }) => {
     const theme = useTheme();
     const navigate = useNavigate();
 
@@ -80,4 +80,4 @@ export const AdminKPIs = ({ stats = {}, loading = false }) => {
     );
 };
 
-export default AdminKPIs;
+export default KPIs;

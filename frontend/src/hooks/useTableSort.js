@@ -3,7 +3,7 @@ import { useState, useCallback } from 'react';
 /**
  * Reusable table sort hook.
  * Replaces the duplicated orderBy/order/handleRequestSort/sortData
- * pattern found in AdminUsers, AdminAudits, AdminAppointments, etc.
+ * pattern found in Users, Audits, Appointments, etc.
  *
  * @param {string} defaultOrderBy — Initial column to sort by
  * @param {'asc'|'desc'} defaultOrder — Initial sort direction

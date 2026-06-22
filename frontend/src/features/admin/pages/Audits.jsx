@@ -3,21 +3,21 @@ import { useSearchParams } from 'react-router-dom';
 import { 
     Box, Card, CardContent, Typography, Chip, Button, useMediaQuery, useTheme, Divider
 } from '@mui/material';
-import { AlertCircle, CheckCircle, Download } from 'lucide-react';
+import { AlertCircle, CheckCircle, Download, Activity, Key, ShieldAlert } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { AuditDetailsDialog } from '../dialogs/AuditDetailsDialog';
 import { formatDateTime } from '../../../shared/utils/dateUtils';
 import { exportToCSV } from '../../../shared/utils/csvExport';
 import { 
-    AdminPageHeader, DataTable, AsyncWrapper 
+    PageHeader, DataTable, DashboardCard, StatGrid, StatCard, AsyncWrapper 
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
 import { useDialogState } from '../../../hooks/useDialogState';
-import { FONTS } from '../../../shared/theme.constants';
+import { FONTS, COLORS } from '../../../shared/theme.constants';
 
-export const AdminAudits = () => {
+export const Audits = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [searchParams] = useSearchParams();
@@ -80,6 +80,9 @@ export const AdminAudits = () => {
     const paginatedAudits = useMemo(() => pagination.paginate(sortedAudits), [sortedAudits, pagination]);
 
     const failedAttemptsCount = useMemo(() => audits.filter(log => !log.success).length, [audits]);
+    const totalAudits = audits.length;
+    const successAuditsCount = audits.length - failedAttemptsCount;
+    const googleAuthCount = useMemo(() => audits.filter(log => log.login_method === 'GOOGLE').length, [audits]);
 
     const columns = [
         {
@@ -184,24 +187,56 @@ export const AdminAudits = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, md: 4 } }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Security Audits & Login Trails"
                 subtitle="Track all login operations, Google credentials link events, and failed verification attempts."
                 onRefresh={fetchAudits}
                 loading={loading}
             />
 
-            <Card sx={{ borderRadius: '16px' }}>
-                <CardContent sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 2 }}>
-                        <Box sx={{ display: 'flex', alignItems: 'baseline', gap: 1.5, flexWrap: 'wrap' }}>
-                            <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, fontSize: '18px' }}>
-                                Audit Log Monitoring Feed
-                            </Typography>
-                            {failedAttemptsCount > 0 && (
-                                <Chip label={`${failedAttemptsCount} Warning Failures`} size="small" color="error" variant="outlined" sx={{ height: 20, fontSize: '9px', fontWeight: 700, borderRadius: '6px' }} />
-                            )}
-                        </Box>
+            <StatGrid cols={4}>
+                <StatCard 
+                    title="Total Events" 
+                    value={totalAudits} 
+                    supportingText="All monitored logs" 
+                    icon={Activity} 
+                    color={COLORS.PRIMARY} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Successful Auth" 
+                    value={successAuditsCount} 
+                    supportingText="Granted access" 
+                    icon={CheckCircle} 
+                    color={COLORS.SUCCESS} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Security Warnings" 
+                    value={failedAttemptsCount} 
+                    supportingText="Failed access attempts" 
+                    icon={ShieldAlert} 
+                    color={COLORS.DANGER} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Google OAuth" 
+                    value={googleAuthCount} 
+                    supportingText="SSO links/logins" 
+                    icon={Key} 
+                    color={COLORS.INFO || '#0288d1'} 
+                    loading={loading}
+                />
+            </StatGrid>
+
+            <DashboardCard 
+                title="Audit Log Monitoring Feed" 
+                subtitle="Track and filter security events and access logs"
+                action={
+                    <Box sx={{ display: 'flex', alignItems: 'center', gap: 1.5 }}>
+                        {failedAttemptsCount > 0 && (
+                            <Chip label={`${failedAttemptsCount} Warning Failures`} size="small" color="error" variant="outlined" sx={{ height: 20, fontSize: '9px', fontWeight: 700, borderRadius: '6px' }} />
+                        )}
                         <Button
                             size="small"
                             variant="outlined"
@@ -216,8 +251,10 @@ export const AdminAudits = () => {
                             Export to CSV
                         </Button>
                     </Box>
-
-                    <AdminFilterBar
+                }
+            >
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <FilterBar
                         searchQuery={searchQuery}
                         onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
                         searchPlaceholder="Search email, IP address, warnings..."
@@ -251,8 +288,8 @@ export const AdminAudits = () => {
                             />
                         )}
                     </AsyncWrapper>
-                </CardContent>
-            </Card>
+                </Box>
+            </DashboardCard>
 
             <AuditDetailsDialog
                 open={detailsDialog.open}
@@ -265,4 +302,4 @@ export const AdminAudits = () => {
     );
 };
 
-export default AdminAudits;
+export default Audits;

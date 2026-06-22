@@ -12,12 +12,13 @@ from accounts.models import LoginAuditLog
 from departments.models import Department
 from patients.models import Patient
 from appointments.models import Appointment
-from clinical.models import Vitals
+from clinical.models import Vitals, DiagnosticOrder
+from pharmacy.models import PrescriptionDispense
 from accounts.serializers import LoginAuditLogSerializer, UserSerializer
 from invitations.serializers import StaffInviteSerializer
 from applications.serializers import DoctorApplicationSerializer
 from departments.serializers import AdminDepartmentSerializer
-from django.db.models import Count
+from django.db.models import Count, Sum
 from .permissions import IsAdminUser
 from .utils import send_staff_invite_email, send_doctor_application_update_email
 
@@ -53,6 +54,22 @@ class AdminOverviewView(APIView):
         vitals_logged_today = Vitals.objects.filter(created_at__date=today).count()
         consults_completed_today = Appointment.objects.filter(date=today, status='COMPLETED').count()
 
+        # 6. Department Operations (Pharmacy, Lab, Radiology)
+        # Pharmacy
+        pharmacy_stats = PrescriptionDispense.objects.filter(status='DISPENSED', dispensed_at__date=today).aggregate(
+            count=Count('id'), 
+            revenue=Sum('amount')
+        )
+        pharmacy_pending = PrescriptionDispense.objects.filter(status='PENDING').count()
+
+        # Lab
+        lab_completed = DiagnosticOrder.objects.filter(category='LAB', status='COMPLETED', updated_at__date=today).count()
+        lab_pending = DiagnosticOrder.objects.filter(category='LAB', status='PENDING').count()
+
+        # Radiology
+        rad_completed = DiagnosticOrder.objects.filter(category='RADIOLOGY', status='COMPLETED', updated_at__date=today).count()
+        rad_pending = DiagnosticOrder.objects.filter(category='RADIOLOGY', status='PENDING').count()
+
         return Response({
             'total_active_staff': active_staff_count,
             'pending_applications': pending_apps_count,
@@ -63,6 +80,21 @@ class AdminOverviewView(APIView):
             'check_ins_today': check_ins_today,
             'vitals_logged_today': vitals_logged_today,
             'consults_completed_today': consults_completed_today,
+            'department_operations': {
+                'pharmacy': {
+                    'sales_today': pharmacy_stats['revenue'] or 0,
+                    'prescriptions_filled': pharmacy_stats['count'] or 0,
+                    'pending_orders': pharmacy_pending
+                },
+                'lab': {
+                    'tests_completed': lab_completed,
+                    'pending_results': lab_pending
+                },
+                'radiology': {
+                    'scans_completed': rad_completed,
+                    'pending_scans': rad_pending
+                }
+            }
         }, status=status.HTTP_200_OK)
 
 
@@ -186,6 +218,28 @@ class AdminDashboardDataView(APIView):
             departments_qs = Department.objects.annotate(staff_count=Count('users')).order_by('name')
             return AdminDepartmentSerializer(departments_qs, many=True).data
 
+        def get_pharmacy_stats():
+            from pharmacy.models import PrescriptionDispense
+            from django.db.models import Count, Sum
+            stats = PrescriptionDispense.objects.filter(status='DISPENSED', dispensed_at__date=today).aggregate(
+                count=Count('id'), 
+                revenue=Sum('amount')
+            )
+            pending = PrescriptionDispense.objects.filter(status='PENDING').count()
+            return {'sales_today': stats['revenue'] or 0, 'prescriptions_filled': stats['count'] or 0, 'pending_orders': pending}
+
+        def get_lab_stats():
+            from clinical.models import DiagnosticOrder
+            completed = DiagnosticOrder.objects.filter(category='LAB', status='COMPLETED', updated_at__date=today).count()
+            pending = DiagnosticOrder.objects.filter(category='LAB', status='PENDING').count()
+            return {'tests_completed': completed, 'pending_results': pending}
+
+        def get_rad_stats():
+            from clinical.models import DiagnosticOrder
+            completed = DiagnosticOrder.objects.filter(category='RADIOLOGY', status='COMPLETED', updated_at__date=today).count()
+            pending = DiagnosticOrder.objects.filter(category='RADIOLOGY', status='PENDING').count()
+            return {'scans_completed': completed, 'pending_scans': pending}
+
         tasks = {
             'staff_count': get_staff_count,
             'pending_apps': get_pending_apps,
@@ -198,7 +252,10 @@ class AdminDashboardDataView(APIView):
             'invites': get_invites,
             'applications': get_applications,
             'audits': get_audits,
-            'departments': get_departments
+            'departments': get_departments,
+            'pharmacy_stats': get_pharmacy_stats,
+            'lab_stats': get_lab_stats,
+            'rad_stats': get_rad_stats
         }
 
         # Helper to execute safely and reuse active connections (leverages conn_max_age)
@@ -230,6 +287,11 @@ class AdminDashboardDataView(APIView):
             'check_ins_today': appt_stats['check_ins'],
             'vitals_logged_today': results['vitals_logged_today'],
             'consults_completed_today': appt_stats['completed'],
+            'department_operations': {
+                'pharmacy': results['pharmacy_stats'],
+                'lab': results['lab_stats'],
+                'radiology': results['rad_stats']
+            }
         }
 
         return Response({

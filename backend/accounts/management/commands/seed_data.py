@@ -224,7 +224,8 @@ class Command(BaseCommand):
             is_staff=True,
             is_superuser=True,
             employee_id="EMP-ADMIN-001",
-            phone="0300-1112223"
+            phone="0300-1112223",
+            cross_authorized_roles="PHARMACIST"
         )
 
         # 2. Doctors
@@ -833,7 +834,7 @@ class Command(BaseCommand):
                 d2 = dispense_records[1]
                 d2.status = 'DISPENSED'
                 d2.dispensed_by = pharmacist
-                d2.dispensed_at = timezone.now() - datetime.timedelta(hours=4)
+                d2.dispensed_at = timezone.now()
                 d2.amount = Decimal("1200.00")
                 d2.notes = "Inhaler and chewable pills dispensed. Spacers demonstrated."
                 d2.save()

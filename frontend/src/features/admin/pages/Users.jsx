@@ -4,26 +4,27 @@ import {
     Box, Card, CardContent, Typography, Chip, Switch, Avatar, Divider, 
     useMediaQuery, useTheme
 } from '@mui/material';
+import { Users as UsersIcon, UserCheck, UserX, Shield } from 'lucide-react';
 import { useAdmin } from '../context/AdminContext';
 import { adminApi } from '../services/adminApi';
 import { departmentApi } from '../../departments/services/departmentApi';
 import { formatDate as formatDateShared } from '../../../shared/utils/dateUtils';
 import { useAuth } from '../../auth/hooks/useAuth';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { ToggleAccessDialog } from '../dialogs/ToggleAccessDialog';
 import { UserDetailsDialog } from '../dialogs/UserDetailsDialog';
 import { EditUserDialog } from '../dialogs/EditUserDialog';
 import { DeleteUserDialog } from '../dialogs/DeleteUserDialog';
 import { 
-    AdminPageHeader, DataTable, SectionCard, AsyncWrapper, ToastNotification 
+    PageHeader, DataTable, DashboardCard, StatGrid, StatCard, AsyncWrapper, ToastNotification 
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
 import { useTableSort } from '../../../hooks/useTableSort';
 import { useToast } from '../../../hooks/useToast';
 import { useDialogState } from '../../../hooks/useDialogState';
-import { FONTS } from '../../../shared/theme.constants';
+import { FONTS, COLORS } from '../../../shared/theme.constants';
 
-export const AdminUsers = () => {
+export const Users = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const { user: currentUser } = useAuth();
@@ -195,6 +196,10 @@ export const AdminUsers = () => {
 
     const paginatedUsers = useMemo(() => pagination.paginate(processedUsers), [processedUsers, pagination]);
 
+    const activeUsersCount = useMemo(() => users.filter(u => u.is_active).length, [users]);
+    const inactiveUsersCount = useMemo(() => users.filter(u => !u.is_active).length, [users]);
+    const adminCount = useMemo(() => users.filter(u => u.role === 'ADMIN').length, [users]);
+
     const columns = [
         {
             id: 'full_name',
@@ -291,20 +296,51 @@ export const AdminUsers = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 3, md: 4 } }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Active User Directories"
                 subtitle="View directories, toggle staff system access status, and manage security profiles globally."
                 onRefresh={fetchUsers}
                 loading={loading}
             />
 
-            <Card sx={{ borderRadius: '16px' }}>
-                <CardContent sx={{ p: { xs: 2, sm: 3 }, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                    <Typography variant="h6" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, fontSize: '18px' }}>
-                        User Accounts Console
-                    </Typography>
+            <StatGrid cols={4}>
+                <StatCard 
+                    title="Total Accounts" 
+                    value={users.length} 
+                    supportingText="All registered profiles" 
+                    icon={UsersIcon}
+                    color={COLORS.PRIMARY} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Active Staff" 
+                    value={activeUsersCount} 
+                    supportingText="Current system access" 
+                    icon={UserCheck} 
+                    color={COLORS.SUCCESS} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="Inactive Profiles" 
+                    value={inactiveUsersCount} 
+                    supportingText="Suspended access" 
+                    icon={UserX} 
+                    color={COLORS.WARNING} 
+                    loading={loading}
+                />
+                <StatCard 
+                    title="System Admins" 
+                    value={adminCount} 
+                    supportingText="Full privileges" 
+                    icon={Shield} 
+                    color={COLORS.INFO || '#0288d1'} 
+                    loading={loading}
+                />
+            </StatGrid>
 
-                    <AdminFilterBar
+            <DashboardCard title="User Accounts Console" subtitle="Manage registered profiles and filter accounts by status and role">
+                <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
+                    <FilterBar
                         searchQuery={searchQuery}
                         onSearchChange={(val) => { setSearchQuery(val); pagination.resetPage(); }}
                         searchPlaceholder="Search by name, email..."
@@ -344,8 +380,8 @@ export const AdminUsers = () => {
                         )}
                         {/* If using DataTable with built-in pagination, ensure we pass count. Wait, DataTable has pagination logic but the count prop needs to be controlled if paginate is true. Wait, our DataTable uses data.length. It actually expects the whole array if using built-in pagination? No, it expects sliced data. It expects paginationState to contain all needed handlers. */}
                     </AsyncWrapper>
-                </CardContent>
-            </Card>
+                </Box>
+            </DashboardCard>
 
             {/* Dialogs */}
             <ToggleAccessDialog
@@ -397,4 +433,4 @@ export const AdminUsers = () => {
     );
 };
 
-export default AdminUsers;
+export default Users;

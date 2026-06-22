@@ -32,7 +32,10 @@ export const ProtectedRoute = ({ allowedRoles }) => {
         return <Navigate to="/auth/complete-profile" replace />;
     }
 
-    const hasAccess = !allowedRoles || (user && allowedRoles.includes(user.role));
+    const hasAccess = !allowedRoles || (user && (
+        allowedRoles.includes(user.role) || 
+        (user.cross_authorized_roles && allowedRoles.some(role => user.cross_authorized_roles.includes(role)))
+    ));
 
     if (!hasAccess) {
         return <Navigate to="/unauthorized" replace />;

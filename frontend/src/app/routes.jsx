@@ -12,17 +12,18 @@ import { NotFoundPage } from '../features/auth/pages/NotFoundPage';
 import { PrivacyPage } from '../features/auth/pages/PrivacyPage';
 import { TermsPage } from '../features/auth/pages/TermsPage';
 import { LandingPage } from '../pages/LandingPage';
-import { AdminDashboardOverview } from '../features/admin/pages/AdminDashboardOverview';
-import { AdminInvitations } from '../features/admin/pages/AdminInvitations';
-import { AdminApplications } from '../features/admin/pages/AdminApplications';
-import { AdminUsers } from '../features/admin/pages/AdminUsers';
-import { AdminAudits } from '../features/admin/pages/AdminAudits';
-import { AdminDepartments } from '../features/admin/pages/AdminDepartments';
-import { AdminCompliance } from '../features/admin/pages/AdminCompliance';
-import { AdminRevenue } from '../features/admin/pages/AdminRevenue';
-import { AdminIPD } from '../features/admin/pages/AdminIPD';
-import { AdminRoster } from '../features/admin/pages/AdminRoster';
-import { AdminAppointments } from '../features/admin/pages/AdminAppointments';
+import { DashboardOverview } from '../features/admin/pages/DashboardOverview';
+import { Invitations } from '../features/admin/pages/Invitations';
+import { Applications } from '../features/admin/pages/Applications';
+import { Users } from '../features/admin/pages/Users';
+import { Audits } from '../features/admin/pages/Audits';
+import { Departments } from '../features/admin/pages/Departments';
+import { Compliance } from '../features/admin/pages/Compliance';
+import { Revenue } from '../features/admin/pages/Revenue';
+import { IPD } from '../features/admin/pages/IPD';
+import { Roster } from '../features/admin/pages/Roster';
+import { Appointments } from '../features/admin/pages/Appointments';
+import { DepartmentLogs } from '../features/admin/pages/DepartmentLogs';
 import { ProfilePage } from '../features/auth/pages/ProfilePage';
 import { PatientDashboard } from '../features/patient/pages/PatientDashboard';
 import { DoctorDashboard } from '../features/doctor/pages/DoctorDashboard';
@@ -81,17 +82,18 @@ export const AppRoutes = () => {
 
             <Route element={<ProtectedRoute allowedRoles={['ADMIN']} />}>
                 <Route element={<AdminLayout />}>
-                    <Route path="/admin/dashboard" element={<AdminDashboardOverview />} />
-                    <Route path="/admin/revenue"   element={<AdminRevenue />} />
-                    <Route path="/admin/compliance" element={<AdminCompliance />} />
-                    <Route path="/admin/ipd"       element={<AdminIPD />} />
-                    <Route path="/admin/roster"    element={<AdminRoster />} />
-                    <Route path="/admin/appointments" element={<AdminAppointments />} />
-                    <Route path="/admin/invites"   element={<AdminInvitations />} />
-                    <Route path="/admin/applications" element={<AdminApplications />} />
-                    <Route path="/admin/users"       element={<AdminUsers />} />
-                    <Route path="/admin/departments" element={<AdminDepartments />} />
-                    <Route path="/admin/audits"      element={<AdminAudits />} />
+                    <Route path="/admin/dashboard" element={<DashboardOverview />} />
+                    <Route path="/admin/revenue"   element={<Revenue />} />
+                    <Route path="/admin/compliance" element={<Compliance />} />
+                    <Route path="/admin/ipd"       element={<IPD />} />
+                    <Route path="/admin/roster"    element={<Roster />} />
+                    <Route path="/admin/appointments" element={<Appointments />} />
+                    <Route path="/admin/invites"   element={<Invitations />} />
+                    <Route path="/admin/applications" element={<Applications />} />
+                    <Route path="/admin/users"       element={<Users />} />
+                    <Route path="/admin/departments" element={<Departments />} />
+                    <Route path="/admin/audits"      element={<Audits />} />
+                    <Route path="/admin/department-logs" element={<DepartmentLogs />} />
                     <Route path="/admin/profile"     element={<ProfilePage />} />
                     {/* Fallback to System Overview */}
                     <Route path="/admin"           element={<Navigate to="/admin/dashboard" replace />} />

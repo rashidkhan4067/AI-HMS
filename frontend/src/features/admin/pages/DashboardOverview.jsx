@@ -4,8 +4,8 @@ import { Box, Grid, Tabs, Tab, useMediaQuery, useTheme } from '@mui/material';
 import { motion } from 'framer-motion';
 import { useAdmin } from '../context/AdminContext';
 import { adminApi } from '../services/adminApi';
-import { AdminPageHeader, AsyncWrapper } from '../../../shared/components/ui';
-import { AdminKPIs } from '../components/AdminKPIs';
+import { PageHeader, AsyncWrapper } from '../../../shared/components/ui';
+import { KPIs } from '../components/KPIs';
 import {
     ComplianceAlertBanner,
     OperationsMonitor,
@@ -15,10 +15,11 @@ import {
     BedOccupancySnapshot,
     StaffComplianceTimeline,
     StaffDirectoryAllocations,
-    RecentSecurityActivity
+    RecentSecurityActivity,
+    DepartmentOperations
 } from '../components/dashboard';
 
-export const AdminDashboardOverview = () => {
+export const DashboardOverview = () => {
     const navigate = useNavigate();
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
@@ -73,7 +74,7 @@ export const AdminDashboardOverview = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2.5, md: 4 } }}>
-            <AdminPageHeader
+            <PageHeader
                 title="System Administration Overview"
                 subtitle="Monitor real-time system health, manage staff onboarding requests, and review active directory configurations."
                 onRefresh={() => refreshAll(true)}
@@ -88,7 +89,7 @@ export const AdminDashboardOverview = () => {
                     />
 
                     {/* KPI Cards (Always pinned top) */}
-                    <AdminKPIs stats={stats} loading={loading} />
+                    <KPIs stats={stats} loading={loading} />
 
                     {/* Mobile Tab Swapper */}
                     {isMobile ? (
@@ -125,9 +126,10 @@ export const AdminDashboardOverview = () => {
 
                             {/* Tab Content 0: Flows */}
                             {activeTab === 0 && (
-                                <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }}>
+                                <Box component={motion.div} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: 0.2 }} sx={{ display: 'flex', flexDirection: 'column', gap: 1.5 }}>
                                     <OperationsMonitor stats={stats} onNavigate={navigate} />
-                                </motion.div>
+                                    <DepartmentOperations />
+                                </Box>
                             )}
 
                             {/* Tab Content 1: System & Security */}
@@ -179,6 +181,11 @@ export const AdminDashboardOverview = () => {
                             {/* Operations Monitor — full width KPI strip */}
                             <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}>
                                 <OperationsMonitor stats={stats} onNavigate={navigate} />
+                            </motion.div>
+
+                            {/* Clinical Departments Snapshot - full width */}
+                            <motion.div initial={{ opacity: 0, y: 15 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.2 }}>
+                                <DepartmentOperations />
                             </motion.div>
 
                             {/* Row 1: Console Controls | Infrastructure Status | Financials Snapshot — equal thirds */}
@@ -241,4 +248,4 @@ export const AdminDashboardOverview = () => {
     );
 };
 
-export default AdminDashboardOverview;
+export default DashboardOverview;

@@ -166,4 +166,15 @@ export const adminApi = {
         const response = await axiosInstance.delete(`auth/appointments/${id}/`);
         return response.data;
     },
+
+    // Department log listings for admin auditing
+    getPharmacyDispenses: async () => {
+        const response = await axiosInstance.get('auth/dispenses/');
+        return response.data;
+    },
+
+    getDiagnosticOrders: async (params = {}) => {
+        const response = await axiosInstance.get('auth/diagnostics/orders/', { params });
+        return response.data;
+    },
 };

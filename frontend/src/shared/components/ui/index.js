@@ -9,7 +9,6 @@ export { ScrollReveal }  from './ScrollReveal';
 export { StatusChip }    from './StatusChip';
 
 export { DataTable }     from './DataTable';
-export { AdminPageHeader } from './AdminPageHeader';
 export { StatCard }      from './StatCard';
 export { SectionCard }   from './SectionCard';
 export { DashboardCard } from './DashboardCard';

@@ -51,6 +51,12 @@ class HMSUser(AbstractBaseUser, PermissionsMixin):
     full_name = models.CharField(max_length=255)
     role = models.CharField(max_length=20, choices=Role.choices, default=Role.DOCTOR)
     department = models.ForeignKey('departments.Department', on_delete=models.SET_NULL, null=True, blank=True, related_name='users')
+    cross_authorized_roles = models.CharField(
+        max_length=255,
+        default='',
+        blank=True,
+        help_text="Comma-separated list of secondary/cross-authorized roles (e.g. 'PHARMACIST,LAB_TECHNICIAN')"
+    )
     
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)

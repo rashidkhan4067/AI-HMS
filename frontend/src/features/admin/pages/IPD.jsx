@@ -17,13 +17,13 @@ import { CreateWardDialog } from '../dialogs/CreateWardDialog';
 import { CreateBedDialog } from '../dialogs/CreateBedDialog';
 import { ConfirmDischargeDialog } from '../dialogs/ConfirmDischargeDialog';
 import { 
-    AdminPageHeader, StatGrid, StatCard, DashboardCard, AsyncWrapper, ToastNotification
+    PageHeader, StatGrid, StatCard, DashboardCard, AsyncWrapper, ToastNotification
 } from '../../../shared/components/ui';
-import { AdminFilterBar } from '../components/AdminFilterBar';
+import { FilterBar } from '../components/FilterBar';
 import { useToast } from '../../../hooks/useToast';
 import { COLORS, FONTS } from '../../../shared/theme.constants';
 
-export const AdminIPD = () => {
+export const IPD = () => {
     const theme = useTheme();
     const { 
         wards = [], beds = [], admissions = [], 
@@ -282,7 +282,7 @@ export const AdminIPD = () => {
 
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 3 }}>
-            <AdminPageHeader
+            <PageHeader
                 title="In-Patient Department (IPD) Occupancy"
                 subtitle="Monitor real-time bed configurations, admit emergency triages, manage ward maps, and log discharges."
                 onRefresh={handleSyncAll}
@@ -316,7 +316,7 @@ export const AdminIPD = () => {
                     <StatCard title="Under Cleaning" value={stats.cleaning} description="Triage turnaround status" icon={RefreshCw} color={COLORS.WARNING} loading={loading} />
                 </StatGrid>
 
-                <AdminFilterBar
+                <FilterBar
                     searchQuery={wardSearch}
                     onSearchChange={setWardSearch}
                     searchPlaceholder="Filter wards by name..."
@@ -333,7 +333,7 @@ export const AdminIPD = () => {
                             />
                         ))}
                     </Box>
-                </AdminFilterBar>
+                </FilterBar>
 
                 <Box sx={{ display: 'flex', gap: 2 }}>
                     <Button variant="outlined" startIcon={<Plus size={14} />} onClick={() => setOpenWardDialog(true)} sx={{ borderRadius: '100px', textTransform: 'none', fontWeight: 600, borderColor: 'divider', color: 'text.primary' }}>
@@ -494,4 +494,4 @@ export const AdminIPD = () => {
     );
 };
 
-export default AdminIPD;
+export default IPD;

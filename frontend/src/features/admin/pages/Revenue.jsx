@@ -1,6 +1,7 @@
 import { useMemo, useState, useEffect } from 'react';
 import { 
-    Box, Typography, LinearProgress, useTheme, Chip, Tabs, Tab, useMediaQuery
+    Box, Typography, LinearProgress, useTheme, Chip, Tabs, Tab, useMediaQuery, Card, Divider,
+    TableContainer, Table, TableHead, TableBody, TableRow, TableCell, Paper, TablePagination
 } from '@mui/material';
 import { 
     TrendingUp, ShieldCheck, DollarSign, Wallet, ShoppingCart, Award, Coins, AlertTriangle, Clock, FileText
@@ -9,12 +10,12 @@ import { useAdmin } from '../context/AdminContext';
 import { formatPKR as formatCurrency } from '../../../shared/utils/formatUtils';
 import { formatDateTime } from '../../../shared/utils/dateUtils';
 import { 
-    AdminPageHeader, StatCard, DashboardCard, StatGrid, DataTable, AsyncWrapper
+    PageHeader, StatCard, DashboardCard, StatGrid, AsyncWrapper
 } from '../../../shared/components/ui';
 import { usePagination } from '../../../hooks/usePagination';
 import { COLORS, FONTS } from '../../../shared/theme.constants';
 
-export const AdminRevenue = () => {
+export const Revenue = () => {
     const theme = useTheme();
     const isMobile = useMediaQuery(theme.breakpoints.down('md'));
     const [activeTab, setActiveTab] = useState(0);
@@ -141,11 +142,6 @@ export const AdminRevenue = () => {
     const paginatedLedger = useMemo(() => ledgerPagination.paginate(ledger), [ledger, ledgerPagination]);
 
     // ── Column / Table Definitions ───────────────────────────────────────
-    const fbrTableColumns = [
-        { id: 'category', label: 'Ledger Category' },
-        { id: 'total', label: 'Calculated Total', align: 'right' }
-    ];
-
     const fbrTableData = [
         { id: 1, category: 'Gross Medical Consults', total: formatCurrency(doctorConsultations.gross_amount) },
         { id: 2, category: 'Withholding Tax Liability', total: <Typography sx={{ color: 'error.main', fontWeight: 600 }}>-{formatCurrency(doctorConsultations.withholding_tax_deducted)}</Typography> },
@@ -201,6 +197,21 @@ export const AdminRevenue = () => {
     };
 
     // ── Tab renderers ────────────────────────────────────────────────────
+    const fbrMobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {fbrTableData.map((row, idx) => (
+                <Card key={idx} sx={{ p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none' }}>
+                    <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                        <Typography sx={{ fontSize: '12px', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                            {row.category}
+                        </Typography>
+                        <Box>{row.total}</Box>
+                    </Box>
+                </Card>
+            ))}
+        </Box>
+    );
+
     const renderFBRTaxReconciliation = () => (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
             <StatGrid cols={4}>
@@ -252,12 +263,89 @@ export const AdminRevenue = () => {
                         <Typography sx={{ color: 'text.primary', fontWeight: 700, mb: 0.5, lineHeight: 1.4, fontSize: '13px', fontFamily: FONTS.HEADING }}>Section 153(1)(b) — Income Tax Ordinance</Typography>
                         <Typography sx={{ display: 'block', lineHeight: 1.4, fontSize: '11px', color: 'text.secondary', fontFamily: FONTS.BODY }}>Professional fees paid to doctors are subject to a standard 10% withholding tax for active tax filers. This dashboard calculates fitment thresholds and aggregates net doctor payout obligations dynamically.</Typography>
                     </Box>
-                    <DataTable columns={fbrTableColumns} data={fbrTableData} minWidth="100%" />
+                    {isMobile ? fbrMobileCards : (
+                        <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '8px', overflow: 'hidden' }}>
+                            <Table size="small">
+                                <TableHead>
+                                    <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                        <TableCell sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, py: 1.5 }}>Ledger Category</TableCell>
+                                        <TableCell align="right" sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, py: 1.5 }}>Calculated Total</TableCell>
+                                    </TableRow>
+                                </TableHead>
+                                <TableBody>
+                                    {fbrTableData.map((row) => (
+                                        <TableRow key={row.id} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                            <TableCell sx={{ fontFamily: FONTS.BODY, py: 1.5 }}>{row.category}</TableCell>
+                                            <TableCell align="right" sx={{ fontFamily: FONTS.BODY, py: 1.5 }}>{row.total}</TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </TableContainer>
+                    )}
                     <Box sx={{ display: 'flex', alignItems: 'center', gap: 1, mt: 2 }}>
                         <Typography sx={{ color: 'text.secondary', fontSize: '10px', fontFamily: FONTS.BODY }}>Ledger report generated automatically at {revenue?.date_generated || new Date().toISOString().split('T')[0]}. All transactions subject to audit logging.</Typography>
                     </Box>
                 </DashboardCard>
             </Box>
+        </Box>
+    );
+
+    const ledgerMobileCards = (
+        <Box sx={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+            {paginatedLedger.length === 0 ? (
+                <Box sx={{ py: 6, textAlign: 'center', color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                    No transaction records found.
+                </Box>
+            ) : (
+                paginatedLedger.map((inv) => {
+                    let color = 'default';
+                    if (inv.payment_status === 'PAID') color = 'success';
+                    if (inv.payment_status === 'PARTIALLY_PAID') color = 'warning';
+                    if (inv.payment_status === 'PENDING') color = 'info';
+
+                    return (
+                        <Card 
+                            key={inv.id} 
+                            sx={{ 
+                                p: 2, borderRadius: '12px', border: '1px solid', borderColor: 'divider', boxShadow: 'none', display: 'flex', flexDirection: 'column', gap: 1.5,
+                                transition: 'transform 0.15s ease-in-out, box-shadow 0.15s ease-in-out',
+                                '&:hover': { transform: 'translateY(-2px)', boxShadow: isDark ? '0 4px 12px rgba(0,0,0,0.3)' : '0 4px 12px rgba(60,64,67,0.08)' }
+                            }}
+                        >
+                            <Box sx={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 1.5 }}>
+                                <Box>
+                                    <Typography sx={{ fontWeight: 700, fontSize: '13px', fontFamily: FONTS.HEADING, color: 'text.primary' }}>
+                                        {inv.patient_name}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontFamily: FONTS.BODY, fontSize: '11px' }}>
+                                        MRN: {inv.patient_mrn}
+                                    </Typography>
+                                    <Typography variant="caption" sx={{ display: 'block', color: 'text.secondary', fontFamily: FONTS.BODY, fontSize: '11px', mt: 0.5 }}>
+                                        {inv.doctor_name ? (inv.doctor_name.startsWith('Dr. ') ? inv.doctor_name : (inv.doctor_name.startsWith('Dr.') ? inv.doctor_name.replace('Dr.', 'Dr. ') : `Dr. ${inv.doctor_name}`)) : ''}
+                                    </Typography>
+                                </Box>
+                                <Chip label={inv.payment_status} size="small" color={color} sx={{ fontWeight: 700, fontSize: '9px', height: 18 }} />
+                            </Box>
+                            <Divider />
+                            <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: 1 }}>
+                                <Box>
+                                    <Typography sx={{ fontSize: '10px', color: 'text.secondary' }}>Amount</Typography>
+                                    <Typography sx={{ fontWeight: 700 }}>{formatCurrency(inv.amount)}</Typography>
+                                </Box>
+                                <Box>
+                                    <Typography sx={{ fontSize: '10px', color: 'text.secondary' }}>Paid</Typography>
+                                    <Typography sx={{ color: 'success.main', fontWeight: 600 }}>{formatCurrency(inv.paid_amount)}</Typography>
+                                </Box>
+                                <Box>
+                                    <Typography sx={{ fontSize: '10px', color: 'text.secondary' }}>Panel</Typography>
+                                    <Typography sx={{ color: 'info.main', fontWeight: 600 }}>{formatCurrency(inv.insurance_amount)}</Typography>
+                                </Box>
+                            </Box>
+                        </Card>
+                    );
+                })
+            )}
         </Box>
     );
 
@@ -378,12 +466,55 @@ export const AdminRevenue = () => {
                         iconColor={neutralIconColor}
                         iconBg={neutralIconBg}
                     >
-                        <DataTable
-                            columns={ledgerColumns}
-                            data={paginatedLedger}
-                            paginationState={{ ...ledgerPagination, count: ledger.length }}
-                            emptyMessage="No transaction records found."
-                        />
+                        {isMobile ? ledgerMobileCards : (
+                            <>
+                                <TableContainer component={Paper} elevation={0} sx={{ border: '1px solid', borderColor: 'divider', borderRadius: '8px', overflow: 'hidden' }}>
+                                    <Table size="small">
+                                        <TableHead>
+                                            <TableRow sx={{ bgcolor: 'action.hover' }}>
+                                                {ledgerColumns.map((col) => (
+                                                    <TableCell key={col.id} sx={{ fontWeight: 700, fontFamily: FONTS.HEADING, py: 1.5 }}>
+                                                        {col.label}
+                                                    </TableCell>
+                                                ))}
+                                            </TableRow>
+                                        </TableHead>
+                                        <TableBody>
+                                            {paginatedLedger.length === 0 ? (
+                                                <TableRow>
+                                                    <TableCell colSpan={ledgerColumns.length} align="center" sx={{ py: 6, color: 'text.secondary', fontFamily: FONTS.BODY }}>
+                                                        No transaction records found.
+                                                    </TableCell>
+                                                </TableRow>
+                                            ) : (
+                                                paginatedLedger.map((inv, idx) => (
+                                                    <TableRow key={inv.id || idx} hover sx={{ '&:last-child td, &:last-child th': { border: 0 } }}>
+                                                        {ledgerColumns.map((col) => (
+                                                            <TableCell key={col.id} sx={{ fontFamily: FONTS.BODY, py: 1.25 }}>
+                                                                {col.render ? col.render(inv) : inv[col.id]}
+                                                            </TableCell>
+                                                        ))}
+                                                    </TableRow>
+                                                ))
+                                            )}
+                                        </TableBody>
+                                    </Table>
+                                </TableContainer>
+                                
+                                {ledger.length > 0 && (
+                                    <TablePagination
+                                        rowsPerPageOptions={[5, 10, 25]}
+                                        component="div"
+                                        count={ledger.length}
+                                        rowsPerPage={ledgerPagination.rowsPerPage}
+                                        page={ledgerPagination.page}
+                                        onPageChange={ledgerPagination.handleChangePage}
+                                        onRowsPerPageChange={ledgerPagination.handleChangeRowsPerPage}
+                                        sx={{ borderTop: 'none', mt: 1 }}
+                                    />
+                                )}
+                            </>
+                        )}
                     </DashboardCard>
                 </Box>
 
@@ -549,7 +680,7 @@ export const AdminRevenue = () => {
     // ── Page Shell ───────────────────────────────────────────────────────
     return (
         <Box sx={{ display: 'flex', flexDirection: 'column', gap: { xs: 2.5, md: 4 } }}>
-            <AdminPageHeader
+            <PageHeader
                 title="Financial Control & Billing Oversight"
                 subtitle="Monitor hospital revenue splits, panel coverage, outstanding collections, and FBR withholding compliance."
                 onRefresh={handleSyncAll}
@@ -597,4 +728,4 @@ export const AdminRevenue = () => {
     );
 };
 
-export default AdminRevenue;
+export default Revenue;
